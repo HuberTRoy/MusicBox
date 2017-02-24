@@ -1,0 +1,163 @@
+QFrame{
+    background: #222225;
+    padding-left: 15px; 
+}
+
+QPushButton{
+    background: none;
+    border: none;
+    width: 32px;
+    height: 32px;
+    margin: 10px;
+}
+
+QPushButton#reverseButton {
+    border-image: url('resource/reverse.png');
+    width: 28px;
+    height: 28px;
+}
+
+QPushButton#reverseButton:hover {
+    border-image: url('resource/reverse_hover.png');
+}
+
+QPushButton#playButton {
+    border-image: url('resource/play.png');
+}
+
+QPushButton#playButton:hover {
+    border-image: url('resource/play_hover.png');
+}
+
+
+QPushButton#pauseButton {
+    border-image: url('resource/pause.png');
+}
+
+QPushButton#pauseButton:hover {
+    border-image: url('resource/pause_hover.png');
+}
+
+QPushButton#nextButton {
+    border-image: url('resource/next.png');
+    width: 28px;
+    height: 28px;
+}
+
+QPushButton#nextButton:hover {
+    border-image: url('resource/next_hover.png');
+}
+
+QPushButton#volume {
+    width: 20px;
+    height: 20px;
+    border-image: url('resource/volume.png');
+}
+
+QPushButton#volume:hover {
+    border-image: url('resource/volume_hover.png');
+}
+
+QPushButton#no_volume {
+    width: 20px;
+    height: 20px;
+    border-image: url('resource/no_volume.png');
+}
+
+QPushButton#no_volume:hover {
+    border-image: url('resource/no_volume_hover.png');
+}
+
+QPushButton#single {
+    width: 16px;
+    height: 16px;
+    border-image: url("resource/single.png");
+}
+
+QPushButton#single:hover {
+    border-image: url('resource/single_hover.png');
+}
+
+QPushButton#repeat {
+    width: 16px;
+    height: 16px;
+    border-image: url("resource/repeat.png");
+}
+
+QPushButton#repeat:hover {
+    border-image: url('resource/repeat_hover.png');
+}
+
+QPushButton#shuffle {
+    width: 16px;
+    height: 16px;
+    border-image: url("resource/shuffle.png");
+}
+
+QPushButton#shuffle:hover {
+    border-image: url('resource/shuffle_hover.png');
+}
+
+QPushButton#playlist {
+    width: 16px;
+    height: 16px;
+    border-image: url('resource/playlist.png');
+}
+
+QPushButton#playlist:hover {
+    border-image: url('resource/playlist_hover.png');
+}
+
+QLabel {
+    font: bold;
+    color: #D8D9E0;
+}
+
+
+QSlider#slider::groove:horizontal {
+    height: 4px;
+    width: 440px;
+    border: 1px solid #222225;
+    border-radius: 2px;
+    background: #18181A;
+}
+
+QSlider#slider::handle:horizontal {
+    background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.159, fx:0.5, fy:0.5, stop:0.806818 rgba(184, 37, 37, 255), stop:1 rgba(255, 255, 255, 255));
+    width: 14px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+    border-radius: 7.4px;
+}
+
+QSlider#slider::handle:horizontal:hover {
+    background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.862, fx:0.5, fy:0.5, stop:0.1009091 rgba(188, 49, 49, 255), stop:0.107955 rgba(188, 49, 49, 255), stop:0.119318 rgba(196, 79, 79, 255), stop:0.130682 rgba(255, 222, 119, 255), stop:0.920904 rgba(235, 235, 235, 255), stop:0.99435 rgba(255, 255, 255, 255));
+}
+
+QSlider#slider::sub-page:horizontal{
+    border: 1px solid #222225;
+    border-radius: 2px;
+    background: #B82525;
+}
+
+QSlider#volumeSlider::groove:horizontal {
+    height: 4px;
+    width: 80px;
+    border: 1px solid #222225;
+    border-radius: 2px;
+    background: #18181A;
+}
+
+QSlider#volumeSlider::handle:horizontal {
+    background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.159, fx:0.5, fy:0.5, stop:0.806818 rgba(184, 37, 37, 255), stop:1 rgba(255, 255, 255, 255));
+    width: 14px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+    border-radius: 7.4px;
+}
+
+QSlider#volumeSlider::sub-page:horizontal{
+    border: 1px solid #222225;
+    border-radius: 2px;
+    background: #B82525;
+}

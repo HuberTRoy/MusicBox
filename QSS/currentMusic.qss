@@ -1,0 +1,29 @@
+QFrame#currentMusic {
+    background: #191B1F;
+    border: none;
+    border-right: 1px solid #23262C;
+    border-top: 1px solid #23262C;
+}
+
+QFrame#short {
+    background: #191B1F;
+    border: none;
+    border-right: 1px solid #23262C;
+    border-top: 1px solid #23262C;
+}
+
+QFrame#detail {
+    background: #191B1F;
+    border: none;
+    border-right: 1px solid #23262C;
+    border-top: 1px solid #23262C;
+}
+
+QPushButton {
+    border: none;
+}
+
+QLabel {
+    color: white;
+    font: bold;
+}

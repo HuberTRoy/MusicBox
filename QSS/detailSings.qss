@@ -1,0 +1,122 @@
+QFrame {
+    background: #16181C;
+    border: none;
+}
+
+QLabel {
+    color: #DCDDE4;
+    font-family: "宋体";
+}
+
+QLabel#titleLabel {
+    font: bold;
+}
+
+QLabel#authorName {
+    color: #828385;
+    font-size: 9pt;
+    /*margin-bottom: 5px;*/
+}
+
+QLabel#descriptionLabel {
+    font-size: 10pt;
+    font: bold;
+}
+
+QPushButton#showButton {
+    border: 1px;
+    border-radius: 1px;
+    background: #B82525;
+    padding: 2px;
+    color: white;
+}
+
+QPushButton#playAllButton {
+    background: #25272B;
+    border: 2px;
+    border-radius: 1px;
+    padding: 5px 2px; 
+    color: white;
+}
+
+QPushButton#descriptionButton {
+    border: none;
+    background: none;
+    color: white;
+    font: 9pt;
+}
+
+QPushButton#playAllButton:hover {
+    background: #2C2E32;
+}
+
+QTabWidget {
+    background: #16181c;
+    border: none;
+    margin-right: 5px;
+}
+
+QTabWidget::pane {
+    background: #16181c;
+    border-top: 1px solid #B82525; 
+    padding-top: 10px;
+}
+
+QTabBar::tab{
+    width: 70px;
+    padding: 10px;
+    color: gray;
+    font-size: 13px;
+    font-weight: bold;
+    background: #16181c;
+}
+
+QTabBar::tab:hover{
+    color: #DCDDE4;
+}
+
+QTabBar::tab:selected{
+    background: #B82525;
+    color: #DCDDE4;
+}
+
+QTabWidget::tab-bar{
+    alignment: left;
+}
+
+QTableWidget {
+    background: #16181C;
+    alternate-background-color: #1A1C20;
+    border: none;
+    color: #DCDDE4;
+}
+
+QTableWidget::item {
+    border: none;
+    outline: none;
+    outline-style: none;
+}
+
+QTableWidget::item:hover {
+    background: #313337;
+}
+
+QTableWidget::item:selected {
+    background: #313337;
+}
+
+QAbstractItemView {
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #16181C;
+    color: white;
+    border: none;
+    padding: 4px;
+    border-right: 1px solid #23262C;
+}
+
+QHeaderView::section:hover {
+    background-color: #232529;
+}

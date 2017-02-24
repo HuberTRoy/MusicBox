@@ -1,0 +1,46 @@
+QFrame {
+    background: #282A2E;
+}
+
+QPushButton {
+    background: none;
+    border: none;
+    color: #828385;
+    font: bold;
+    font-size: 18px;
+}
+
+QTableWidget {
+    background: #2D2F33;
+    alternate-background-color: #303236;
+    border: none;
+    border-top: 1px solid #343437;
+    color: #DCDDE4;
+}
+
+QTableWidget::item {
+    border: none;
+    outline: none;
+    outline-style: none;
+}
+
+QTableWidget::item:hover {
+    background: #313337;
+}
+
+QTableWidget::item:selected {
+    background: #313337;
+}
+
+QAbstractItemView {
+    outline: none;
+}
+
+QMenu {
+    background: #302F33;
+    color: #D1D1D7;
+}
+
+QMenu::item:selected {
+    background: #3B3A3D;
+}

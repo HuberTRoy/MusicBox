@@ -1,0 +1,75 @@
+QFrame#allSings {
+    background: #16181C;
+    border: none;
+}
+
+QFrame {
+    background: #16181C;
+    border: none;
+}
+
+QFrame#frame {
+    padding-left: 15px;
+    padding-right: 20px;
+}
+
+QFrame#oneSing {
+    margin-bottom: 20px;
+}
+
+QScrollArea {
+    background: #16181C;
+    border: none;
+}
+
+QLabel {
+    color: #807E8D;
+    font: 75 16pt "华文行楷";
+}
+
+QPushButton#TipButton {
+    border: none;
+    color: #807E8D;
+}
+
+QPushButton#TipButton:hover {
+    color: #C8DDE4;
+}
+
+QTabWidget#contentsTab {
+    background: #16181c;
+    border: none;
+    margin-right: 5px;
+}
+
+QTabWidget#contentsTab::pane {
+    background: #16181c;
+    border-top: 1px solid #2E3033; 
+    padding-top: 10px;
+}
+
+QTabBar::tab{
+    width: 70px;
+    margin: 8px;
+    margin-bottom: 0px;
+    padding: 5px;
+    padding-bottom: 20px;
+    color: gray;
+    font-size: 13px;
+    font-weight: bold;
+    background: #16181c;
+}
+
+QTabBar::tab:hover{
+    color: #DCDDE4;
+}
+
+QTabBar::tab:selected{
+/*    background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.915, stop:0 rgba(105, 105, 105, 255), stop:1 rgba(34, 34, 37, 255));*/
+    background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.915, stop:0 rgba(105, 105, 105, 255), stop:1 rgba(22,24,28 255));
+    color: #DCDDE4;
+}
+
+QTabWidget#contentsTab::tab-bar{
+    alignment: center;
+}
