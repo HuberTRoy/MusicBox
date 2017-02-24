@@ -42,8 +42,12 @@ class NetWorkThread(QNetworkAccessManager):
         # 该标记表示此函数处于工作中。
         self.picFinished = False
 
-        cacheList = os.listdir('cache')
-        
+        try:
+            cacheList = os.listdir('cache')
+        except:
+            os.mkdir('cache')
+            cacheList = os.listdir('cache')
+
         # self.offset一次30，但有可能在两次都没加载完时做了两次下拉，这样剩余的url其实是60个，
         # 那么就要进行60次。
         for i in range(len(self.url[self.offset:])):
