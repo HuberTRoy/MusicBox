@@ -1,9 +1,9 @@
 # MusicPlayer
 ## 主要用于学习，制作一个漂亮的界面。完全模仿网易云音乐，真的很好看呀~。
 
-> Python3.4+
-> PyQt5.5+
-> 合适的requests.
+> Python3.4+ <br />
+> PyQt5.5+ <br />
+> requests. <br />
 
 
 ### 目前很多功能没有添加。
