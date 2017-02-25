@@ -1,2 +1,2 @@
 # MusicPlayer
-readme暂未编辑。
+## 主要用于学习
