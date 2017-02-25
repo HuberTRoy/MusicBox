@@ -1,2 +1,19 @@
 # MusicPlayer
-## 主要用于学习
+## 主要用于学习，制作一个漂亮的界面。完全模仿网易云音乐，真的很好看呀~。
+
+### 目前很多功能没有添加。
+
+#### 存在的问题:
+> 本地音乐可以播放不过需要手动在源码里添加。
+> 目前无法登陆。
+> 目前无法获取个人歌单。
+> 目前没有某项音乐的详细信息。
+> 目前没有搜索功能。
+
+歌单完善:
+<img src="/HuberTRoy/MusicPlayer/blob/master/testpic/0.jpg" />
+<img src="/HuberTRoy/MusicPlayer/blob/master/testpic/1.jpg" />
+<img src="/HuberTRoy/MusicPlayer/blob/master/testpic/4.jpg" />
+<img src="/HuberTRoy/MusicPlayer/blob/master/testpic/3.jpg" />
+
+# 持续更新ing...
