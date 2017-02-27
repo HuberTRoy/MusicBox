@@ -75,6 +75,15 @@ class Window(QWidget):
         
         self.mainContents.setCurrentIndex(0)
 
+    def addTab(self, widget, name=''):
+        self.mainContents.addTab(widget, name)
+
+    def allTab(self):
+        return self.mainContents.count()
+
+    def setTabIndex(self, index):
+        self.mainContents.setCurrentIndex(index)
+
     def setLines(self):
         """设置布局小细线。"""
         self.line1 = QFrame(self)
@@ -408,6 +417,8 @@ class MainContent(ScrollArea):
 
     def addTab(self, widget, name=''):
         self.tab.addTab(widget, name)
+
+
 
 # # ---上面是基本部件。
 
