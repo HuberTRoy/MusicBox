@@ -1,4 +1,4 @@
-"""包含音乐的组件。"""
+"""包含音乐的组件, 显示用信息, 一个自定义可HOVER整行效果的TableWidget。"""
 __author__ = 'cyrbuzz'
 
 from PyQt5.QtWidgets import *
@@ -549,6 +549,8 @@ class Player(QMediaPlayer):
         self.durationChanged.connect(self.countTimeEvent)
         self.positionChanged.connect(self.positionChangedEvent)
         self.stateChanged.connect(self.stateChangedEvent)
+        # self.currentMediaChanged.connect(self.currentMediaChangedEvent)
+        # self.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
 
     def setMusic(self, url, data):
         """设置当前的音乐，可用直接用网络链接。"""
@@ -600,6 +602,12 @@ class Player(QMediaPlayer):
         """"""
         if self.state() == 0 and self.playList.mediaCount() == 0 and self.playWidgets.pauseButton.isVisible():
             self.playWidgets.stopEvent(self)
+
+    # def mediaStatusChangedEvent(self, status):
+        """"""
+        # 8是无效音频。
+        # if status == 8:
+            # print(self.playList.currentIndex(), "当前下标")
 
 
 """自定义的QTableWidget, 做了hover一整行的操作，和右键菜单。"""
@@ -762,7 +770,7 @@ class _MediaPlaylist(QMediaPlaylist):
         # 用于记录歌曲的信息。
         self.mediaList = {}
 
-        self.currentIndexChanged.connect(self.tabSing) 
+        self.currentMediaChanged.connect(self.tabSing) 
 
     def addMedias(self, url, data):
         # url为QMediaContent, data包含这个歌曲的信息。{name, author, url}
@@ -790,14 +798,20 @@ class _MediaPlaylist(QMediaPlaylist):
         
         # 
         currentMedia = self.media(row)
+        # duration = self.parent.duration()
+
+        # print(duration)
+        # if currentMedia.isNull():
+        #     print(1)
+
         if currentMedia in self.removeList:
             self.next()
             return
 
         indexUrl = currentMedia.canonicalUrl().toString()
+        # print(indexUrl)
         name = self.mediaList[indexUrl]['name']
         author = self.mediaList[indexUrl]['author']
         # name = self.playWidgets.playList.playList.item(row, 0).text()
         # author = self.playWidgets.playList.playList.item(row, 1).text()
-        
         self.playWidgets.currentMusic.setShortInfo(name, author)

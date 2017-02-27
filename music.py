@@ -12,13 +12,15 @@
 
 __author__ = 'cyrbuzz'
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+# from PyQt5.QtWidgets import *
+# from PyQt5.QtCore import *
+# from PyQt5.QtGui import *
 
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
+# from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
+from base import *
 from player import *
+from native import NativeMusic
 
 import sys
 import random
@@ -29,47 +31,6 @@ import netEaseApi
 
 # netEaseApi
 netEase = netEaseApi.NetEaseWebApi()
-
-"""一个用于继承的类，方便多次调用。"""
-class ScrollArea(QScrollArea):
-    """包括一个ScrollArea做主体承载一个QFrame的基础类。"""
-    scrollDown = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super(ScrollArea, self).__init__()
-        self.parent = parent
-        self.frame = QFrame()
-        self.frame.setObjectName('frame')
-        # 用于发出scroll滑到最底部的信号。
-        self.verticalScrollBar().valueChanged.connect(self.sliderPostionEvent)
-
-        self.setWidgetResizable(True)
-
-        self.setWidget(self.frame)
-
-
-    def noInternet(self):
-        # 设置没有网络的提示。
-        self.noInternetLayout = QGridLayout()
-        self.setLayout(self.mainLayout)
-
-        self.Tip = QLabel("您已进入没有网络的异次元，打破次元壁 →", self)
-        self.TipButton = QPushButton("打破次元壁", self)
-        self.TipButton.setObjectName("TipButton")
-
-        self.TipLayout = QHBoxLayout()
-        self.TipLayout.addWidget(self.Tip)
-        self.TipLayout.addWidget(self.TipButton)
-
-        # self.indexAllSings.setLayout(self.TipLayout)
-
-        self.noInternetLayout.addLayout(self.TipLayout, 0, 0, Qt.AlignCenter|Qt.AlignTop)
-
-        self.frame.setLayout(self.noInternetLayout)
-
-    def sliderPostionEvent(self):
-        if self.verticalScrollBar().value() == self.verticalScrollBar().maximum():
-            self.scrollDown.emit()
 
 
 """用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。"""
@@ -88,23 +49,31 @@ class Window(QWidget):
         self.header = Header(self)
         self.navigation = Navigation(self)
         self.playWidgets = PlayWidgets(self)
+        self.mainContent = MainContent(self)
+        self.nativeMusic = NativeMusic(self)
         # self.player = Player(self)
 
         self.mainContents = QTabWidget()
         self.mainContents.tabBar().setObjectName("mainTab")
-        # 将需要切换的窗口做成Tab，并隐藏tabBar，这样方便切换，并且可以做前进后退功能。
-        self.mainContent = MainContent(self)
-        # 他的父窗口为什么是mainContent是历史问题。暂不需要修改。
-        self.detailSings = DetailSings(self.mainContent)
-        self.mainContents.addTab(self.mainContent, '')
-        self.mainContents.addTab(self.detailSings, '')
-        self.mainContents.setCurrentIndex(0)
 
-
+        # 加载tab设置。
+        self.setContents()
         # 设置布局小细线。
         self.setLines()
         # 设置布局。
         self.setLayouts()
+
+    def setContents(self):
+        """设置tab界面。"""
+        # 将需要切换的窗口做成Tab，并隐藏tabBar，这样方便切换，并且可以做前进后退功能。
+        # 他的父窗口为什么是mainContent是历史问题。暂不需要修改。
+        self.detailSings = DetailSings(self.mainContent)
+        self.mainContents.addTab(self.mainContent, '')
+        self.mainContents.addTab(self.detailSings, '')
+        self.mainContents.addTab(self.nativeMusic, '')
+        self.navigation.nativeListFunction = lambda: self.mainContents.setCurrentIndex(2)
+        
+        self.mainContents.setCurrentIndex(0)
 
     def setLines(self):
         """设置布局小细线。"""
@@ -436,12 +405,9 @@ class MainContent(ScrollArea):
         if self.parent.navigation.navigationList.currentRow() == 0:
             # 发现音乐。
             self.parent.mainContents.setCurrentIndex(0)
-            # if not isVisible:
-            #     # 且被隐藏了。
-            #     if self.detailSings.isVisible():
-            #         self.detailSings.hide()
-            #         self.tab.show()
 
+    def addTab(self, widget, name=''):
+        self.tab.addTab(widget, name)
 
 # # ---上面是基本部件。
 
@@ -594,7 +560,7 @@ class DetailSings(ScrollArea):
     def __init__(self, parent=None):
         super(DetailSings, self).__init__(self)
 
-        self.hide()
+        # self.hide()
         self.parent = parent
         self.setObjectName('detailSings')
         with open('QSS/detailSings.qss', 'r', encoding='utf-8') as f:
@@ -726,15 +692,22 @@ class DetailSings(ScrollArea):
         self.singsTable.setRowCount(4)
 
 
-# ---下面是子部件里面的子部件。
 """一个用于承载歌单简单信息的QFrame。"""
 class OneSing(QFrame):
 
     def __init__(self, row, column, ids=None, parent=None):
         super(OneSing, self).__init__()
-        self.parent = parent
-        self.detailFrame = self.parent.parent.parent.detailSings
-        self.transTime = self.parent.transTime
+        if parent:
+            self.parent = parent
+            self.ggparent = self.parent.parent.parent
+            self.detailFrame = self.ggparent.detailSings
+            self.transTime = self.parent.transTime
+        else:
+            self.parent = None
+            self.ggparent = None
+            self.detailFrame = None
+            self.transTime = None
+            
         self.setObjectName('oneSing')
         # 自己的位置信息。
         self.row = row
@@ -795,8 +768,11 @@ class OneSing(QFrame):
         self.detailFrame.authorName.setText(result['creator']['nickname'])
         # 简介有些太长了，暂时只截取前107个字符。
         description = result['description']
+        # 有些没有简介会报错的。
+        if not description:
+            description = ''
         self.detailFrame.descriptionLabel.setText(description[:107])
-        # 这边添加歌曲到table。
+        # 这边添加歌曲的信息到table。
         self.detailFrame.singsTable.setRowCount(result['trackCount'])
         for i, j in zip(result['tracks'], range(result['trackCount'])):
             names = i['name']
@@ -816,57 +792,7 @@ class OneSing(QFrame):
         self.parent.singsThread.finished.disconnect()
         
         # 隐藏原来的区域，显示现在的区域。
-        self.parent.parent.parent.mainContents.setCurrentIndex(1)
-        # self.parent.parent.tab.hide()
-        # self.detailFrame.show()
-
-
-# ---下面是线程，包括网络线程和时钟线程。
-class RequestThread(QThread):
-    """异步请求，类似Pyhton封装的Thread形式，用QThread在简单封装一下。"""
-    def __init__(self, parent=None, target=None, *args, **kwargs):
-        super(RequestThread, self).__init__()
-
-        self.parent = parent
-        self.args = args
-        self.kwargs = kwargs
-        self.target = target
-        self.flag = False
-
-    def run(self):
-        self.target(*self.args, **self.kwargs)
-
-    def setTarget(self, target=None):
-        """方便多次调用。"""
-        self.target = target
-
-    def setArgs(self, *args, **kwargs):
-        """方便多次调用。"""
-        self.args = args
-        self.kwargs = kwargs
-
-    def setFlag(self, flag):
-        self.flag = flag
-
-
-class Timer(QThread):
-    # 一个无限循环的时钟，只有特定的条件才会解锁。
-    def __init__(self, var=None, parent=None):
-        super(Timer, self).__init__()
-        self.parent = parent
-        self.var = var
-        self.times = 0
-
-    def run(self):
-        while 1:
-            if self.var:
-                self.var = False
-                break
-            self.sleep(0.1)
-
-    def setVar(self, value):
-        """设置变量。"""
-        self.var = value
+        self.ggparent.mainContents.setCurrentIndex(1)
 
 
 if __name__ == '__main__':
