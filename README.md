@@ -22,6 +22,7 @@
 > 目前无法获取个人歌单。<br />
 > 目前无法登陆。<br />
 > 大部分的网络异常没有考虑。 <br />
+> 如果音频无效不会做出提示。 <br />
 
 歌单完善:
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/0.jpg" />
