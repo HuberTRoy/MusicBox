@@ -97,7 +97,7 @@ class NativeMusic(ScrollArea):
 
                 time = itv2time(temp.info.time_secs)
 
-                self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1]})
+                self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
                 self.singsTable.setItem(i[0], 0, QTableWidgetItem(name))
                 self.singsTable.setItem(i[0], 1, QTableWidgetItem(author))
                 self.singsTable.setItem(i[0], 2, QTableWidgetItem(time))

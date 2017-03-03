@@ -55,6 +55,14 @@ class Window(QWidget):
 
         self.mainContents = QTabWidget()
         self.mainContents.tabBar().setObjectName("mainTab")
+        self.mainContents.currentChanged.connect(self.addTabHistory)
+        # 用于存储Tab的历史，方便前后切换。
+        # 只存储5个，不考虑效率问题。
+        self.history = []
+        self.currentIndex = -1
+        # 前后切换时也会触发currentChanged信号，
+        # 前后切换时不允许增加新的历史也不允许删除旧的历史。
+        self.isTab = False
 
         # 加载tab设置。
         self.setContents()
@@ -83,6 +91,39 @@ class Window(QWidget):
 
     def setTabIndex(self, index):
         self.mainContents.setCurrentIndex(index)
+
+    def addTabHistory(self, index):
+        length = len(self.history)
+        if not self.isTab:
+            if length < 5:
+                self.history.append(index)
+            else:
+                self.history.pop(0)
+                self.history.append(index)
+            # 不是前后切换时将当前的索引定为末尾一个。
+            self.currentIndex = length
+        else:
+            self.isTab = False
+            
+
+    def prevTab(self):
+        # 前一个的切换。
+        if self.currentIndex == 0 or self.currentIndex == -1:
+            return
+        else:
+            self.isTab = True
+            self.currentIndex -= 1
+            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
+
+    def nextTab(self):
+        # 后一个的切换。
+
+        if self.currentIndex  == len(self.history)-1 or self.currentIndex == -1:
+            return
+        else:
+            self.isTab = True
+            self.currentIndex += 1
+            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
 
     def setLines(self):
         """设置布局小细线。"""
@@ -135,7 +176,7 @@ class Header(QFrame):
         self.setObjectName('Header')
 
         self.parent = parent
-        with open('QSS/header.qss', 'r') as f:
+        with open('QSS/header.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
         # 加载按钮设置。
@@ -165,6 +206,17 @@ class Header(QFrame):
         self.loginButton = QPushButton("未登录 ▼", self)
         self.loginButton.setObjectName("loginButton")
 
+        self.prevButton = QPushButton("<")
+        self.prevButton.setObjectName("prevButton")
+        self.prevButton.setMaximumSize(28, 22)
+        self.prevButton.setMinimumSize(28, 22)
+        self.prevButton.clicked.connect(self.parent.prevTab)
+
+        self.nextButton = QPushButton(">")
+        self.nextButton.setObjectName("nextButton")
+        self.nextButton.setMaximumSize(28, 22)
+        self.nextButton.setMinimumSize(28, 22)
+        self.nextButton.clicked.connect(self.parent.nextTab)
 
     def setLabels(self):
         """创建所需的所有标签。"""
@@ -197,9 +249,13 @@ class Header(QFrame):
     def setLayouts(self):
         """设置布局。"""
         self.mainLayout = QHBoxLayout()
+        self.mainLayout.setSpacing(0)
         self.mainLayout.addWidget(self.logoLabel)
         self.mainLayout.addWidget(self.descriptionLabel)
-        self.mainLayout.addSpacing(100)
+        self.mainLayout.addSpacing(70)
+        self.mainLayout.addWidget(self.prevButton)
+        self.mainLayout.addWidget(self.nextButton)
+        self.mainLayout.addSpacing(10)
         self.mainLayout.addWidget(self.searchLine)
         # self.mainLayout.addWidget(self.searchButton)
         self.mainLayout.addStretch(1)
@@ -502,7 +558,8 @@ class NetEaseSingsArea(QFrame):
         # 先生成QFrame，并附上名字，图片稍后再获取。
         for i in range(30):
             i += self.offset
-            frame = OneSing(self.gridRow, self.gridColumn, self.singIds[i], self)
+            picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
+            frame = OneSing(self.gridRow, self.gridColumn, self.singIds[i], self, picName)
             frame.nameLabel.setText(self.singNames[i])
             
             # 建立起索引，一是防止垃圾回收了，二是可以找到他的地址。
@@ -706,7 +763,7 @@ class DetailSings(ScrollArea):
 """一个用于承载歌单简单信息的QFrame。"""
 class OneSing(QFrame):
 
-    def __init__(self, row, column, ids=None, parent=None):
+    def __init__(self, row, column, ids=None, parent=None, picName=None):
         super(OneSing, self).__init__()
         if parent:
             self.parent = parent
@@ -725,7 +782,9 @@ class OneSing(QFrame):
         self.column = column
         # 歌单号。
         self.ids = ids
-        
+        # 大图的缓存名。
+        self.picName = picName
+
         self.setMinimumSize(180, 235)
 
         self.picLabel = QLabel(self)
@@ -774,7 +833,7 @@ class OneSing(QFrame):
         self.detailFrame.musicList = []
         self.detailFrame.singsTable.clearContents()
         # 一些信息，包括展示大图，标题，创建者，简介。
-        self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%d.jpg); padding: 10px;}'''%(self.ids))
+        self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
         self.detailFrame.titleLabel.setText(result['name'])
         self.detailFrame.authorName.setText(result['creator']['nickname'])
         # 简介有些太长了，暂时只截取前107个字符。
@@ -798,7 +857,9 @@ class OneSing(QFrame):
             musicTime = QTableWidgetItem(times)
             self.detailFrame.singsTable.setItem(j, 2, musicTime)
 
-            self.detailFrame.musicList.append({'url': i['mp3Url'], 'name': names, 'time':times, 'author':author})
+            music_img = i['album']['blurPicUrl']
+
+            self.detailFrame.musicList.append({'url': i['mp3Url'], 'name': names, 'time':times, 'author':author, 'music_img': music_img})
 
         self.parent.singsThread.finished.disconnect()
         

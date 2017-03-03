@@ -6,6 +6,10 @@ from PyQt5.QtGui import QBrush, QColor, QIcon, QCursor
 from PyQt5.QtCore import QUrl, QSize, Qt
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
+from network import NetWorkThread
+
+import os
+
 import addition
 
 """底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。"""
@@ -228,7 +232,7 @@ class PlayWidgets(QFrame):
         # 添加显示播放列表的显示项。
         self.playList.addPlayList(data['name'], data['author'], data['time'])
         # 更改当前音乐的信息。
-        self.currentMusic.setShortInfo(data['name'], data['author'])
+        self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
         # 添加歌曲到播放器。
         # index = len(self.playList.musicList)
         index = self.player.playList.mediaCount()
@@ -392,7 +396,10 @@ class CurrentMusic(QFrame):
         # 将窗口提前并激活窗口。
         self.raise_()
         self.activateWindow()
-        
+
+        self.picManager = NetWorkThread(self)
+        self.picManager.saveFinished.connect(self.setMusicPic)
+
         self.shortInfo = CurrentMusicShort(self)
         self.detailInfo = CurrentMusicDetail(self)
 
@@ -406,8 +413,28 @@ class CurrentMusic(QFrame):
 
     def setShortInfo(self, name=None, author=None, pic=None):
         """方便设置信息。"""
+        if pic:
+            cacheList = os.listdir('cache')
+            picName = pic[pic.rfind('/')+1:]
+            if picName in cacheList:
+                self.setMusicPic(picName)
+            else:
+                # 历史问题。
+                self.picManager.offset = 0
+                self.picManager.currentUrl = -1
+                self.picManager.setUrl([pic])
+                self.picManager.startGet()
+
         self.shortInfo.musicName.setText(name)
         self.shortInfo.musicAuthor.setText(author)
+
+    def setMusicPic(self, name='None'):
+        if name != 'None':
+            self.shortInfo.musicPic.setIcon(QIcon('cache/%s'%(name)))
+            self.shortInfo.musicPic.setIconSize(QSize(64, 64))
+        else:
+            self.shortInfo.musicPic.setIcon(QIcon('resource/no_music.png'))
+            self.shortInfo.musicPic.setIconSize(QSize(64, 64))
 
     def setDetailInfo(self):
         pass
@@ -460,7 +487,7 @@ class CurrentMusicShort(QFrame):
 
         self.setLayouts()
 
-        self.test()
+        self.init()
 
     def setLabels(self):
         self.musicName = QLabel(self)
@@ -500,13 +527,13 @@ class CurrentMusicShort(QFrame):
         self.setLayout(self.mainLayout)
 
 
-    def test(self):
+    def init(self):
         """测试用组件，包括音乐图片，音乐名和音乐作者。"""
         # self.musicPic.setStyleSheet("""QPushButton#musicPic {background-image: url(resource/no_music.png);}""")
         self.musicPic.setIcon(QIcon('resource/no_music.png'))
         self.musicPic.setIconSize(QSize(64, 64))
-        self.musicName.setText("In The Endddddddddddddddd")
-        self.musicAuthor.setText("In The EnddddddddddddddaaaInBackaaaaaaadd")
+        self.musicName.setText("Enjoy it")
+        self.musicAuthor.setText("Enjoy it")
 
     # def mouseMoveEvent(self, event):
         # self.mask = QPixmap('resource/music_mask.png')
@@ -798,11 +825,6 @@ class _MediaPlaylist(QMediaPlaylist):
         
         # 
         currentMedia = self.media(row)
-        # duration = self.parent.duration()
-
-        # print(duration)
-        # if currentMedia.isNull():
-        #     print(1)
 
         if currentMedia in self.removeList:
             self.next()
@@ -812,6 +834,5 @@ class _MediaPlaylist(QMediaPlaylist):
         # print(indexUrl)
         name = self.mediaList[indexUrl]['name']
         author = self.mediaList[indexUrl]['author']
-        # name = self.playWidgets.playList.playList.item(row, 0).text()
-        # author = self.playWidgets.playList.playList.item(row, 1).text()
-        self.playWidgets.currentMusic.setShortInfo(name, author)
+        pic = self.mediaList[indexUrl]['music_img']
+        self.playWidgets.currentMusic.setShortInfo(name, author, pic)

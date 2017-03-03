@@ -1,5 +1,5 @@
 QPushButton{
-    border: 0;
+    border: none;
     font: bold;
     font-size: 18px;
 }
@@ -21,8 +21,18 @@ QPushButton#closeButton::hover, QPushButton#minButton::hover {
     color: #DCDDE4;
 }
 
+QPushButton#prevButton, QPushButton#nextButton {
+    border: 1px solid #17171A;
+    color: #454548;
+    font: 75 16pt "System";
+}
+
+QPushButton#prevButton::hover, QPushButton#nextButton::hover {
+    background: #23262C;
+}
+
 QLabel{
-    font: 75 14pt "Agency FB";;
+    font: 75 14pt "Agency FB";
     color: #FFFFFF;
 }
 

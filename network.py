@@ -4,11 +4,15 @@ from PyQt5.QtCore import QThread, QObject, QUrl, QEventLoop, pyqtSignal, pyqtSlo
 from PyQt5.QtGui import QPixmap
 import os
 
+# 3/3
+# 设计的不好，本来想设计成<img src='1'> 这样的形式，写着写着就变成了老方法。
+# 目前不是主要考虑对象，暂时不修改。
 
 class NetWorkThread(QNetworkAccessManager):
     """用于下载. url是一个列表，里面放置要下载的东西。"""
     allFinished = pyqtSignal()
-    
+    saveFinished = pyqtSignal(str)
+
     def __init__(self, parent=None, url=None):
         super(NetWorkThread, self).__init__()
 
@@ -16,7 +20,7 @@ class NetWorkThread(QNetworkAccessManager):
         
         self.url = url
         
-        self.currentUlr = url
+        self.currentUrl = url
 
         self.result = []
         
@@ -32,13 +36,13 @@ class NetWorkThread(QNetworkAccessManager):
         """主要用于请求图片。"""
         # currentUlr用于比较，因为是多线程，有两个线程在调用这个函数，
         # 如果两次请求是相同的url，就不会再次请求了。
-        if self.currentUlr == len(self.url):
+        if self.currentUrl == len(self.url):
             return
         
         self.finished.connect(lambda :self.dataInResult(data, widgets, names, index, loop))
         
         # 进行标记，存储上一次的状态。
-        self.currentUlr = len(self.url)
+        self.currentUrl = len(self.url)
         # 该标记表示此函数处于工作中。
         self.picFinished = False
 
@@ -50,13 +54,17 @@ class NetWorkThread(QNetworkAccessManager):
 
         # self.offset一次30，但有可能在两次都没加载完时做了两次下拉，这样剩余的url其实是60个，
         # 那么就要进行60次。
+        # 应该用while 循环做成类似线程池的模式。
+        # 暂时先不改了，不是最紧急的。
         for i in range(len(self.url[self.offset:])):
             index = i+self.offset
             # 检测有没有进行了缓存，有的话就不会再次请求了。
             # 歌单id + 后缀。
-            names = str(self.parent.singIds[index]) + self.url[index][self.url[index].rfind('.'):]
+            # names = str(self.parent.singIds[index]) + self.url[index][self.url[index].rfind('.'):]
+            names = str(self.url[index][self.url[index].rfind('/')+1:])
             if names in cacheList:
-                widgets[index].setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
+                if widgets:
+                    widgets[index].setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
             else:
                 # 没有缓存，继续进行请求并添加到缓存。
                 loop = QEventLoop()
@@ -80,19 +88,24 @@ class NetWorkThread(QNetworkAccessManager):
     def dataInResult(self, data, widgets=None, name='None', index=0, loop=None):
         """默认将请求完成的数据填入result."""
         if data.error() == QNetworkReply.NoError:
+            # 为控件添加图片。
+            datas = data.readAll()
+            # 为控件添加图片。
+            pic = QPixmap()
+            pic.loadFromData(datas)
+            pic.save("cache/{0}".format(name))
+                
             if widgets:
-                # 为控件添加图片。
-                datas = data.readAll()
-                # 为控件添加图片。
-                pic = QPixmap()
-                pic.loadFromData(datas)
-                pic.save("cache/{0}".format(name))
                 widgets[index].setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(name))
 
                 # self.result.append(datas)
         # 释放掉事件锁。
         if loop:
             loop.exit()
+
+        # 发出保存完毕的信号。
+        self.saveFinished.emit(name)
+
 
     def setUrl(self, url=None):
         """设置Url链接。"""
