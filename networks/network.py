@@ -1,6 +1,6 @@
 """主要是网络部分。"""
 from PyQt5.QtNetwork import *
-from PyQt5.QtCore import QThread, QObject, QUrl, QEventLoop, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThread, QObject, QUrl, QEventLoop, QByteArray, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QPixmap
 import os
 
@@ -68,7 +68,11 @@ class NetWorkThread(QNetworkAccessManager):
             else:
                 # 没有缓存，继续进行请求并添加到缓存。
                 loop = QEventLoop()
-                data = self.get(QNetworkRequest(QUrl(self.url[index])))
+                req = QNetworkRequest(QUrl(self.url[index]))
+                # 原以为不是keep-alive，抓包后发现是keep-alive。
+                # 但是感觉请求的还是不快啊。
+                # req.setRawHeader(QByteArray("Connection"), QByteArray('keep-alive'))
+                data = self.get(req)
                 loop.exec()
         
         # 请求完成后清理缓存，已经保存到本地。
