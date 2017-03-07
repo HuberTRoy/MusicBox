@@ -17,13 +17,17 @@ __author__ = 'cyrbuzz'
 # from PyQt5.QtGui import *
 
 # from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
+import sys
+import random
+
+sys.path.append('widgets')
+sys.path.append('networks')
+sys.path.append('Apis')
 
 from base import *
 from player import *
 from native import NativeMusic
 
-import sys
-import random
 
 import network
 import addition
@@ -762,6 +766,12 @@ class DetailSings(ScrollArea):
 
 """一个用于承载歌单简单信息的QFrame。"""
 class OneSing(QFrame):
+    # 大量创建，这样可以省内存。
+    __solts__ = ('parent', 'ggparent', 'detailFrame', 'transTime', 'row', 'column', 'ids',
+     'picName', 'picLabel', 'nameLabel',
+     'mainLayout',
+     'mousePos',
+     'result')
 
     def __init__(self, row, column, ids=None, parent=None, picName=None):
         super(OneSing, self).__init__()
