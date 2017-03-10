@@ -22,7 +22,7 @@ import random
 
 sys.path.append('widgets')
 sys.path.append('networks')
-sys.path.append('Apis')
+sys.path.append('apis')
 
 from base import *
 from player import *
