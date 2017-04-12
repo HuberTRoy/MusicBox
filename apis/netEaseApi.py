@@ -104,11 +104,27 @@ class NetEaseWebApi(HttpRequest):
         html = self.httpRequest(url, method="GET", cookies=self.cookies)
         return html['monthData']
 
+
 if __name__ == '__main__':
     main = NetEaseWebApi()
     # req = main.details_playlist(566527372)
     # print(req)
-    req = main.all_playlist(offset=30)
+    # req = main.all_playlist(offset=30)
+    req = main.search("理想三旬")
+
+    # print(req)
+    for i in req['result']['songs']:
+        print(i)
+        print('\n')
+"""
+{'ftype': 0, 
+'rtype': 0, 
+'alias': [],
+'mvid': 0, 
+'album': {'name': '浓烟下的诗歌电台', 'artist': {'name': '', 'alias': [], 'trans': None, 'picId': 0, 'id': 0, 'img1v1Url': 'http://p3.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'albumSize': 0, 'picUrl': None, 'img1v1': 0}, 'publishTime': 1451491200000, 'copyrightId': 36031, 'id': 3116882, 'size': 8, 'status': 0, 'picId': 109951162849778878}, 'artists': [{'name': '陈鸿宇', 'alias': [], 'trans': None, 'picId': 0, 'id': 1058228, 'img1v1Url': 'http://p3.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'albumSize': 0, 'picUrl': None, 'img1v1': 0}], 'fee': 0, 'name': '理想三旬', 'status': 0, 'copyrightId': 36031, 'duration': 210814, 'id': 31445772, 'rUrl': None}
+
+"""
+    # print(req['result']['songCount'])
     # print(req[0])
     # for i in req:
         # print(i)

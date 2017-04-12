@@ -18,7 +18,6 @@ __author__ = 'cyrbuzz'
 
 # from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 import sys
-import random
 
 sys.path.append('widgets')
 sys.path.append('networks')
@@ -241,6 +240,7 @@ class Header(QFrame):
         """创建搜素框。"""
         self.searchLine = addition.SearchLineEdit(self)
         self.searchLine.setPlaceholderText("搜索音乐, 歌手, 歌词, 用户")
+        self.searchLine.search = self.search
 
     def setLines(self):
         """设置装饰用小细线。"""
@@ -275,6 +275,20 @@ class Header(QFrame):
 
 
         self.setLayout(self.mainLayout)
+
+    def search(self):
+        text = self.searchLine.text()
+        result = netEase.search(text)['result']
+
+        songsCount = result['songCount']
+
+        # 总数是0即没有找到。
+        if not songsCount:
+            pass
+        else:
+            songs = result['songs'] 
+
+
 
     """重写鼠标事件，实现窗口拖动。"""
     def mousePressEvent(self, event):
@@ -716,7 +730,6 @@ class DetailSings(ScrollArea):
 
         self.playList.setPlayerAndPlayList(data)
 
-
     def setLayouts(self):
         self.mainLayout = QVBoxLayout()
 
@@ -875,6 +888,17 @@ class OneSing(QFrame):
         
         # 隐藏原来的区域，显示现在的区域。
         self.ggparent.mainContents.setCurrentIndex(1)
+
+
+"""搜索后的结果显示页。"""
+class SearchArea(ScrollArea):
+
+    def __init__(self, parent=None):
+        super(SearchArea, self).__init__(parent)
+
+    def setData(self, data):
+        pass
+
 
 
 if __name__ == '__main__':

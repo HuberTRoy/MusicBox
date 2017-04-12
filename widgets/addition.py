@@ -39,6 +39,7 @@ class SearchLineEdit(QLineEdit):
 
         self.button = QPushButton(self)
         self.button.setMaximumSize(13, 13)
+        self.button.clicked.connect(self.search)
         self.button.setCursor(QCursor(Qt.PointingHandCursor))
 
         self.setTextMargins(3, 0, 19, 0)
@@ -52,7 +53,10 @@ class SearchLineEdit(QLineEdit):
         self.mainLayout.addSpacing(10)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mainLayout)
-        
+    
+    def search(self):
+        pass
+
 
 if __name__ == '__main__':
     import sys

@@ -16,7 +16,9 @@ class HttpRequest(object):
     # 使用会话(session)来保持持久连接。
     sessions = requests.session()
 
-    default_timeout = 10
+    # TCP重传需要3秒。
+    default_timeout = 3.05
+    
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Connection': 'keep-alive',
