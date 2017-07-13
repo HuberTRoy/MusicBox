@@ -47,6 +47,42 @@ class ScrollArea(QScrollArea):
             self.scrollDown.emit()
 
 
+class TableWidget(QTableWidget):
+
+    def __init__(self, count, headerLables):
+        super(TableWidget, self).__init__()
+        self.setColumnCount(count)
+        self.setHorizontalHeaderLabels(headerLables)
+
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().setVisible(False)
+        self.setShowGrid(False)
+        self.setAlternatingRowColors(True)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+    def setColumnWidths(self, widths:dict):
+        for key in widths:
+            self.setColumnWidth(key, widths[key])
+
+# 去除了margin和spacing的布局框。
+class VBoxLayout(QVBoxLayout):
+
+    def __init__(self, *args):
+        super(VBoxLayout, self).__init__(*args)
+
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setSpacing(0)
+
+
+class HBoxLayout(QHBoxLayout):
+
+    def __init__(self, *args):
+        super(HBoxLayout, self).__init__(*args)
+
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setSpacing(0)
+
 
 # ---下面是线程，包括网络线程和时钟线程。
 class RequestThread(QThread):

@@ -54,6 +54,8 @@ class Window(QWidget):
         self.playWidgets = PlayWidgets(self)
         self.mainContent = MainContent(self)
         self.nativeMusic = NativeMusic(self)
+        self.searchArea = SearchArea(self)
+        # self.searchArea.hide()
         # self.player = Player(self)
 
         self.mainContents = QTabWidget()
@@ -77,11 +79,14 @@ class Window(QWidget):
     def setContents(self):
         """设置tab界面。"""
         # 将需要切换的窗口做成Tab，并隐藏tabBar，这样方便切换，并且可以做前进后退功能。
+        
         # 他的父窗口为什么是mainContent是历史问题。暂不需要修改。
         self.detailSings = DetailSings(self.mainContent)
         self.mainContents.addTab(self.mainContent, '')
         self.mainContents.addTab(self.detailSings, '')
         self.mainContents.addTab(self.nativeMusic, '')
+        self.mainContents.addTab(self.searchArea, '')
+
         self.navigation.nativeListFunction = lambda: self.mainContents.setCurrentIndex(2)
         
         self.mainContents.setCurrentIndex(0)
@@ -193,6 +198,24 @@ class Header(QFrame):
         # 加载布局设置。
         self.setLayouts()
 
+    def search(self):
+        text = self.searchLine.text()
+        result = netEase.search(text)['result']
+
+        songsCount = result['songCount']
+
+        # 总数是0即没有找到。
+        if not songsCount:
+            songs = []
+        else:
+            songs = result['songs'] 
+
+        self.parent.searchArea.setText(text)
+
+        self.parent.searchArea.setSingsData(songs)
+
+        self.parent.setTabIndex(3)
+
     def setButtons(self):
         """创建所有的按钮。"""
 
@@ -240,7 +263,7 @@ class Header(QFrame):
         """创建搜素框。"""
         self.searchLine = addition.SearchLineEdit(self)
         self.searchLine.setPlaceholderText("搜索音乐, 歌手, 歌词, 用户")
-        self.searchLine.search = self.search
+        self.searchLine.setButtonSlot(self.search)
 
     def setLines(self):
         """设置装饰用小细线。"""
@@ -275,20 +298,6 @@ class Header(QFrame):
 
 
         self.setLayout(self.mainLayout)
-
-    def search(self):
-        text = self.searchLine.text()
-        result = netEase.search(text)['result']
-
-        songsCount = result['songCount']
-
-        # 总数是0即没有找到。
-        if not songsCount:
-            pass
-        else:
-            songs = result['songs'] 
-
-
 
     """重写鼠标事件，实现窗口拖动。"""
     def mousePressEvent(self, event):
@@ -703,23 +712,25 @@ class DetailSings(ScrollArea):
     def setTabs(self):
         self.contentsTab = QTabWidget(self.frame)
 
-        self.singsTable = QTableWidget()
+        self.singsTable = TableWidget(3, ['音乐标题', '歌手', '时长'])
         self.singsTable.setObjectName('singsTable')
         self.singsTable.setMinimumWidth(self.width())
-        self.singsTable.setColumnCount(3)
-        self.singsTable.setHorizontalHeaderLabels(['音乐标题', '歌手', '时长'])
+        self.singsTable.setColumnWidths({i:j for i,j in zip(range(3), 
+            [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
+        # self.singsTable.setColumnCount(3)
+        # self.singsTable.setHorizontalHeaderLabels(['音乐标题', '歌手', '时长'])
 
-        self.singsTable.setColumnWidth(0, self.width()/3*1.25)
-        self.singsTable.setColumnWidth(1, self.width()/3*1.25)
-        self.singsTable.setColumnWidth(2, self.width()/3*0.5)
-        # self.singsTable.horizontalHeader().setVisible(False)
-        self.singsTable.horizontalHeader().setStretchLastSection(True)
-        self.singsTable.verticalHeader().setVisible(False)
-        self.singsTable.setShowGrid(False)
-        self.singsTable.setAlternatingRowColors(True)
+        # self.singsTable.setColumnWidth(0, self.width()/3*1.25)
+        # self.singsTable.setColumnWidth(1, self.width()/3*1.25)
+        # self.singsTable.setColumnWidth(2, self.width()/3*0.5)
+        # # self.singsTable.horizontalHeader().setVisible(False)
+        # self.singsTable.horizontalHeader().setStretchLastSection(True)
+        # self.singsTable.verticalHeader().setVisible(False)
+        # self.singsTable.setShowGrid(False)
+        # self.singsTable.setAlternatingRowColors(True)
 
-        self.singsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.singsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # self.singsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # self.singsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.singsTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
 
         self.contentsTab.addTab(self.singsTable, "歌曲列表")
@@ -894,11 +905,77 @@ class OneSing(QFrame):
 class SearchArea(ScrollArea):
 
     def __init__(self, parent=None):
-        super(SearchArea, self).__init__(parent)
+        super(SearchArea, self).__init__(self)
+        self.parent = parent
+        self.setObjectName("searchArea")
+        with open('QSS/searchArea.qss', 'r', encoding='utf-8') as f:
+            self.setStyleSheet(f.read())
 
-    def setData(self, data):
-        pass
+        self.mainLayout = QVBoxLayout(self.frame)
 
+        self.transTime = addition.itv2time
+        
+        self.noContents = "<br><br><br><br>, 很抱歉 未能找到关于 <font color='#23518F'>“{0}”</font>的{1}。"
+        
+        self.titleLabel = QLabel(self.frame)
+
+        # 搜索结果的tab。
+        self.contentsTab = QTabWidget(self.frame)
+
+        # 加入布局。
+        self.mainLayout.addWidget(self.titleLabel)
+        self.mainLayout.addWidget(self.contentsTab)
+
+        self.setSingsFrame()
+
+    def setText(self, text):
+        self.text = text
+        self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font>".format(self.text))
+
+    def setSingsFrame(self):
+        # 单曲界面。
+        self.singsFrame = QFrame()
+        self.singsFrameLayout = VBoxLayout(self.singsFrame)
+
+        self.noSingsContentsLabel = QLabel(self.singsFrame)
+        self.noSingsContentsLabel.hide()
+
+        self.singsResultTable = TableWidget(3, ['音乐标题', '歌手', '时长'])
+        self.singsResultTable.setObjectName('singsTable')
+        self.singsResultTable.setMinimumWidth(self.width())
+        self.singsResultTable.setColumnWidths({i:j for i,j in zip(range(3), 
+            [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
+
+        self.singsFrameLayout.addWidget(self.singsResultTable)
+        self.singsFrameLayout.addWidget(self.noSingsContentsLabel)
+
+        self.contentsTab.addTab(self.singsFrame, "单曲")
+
+    def setSingsData(self, data):
+        # 单曲搜索结果。
+
+        if not len(data):
+            # self.contentsTab.addTab()
+            self.noSingsContentsLabel.setText(self.noContents.format(self.text, '单曲'))
+            self.singsResultTable.hide()
+            self.noSingsContentsLabel.show()
+        else:
+            self.singsResultTable.setRowCount(len(data))
+
+            for count, datas in enumerate(data):
+                # id用来获取歌曲的地址。
+                musicId = datas['name']
+
+                name = datas['name']
+                authors = ','.join([t['name'] for t in datas['artists']])
+                duration = self.transTime(datas['duration']/1000)
+
+                self.singsResultTable.setItem(count, 0, QTableWidgetItem(name))
+                self.singsResultTable.setItem(count, 1, QTableWidgetItem(authors))
+                self.singsResultTable.setItem(count, 2, QTableWidgetItem(duration))
+            
+            self.noSingsContentsLabel.hide()
+            self.singsResultTable.show()
 
 
 if __name__ == '__main__':
