@@ -24,6 +24,8 @@
     2. 其他小功能的微调。
     
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/6.jpg" />
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/7.jpg" />
+
 
 ## 2017/3/3 更新:
 > 0. 添加大模块上的前一个后一个。<br />

@@ -915,7 +915,7 @@ class SearchArea(ScrollArea):
 
         self.transTime = addition.itv2time
         
-        self.noContents = "<br><br><br><br>, 很抱歉 未能找到关于 <font color='#23518F'>“{0}”</font>的{1}。"
+        self.noContents = "很抱歉 未能找到关于<font style='text-align: center;' color='#23518F'>“{0}”</font>的{1}。"
         
         self.titleLabel = QLabel(self.frame)
 
@@ -930,7 +930,7 @@ class SearchArea(ScrollArea):
 
     def setText(self, text):
         self.text = text
-        self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font>".format(self.text))
+        self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font><br>".format(self.text))
 
     def setSingsFrame(self):
         # 单曲界面。
@@ -938,6 +938,9 @@ class SearchArea(ScrollArea):
         self.singsFrameLayout = VBoxLayout(self.singsFrame)
 
         self.noSingsContentsLabel = QLabel(self.singsFrame)
+        self.noSingsContentsLabel.setMaximumHeight(60)
+
+        self.noSingsContentsLabel.setObjectName("noSingsLable")
         self.noSingsContentsLabel.hide()
 
         self.singsResultTable = TableWidget(3, ['音乐标题', '歌手', '时长'])
@@ -946,8 +949,14 @@ class SearchArea(ScrollArea):
         self.singsResultTable.setColumnWidths({i:j for i,j in zip(range(3), 
             [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
 
-        self.singsFrameLayout.addWidget(self.singsResultTable)
-        self.singsFrameLayout.addWidget(self.noSingsContentsLabel)
+        self.singsFrameLayout.addWidget(self.singsResultTable, Qt.AlignTop|Qt.AlignCenter)
+
+        self.centerLabelLayout = HBoxLayout()
+        self.centerLabelLayout.addStretch(1)
+        self.centerLabelLayout.addWidget(self.noSingsContentsLabel)
+        self.centerLabelLayout.addStretch(1)
+
+        self.singsFrameLayout.addLayout(self.centerLabelLayout)
 
         self.contentsTab.addTab(self.singsFrame, "单曲")
 
