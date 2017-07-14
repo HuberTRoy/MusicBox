@@ -5,6 +5,7 @@
 > PyQt5.5+ <br />
 > requests. <br />
 > eyed3 0.8+ <br />
+> crypto/cryptodome <br />
 
 ### 目前很多功能没有添加。
 
