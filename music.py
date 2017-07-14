@@ -112,7 +112,6 @@ class Window(QWidget):
             self.currentIndex = length
         else:
             self.isTab = False
-            
 
     def prevTab(self):
         # 前一个的切换。
@@ -738,7 +737,6 @@ class DetailSings(ScrollArea):
     def itemDoubleClickedEvent(self):
         currentRow = self.singsTable.currentRow()
         data = self.musicList[currentRow]
-
         self.playList.setPlayerAndPlayList(data)
 
     def setLayouts(self):
@@ -795,7 +793,8 @@ class OneSing(QFrame):
      'picName', 'picLabel', 'nameLabel',
      'mainLayout',
      'mousePos',
-     'result')
+     'result',
+     'singsIds', 'singsUrls')
 
     def __init__(self, row, column, ids=None, parent=None, picName=None):
         super(OneSing, self).__init__()
@@ -816,6 +815,10 @@ class OneSing(QFrame):
         self.column = column
         # 歌单号。
         self.ids = ids
+        # 歌曲id。
+        self.singsIds = []
+        # 所有歌曲的url。
+        self.singsUrls = []
         # 大图的缓存名。
         self.picName = picName
 
@@ -861,6 +864,14 @@ class OneSing(QFrame):
         result = self.parent.api.details_playlist(self.ids)
         self.result = result
 
+        # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
+        self.singsIds = [i['id'] for i in result['tracks']]
+
+        # 此处还有些问题。
+        # 由于是两次url请求，稍微变得有点慢。
+        self.singsUrls = {i['id']:i['url'] for i in self.parent.api.singsUrl(self.singsIds)}
+        self.singsUrls = [self.singsUrls[i] for i in self.singsIds]
+
     def setDetail(self):
         # 方便书写。
         result = self.result
@@ -878,7 +889,9 @@ class OneSing(QFrame):
         self.detailFrame.descriptionLabel.setText(description[:107])
         # 这边添加歌曲的信息到table。
         self.detailFrame.singsTable.setRowCount(result['trackCount'])
-        for i, j in zip(result['tracks'], range(result['trackCount'])):
+
+
+        for i, j, t in zip(result['tracks'], range(result['trackCount']), self.singsUrls):
             names = i['name']
             musicName = QTableWidgetItem(names)
             self.detailFrame.singsTable.setItem(j, 0, musicName)
@@ -892,8 +905,7 @@ class OneSing(QFrame):
             self.detailFrame.singsTable.setItem(j, 2, musicTime)
 
             music_img = i['album']['blurPicUrl']
-
-            self.detailFrame.musicList.append({'url': i['mp3Url'], 'name': names, 'time':times, 'author':author, 'music_img': music_img})
+            self.detailFrame.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
 
         self.parent.singsThread.finished.disconnect()
         

@@ -6,7 +6,6 @@ __author__ = 'cyrbuzz'
 import json
 import urllib.parse
 
-
 from apiRequestsBase import HttpRequest
 
 
@@ -75,14 +74,17 @@ class NetEaseWebApi(HttpRequest):
         except:
             return "Not Found!"
 
-    def details_search(self, id):
+    def singsUrl(self, ids:list):
         """
-            搜索结果详情，返回歌曲URL。
+        2017/7/14更新。
+        返回歌曲的URL。
         """
-        id = str(id)
-        url = "http://music.163.com//api/song/detail/?id=%s&ids=%s" % (id, urllib.parse.quote('[%s]' % (id)))
-        html = self.httpRequest(url, method='GET', cookies=self.cookies)
-        return html['songs'][0]['mp3Url']
+
+        data = encrypted_request({'csrf_token': '', 'ids': ids, 'br': 999000})
+        url = "http://music.163.com/weapi/song/enhance/player/url"
+        html = self.httpRequest(url, method='POST', data=data)
+
+        return html['data']
 
     def newsong(self, areaID=0, offset=0, total='true', limit=100):
         """
@@ -106,24 +108,98 @@ class NetEaseWebApi(HttpRequest):
 
 
 if __name__ == '__main__':
+    pass
+    # import json
+    # import os
+    # import random
+    # import binascii
+    # from Cryptodome.Cipher import AES
+    # import base64
+    # modulus = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7'
+    # nonce = b'0CoJUm6Qyw8W8jud'
+    # pubKey = '010001'
+
+    # def createSecretKey(size):
+
+    #     # return (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(size))))[0:16]
+    #     return bytes(''.join(random.sample('1234567890qwertyuipasdfghjklzxcvbnm', 16)), 'utf-8')
+
+    # def aesEncrypt(text, secKey):
+
+    #     pad = 16 - len(text) % 16
+    #     try:
+    #         text = text.decode()
+    #     except:
+    #         pass
+
+    #     text = text + pad * chr(pad)
+    #     try:
+    #         text = text.encode()
+    #     except:
+    #         pass
+
+    #     encryptor = AES.new(secKey, 2, bytes('0102030405060708', 'utf-8'))
+    #     ciphertext = encryptor.encrypt(text)
+    #     ciphertext = base64.b64encode(ciphertext)
+    #     return ciphertext
+
+    # def rsaEncrypt(text, pubKey, modulus):
+    #     text = text[::-1]
+    #     rs = int(binascii.hexlify(text), 16) ** int(pubKey, 16) % int(modulus, 16)
+    #     return format(rs, 'x').zfill(256)
+
+    # def encrypted_request(text):
+    #     text = json.dumps(text)
+    #     secKey = createSecretKey(16)
+    #     encText = aesEncrypt(aesEncrypt(text, nonce), secKey)
+
+    #     # secKey = secKey.decode()
+    #     encSecKey = rsaEncrypt(secKey, pubKey, modulus)
+    #     data = {
+    #         'params': encText.decode(),
+    #         'encSecKey': encSecKey
+    #     }
+    #     return data
+
+    # data = encrypted_request({'csrf_token': '', 'ids': [139357], 'br': 999000})
+    # # data = {'encSecKey': 'd53b10328a0d5dc51b40f0eb562bad633e2597b01ec9abc96f10269189c156f7b1d04cb607a8fdf4a0f588ba941ead598c6bcb67c147fcd957f33fd22a0377212be14cebefe18fb74d6e75ab8e0526523981f3d3cfd5102632d622320e0c529494b6ed28b1156128a43b85d48dc7afac673b2c0c7c3584229cd3c4fff39081d9', 'params': 'jPPhxJu7mgqjwcprjH2zQ+Gy/+s4NbdP1elAG1fxX9rtAQpwxGdI6guQQ0am68S8tHBcoB6Zxb4nQwn84DEMOgDTIi8YTT4Sp3wqZFomSPaNenbD+9Cn84G/SO++mqSy'}
+    
+    # headers = {
+    #         'Accept':
+    #         '*/*',
+    #         'Accept-Language':
+    #         'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
+    #         'Connection':
+    #         'keep-alive',
+    #         'Content-Type':
+    #         'application/x-www-form-urlencoded',
+    #         'Referer':
+    #         'http://music.163.com',
+    #         'Host':
+    #         'music.163.com',
+    #         'User-Agent':
+    #         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
+    # }
+
+    # import requests
+
+    # req = requests.post('http://music.163.com/weapi/song/enhance/player/url', headers=headers, data=data)
+    # print(req.text)
+
     main = NetEaseWebApi()
+    req = main.details_search([139357])
+    print(req)
+    # req = main.all_playlist()
+    # print(req)
     # req = main.details_playlist(566527372)
     # print(req)
     # req = main.all_playlist(offset=30)
-    req = main.search("理想三旬")
+    # req = main.search("理想三旬")
 
     # print(req)
-    for i in req['result']['songs']:
-        print(i)
-        print('\n')
-"""
-{'ftype': 0, 
-'rtype': 0, 
-'alias': [],
-'mvid': 0, 
-'album': {'name': '浓烟下的诗歌电台', 'artist': {'name': '', 'alias': [], 'trans': None, 'picId': 0, 'id': 0, 'img1v1Url': 'http://p3.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'albumSize': 0, 'picUrl': None, 'img1v1': 0}, 'publishTime': 1451491200000, 'copyrightId': 36031, 'id': 3116882, 'size': 8, 'status': 0, 'picId': 109951162849778878}, 'artists': [{'name': '陈鸿宇', 'alias': [], 'trans': None, 'picId': 0, 'id': 1058228, 'img1v1Url': 'http://p3.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'albumSize': 0, 'picUrl': None, 'img1v1': 0}], 'fee': 0, 'name': '理想三旬', 'status': 0, 'copyrightId': 36031, 'duration': 210814, 'id': 31445772, 'rUrl': None}
-
-"""
+    # for i in req:
+        # print(i)
+        # print('\n')
     # print(req['result']['songCount'])
     # print(req[0])
     # for i in req:
