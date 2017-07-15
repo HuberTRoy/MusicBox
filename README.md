@@ -19,6 +19,13 @@
 
 ### 不仅仅可以作为音乐播放器，添加更多API支持，可以添加更多内容。
 
+## 2017/7/15 更新: <br />
+    0. 更新搜索API.
+    1. 修复搜索不能播放的问题。
+    2. 目前歌曲地址是一个独立的获取url，显得有点慢。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg" />
+
 ## 2017/7/14 更新: <br />
     0. 修复由于API更改导致的无法播放歌曲问题。
     1. 新的API借鉴了  -> https://github.com/xiyouMc/ncmbot

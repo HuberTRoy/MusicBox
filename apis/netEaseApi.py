@@ -55,22 +55,24 @@ class NetEaseWebApi(HttpRequest):
         html = self.httpRequest(url, method="GET", cookies=self.cookies)
         return html['result']
 
-    def search(self, s, offset=0, limit=100, total='true', stype=1):
+    def search(self, s, offset=0, limit=100, stype=1):
         """
             搜索.
             type类型: 单曲(1), 专辑(10), 歌手(100), 歌单(1000), 用户(1002)
+            2017/7/15更新API.
         """
-        url = 'http://music.163.com/api/search/get/web'
-        data = {
+        # url = 'http://music.163.com/api/search/get/web'
+        url = 'http://music.163.com/weapi/cloudsearch/get/web'
+        data = encrypted_request({
             's': s,
-            'offset': offset,
-            'total': total,
-            'limit': limit,
-            'type': stype
-        }
-        html = self.httpRequest(url, method='POST', data=data, cookies=self.cookies)
+            'offset': str(offset),
+            'limit': str(limit),
+            'type': str(stype)
+        })
+
+        html = self.httpRequest(url, method='POST', data=data)
         try:
-            return html
+            return html['result']
         except:
             return "Not Found!"
 
@@ -186,7 +188,7 @@ if __name__ == '__main__':
     # req = requests.post('http://music.163.com/weapi/song/enhance/player/url', headers=headers, data=data)
     # print(req.text)
 
-    # main = NetEaseWebApi()
+    main = NetEaseWebApi()
     # req = main.details_search([139357])
     # print(req)
     # req = main.all_playlist()
@@ -194,12 +196,11 @@ if __name__ == '__main__':
     # req = main.details_playlist(566527372)
     # print(req)
     # req = main.all_playlist(offset=30)
-    # req = main.search("理想三旬")
+    req = main.search("理想三旬")
 
-    # print(req)
-    # for i in req:
-        # print(i)
-        # print('\n')
+    for i in req['songs']:
+        print(i)
+        print('\n')
     # print(req['result']['songCount'])
     # print(req[0])
     # for i in req:
