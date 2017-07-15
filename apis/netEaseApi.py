@@ -7,7 +7,7 @@ import json
 import urllib.parse
 
 from apiRequestsBase import HttpRequest
-
+from netEaseEncode import encrypted_request
 
 class NetEaseWebApi(HttpRequest):
     """
@@ -186,9 +186,9 @@ if __name__ == '__main__':
     # req = requests.post('http://music.163.com/weapi/song/enhance/player/url', headers=headers, data=data)
     # print(req.text)
 
-    main = NetEaseWebApi()
-    req = main.details_search([139357])
-    print(req)
+    # main = NetEaseWebApi()
+    # req = main.details_search([139357])
+    # print(req)
     # req = main.all_playlist()
     # print(req)
     # req = main.details_playlist(566527372)
