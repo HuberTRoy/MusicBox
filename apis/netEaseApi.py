@@ -74,7 +74,7 @@ class NetEaseWebApi(HttpRequest):
         try:
             return html['result']
         except:
-            return "Not Found!"
+            return {'songCount': 0, 'songs':[]}
 
     def singsUrl(self, ids:list):
         """
