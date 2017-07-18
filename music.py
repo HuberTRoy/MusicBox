@@ -208,10 +208,10 @@ class Header(QFrame):
 
         if not self.result['songCount']:
             songsIds = []
+            self.result['songs'] = []
         else: 
             songsIds = [i['id'] for i in self.result['songs']]
 
-        self.result['songs'] = []
 
         self.songsDetail = netEase.singsUrl(songsIds)
         self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
