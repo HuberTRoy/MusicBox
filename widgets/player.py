@@ -3,7 +3,7 @@ __author__ = 'cyrbuzz'
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QBrush, QColor, QIcon, QCursor
-from PyQt5.QtCore import QUrl, QSize, Qt
+from PyQt5.QtCore import QUrl, QSize, Qt, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 from network import NetWorkThread

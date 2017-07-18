@@ -183,6 +183,11 @@ class Header(QFrame):
         self.setObjectName('Header')
 
         self.parent = parent
+
+        self.searchThread = RequestThread(self)
+        self.searchThread.setTarget(self.search)
+        self.searchThread.finished.connect(self.searchFinished)
+
         with open('QSS/header.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
@@ -199,15 +204,35 @@ class Header(QFrame):
 
     def search(self):
         text = self.searchLine.text()
-        result = netEase.search(text)['result']
+        self.result = netEase.search(text)
 
-        songsCount = result['songCount']
+        if not self.result['songCount']:
+            songsIds = []
+        else: 
+            songsIds = [i['id'] for i in self.result['songs']]
+
+        self.result['songs'] = []
+
+        self.songsDetail = netEase.singsUrl(songsIds)
+        self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
+        # 进行重新编辑方便索引。
+        songs = self.result['songs']
+        self.result['songs'] = [{'name':i['name'], 
+        'artists': i['ar'], 
+        'picUrl': i['al']['picUrl'],
+        'mp3Url': self.songsDetail[i['id']],
+        'duration': i['dt']} for i in songs]
+
+
+    def searchFinished(self):
+        text = self.searchLine.text()
+        songsCount = self.result['songCount']
 
         # 总数是0即没有找到。
         if not songsCount:
             songs = []
         else:
-            songs = result['songs'] 
+            songs = self.result['songs'] 
 
         self.parent.searchArea.setText(text)
 
@@ -262,7 +287,7 @@ class Header(QFrame):
         """创建搜素框。"""
         self.searchLine = addition.SearchLineEdit(self)
         self.searchLine.setPlaceholderText("搜索音乐, 歌手, 歌词, 用户")
-        self.searchLine.setButtonSlot(self.search)
+        self.searchLine.setButtonSlot(self.searchThread.start)
 
     def setLines(self):
         """设置装饰用小细线。"""
@@ -737,6 +762,7 @@ class DetailSings(ScrollArea):
     def itemDoubleClickedEvent(self):
         currentRow = self.singsTable.currentRow()
         data = self.musicList[currentRow]
+
         self.playList.setPlayerAndPlayList(data)
 
     def setLayouts(self):
@@ -923,6 +949,9 @@ class SearchArea(ScrollArea):
         with open('QSS/searchArea.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
+        # 本次搜索的内容。
+        self.musicList = []
+
         self.mainLayout = QVBoxLayout(self.frame)
 
         self.transTime = addition.itv2time
@@ -961,6 +990,8 @@ class SearchArea(ScrollArea):
         self.singsResultTable.setColumnWidths({i:j for i,j in zip(range(3), 
             [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
 
+        self.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+
         self.singsFrameLayout.addWidget(self.singsResultTable, Qt.AlignTop|Qt.AlignCenter)
 
         self.centerLabelLayout = HBoxLayout()
@@ -971,6 +1002,12 @@ class SearchArea(ScrollArea):
         self.singsFrameLayout.addLayout(self.centerLabelLayout)
 
         self.contentsTab.addTab(self.singsFrame, "单曲")
+
+
+    def itemDoubleClickedEvent(self):
+        currentRow = self.singsResultTable.currentRow()
+        data = self.musicList[currentRow]
+        self.parent.playWidgets.setPlayerAndPlayList(data)
 
     def setSingsData(self, data):
         # 单曲搜索结果。
@@ -983,10 +1020,10 @@ class SearchArea(ScrollArea):
         else:
             self.singsResultTable.setRowCount(len(data))
 
+            musicList = []
             for count, datas in enumerate(data):
-                # id用来获取歌曲的地址。
-                musicId = datas['name']
-
+                picUrl = datas['picUrl']
+                url = datas['mp3Url']
                 name = datas['name']
                 authors = ','.join([t['name'] for t in datas['artists']])
                 duration = self.transTime(datas['duration']/1000)
@@ -994,9 +1031,16 @@ class SearchArea(ScrollArea):
                 self.singsResultTable.setItem(count, 0, QTableWidgetItem(name))
                 self.singsResultTable.setItem(count, 1, QTableWidgetItem(authors))
                 self.singsResultTable.setItem(count, 2, QTableWidgetItem(duration))
-            
+                musicList.append({'url': url, 
+                    'name': name, 
+                    'time':duration, 
+                    'author':authors, 
+                    'music_img': picUrl})
+
             self.noSingsContentsLabel.hide()
             self.singsResultTable.show()
+
+            self.musicList = musicList
 
 
 if __name__ == '__main__':
