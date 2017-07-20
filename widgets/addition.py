@@ -10,6 +10,7 @@ def deal_time(x):
 
     return x
 
+
 def itv2time(iItv):
     iItv = int(iItv)
 

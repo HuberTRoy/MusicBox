@@ -23,6 +23,7 @@ class NativeMusic(ScrollArea):
         self.setTopShow()
         self.musicTable()
 
+    # 布局。
     def setTopShow(self):
         self.showLabel = QLabel("本地音乐")
         
@@ -67,12 +68,7 @@ class NativeMusic(ScrollArea):
 
         self.mainLayout.addWidget(self.singsTable)
 
-    def itemDoubleClickedEvent(self):
-        currentRow = self.singsTable.currentRow()
-        data = self.musicList[currentRow]
-
-        self.parent.playWidgets.setPlayerAndPlayList(data)
-
+    # 功能。
     def selectFolder(self):
         folder = QFileDialog()
         selectFolder = folder.getExistingDirectory()
@@ -86,19 +82,46 @@ class NativeMusic(ScrollArea):
             self.singsTable.setRowCount(self.singsTable.rowCount()+length)
             self.musicList = []
             for i in enumerate(mediaFiles):
-                temp = eyed3.load(i[1])
-                name = temp.tag.title
+                try:
+                    music = eyed3.load(i[1])
+                except:
+                    music = EmptyMusic()
+
+                name = music.tag.title
                 if not name:
                     name = i[1].split('\\')[-1][:-4]
 
-                author = temp.tag.artist
+                author = music.tag.artist
                 if not author:
                     author = '未知歌手'
 
-                time = itv2time(temp.info.time_secs)
+                time = itv2time(music.info.time_secs)
 
                 self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
                 self.singsTable.setItem(i[0], 0, QTableWidgetItem(name))
                 self.singsTable.setItem(i[0], 1, QTableWidgetItem(author))
                 self.singsTable.setItem(i[0], 2, QTableWidgetItem(time))
+
+    # 事件。
+    def itemDoubleClickedEvent(self):
+        currentRow = self.singsTable.currentRow()
+        data = self.musicList[currentRow]
+
+        self.parent.playWidgets.setPlayerAndPlayList(data)
+
+
+class EmptyMusic(object):
+
+    def __init__(self):
+        self.tag = EmptyMusicObject()
+        self.tag.title = '未知名称'
+        self.tag.artist = '未知歌手'
+
+        self.info = EmptyMusicObject()
+        self.info.time_secs = 0
+
+
+class EmptyMusicObject(object):
+    def __init__(self):
+        pass
 

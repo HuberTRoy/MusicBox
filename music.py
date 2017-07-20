@@ -12,11 +12,6 @@
 
 __author__ = 'cyrbuzz'
 
-# from PyQt5.QtWidgets import *
-# from PyQt5.QtCore import *
-# from PyQt5.QtGui import *
-
-# from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 import sys
 
 sys.path.append('widgets')
@@ -76,6 +71,7 @@ class Window(QWidget):
         # 设置布局。
         self.setLayouts()
 
+    # 布局。
     def setContents(self):
         """设置tab界面。"""
         # 将需要切换的窗口做成Tab，并隐藏tabBar，这样方便切换，并且可以做前进后退功能。
@@ -90,47 +86,6 @@ class Window(QWidget):
         self.navigation.nativeListFunction = lambda: self.mainContents.setCurrentIndex(2)
         
         self.mainContents.setCurrentIndex(0)
-
-    def addTab(self, widget, name=''):
-        self.mainContents.addTab(widget, name)
-
-    def allTab(self):
-        return self.mainContents.count()
-
-    def setTabIndex(self, index):
-        self.mainContents.setCurrentIndex(index)
-
-    def addTabHistory(self, index):
-        length = len(self.history)
-        if not self.isTab:
-            if length < 5:
-                self.history.append(index)
-            else:
-                self.history.pop(0)
-                self.history.append(index)
-            # 不是前后切换时将当前的索引定为末尾一个。
-            self.currentIndex = length
-        else:
-            self.isTab = False
-
-    def prevTab(self):
-        # 前一个的切换。
-        if self.currentIndex == 0 or self.currentIndex == -1:
-            return
-        else:
-            self.isTab = True
-            self.currentIndex -= 1
-            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
-
-    def nextTab(self):
-        # 后一个的切换。
-
-        if self.currentIndex  == len(self.history)-1 or self.currentIndex == -1:
-            return
-        else:
-            self.isTab = True
-            self.currentIndex += 1
-            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
 
     def setLines(self):
         """设置布局小细线。"""
@@ -172,6 +127,48 @@ class Window(QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mainLayout)
 
+    # 功能。
+    def addTab(self, widget, name=''):
+        self.mainContents.addTab(widget, name)
+
+    def allTab(self):
+        return self.mainContents.count()
+
+    def setTabIndex(self, index):
+        self.mainContents.setCurrentIndex(index)
+
+    def addTabHistory(self, index):
+        length = len(self.history)
+        if not self.isTab:
+            if length < 5:
+                self.history.append(index)
+            else:
+                self.history.pop(0)
+                self.history.append(index)
+            # 不是前后切换时将当前的索引定为末尾一个。
+            self.currentIndex = length
+        else:
+            self.isTab = False
+
+    def prevTab(self):
+        # 前一个的切换。
+        if self.currentIndex == 0 or self.currentIndex == -1:
+            return
+        else:
+            self.isTab = True
+            self.currentIndex -= 1
+            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
+
+    def nextTab(self):
+        # 后一个的切换。
+
+        if self.currentIndex  == len(self.history)-1 or self.currentIndex == -1:
+            return
+        else:
+            self.isTab = True
+            self.currentIndex += 1
+            self.mainContents.setCurrentIndex(self.history[self.currentIndex])
+
 
 """标题栏，包括logo，搜索，登陆，最小化/关闭。"""
 class Header(QFrame):
@@ -202,44 +199,7 @@ class Header(QFrame):
         # 加载布局设置。
         self.setLayouts()
 
-    def search(self):
-        text = self.searchLine.text()
-        self.result = netEase.search(text)
-
-        if not self.result['songCount']:
-            songsIds = []
-            self.result['songs'] = []
-        else: 
-            songsIds = [i['id'] for i in self.result['songs']]
-
-
-        self.songsDetail = netEase.singsUrl(songsIds)
-        self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
-        # 进行重新编辑方便索引。
-        songs = self.result['songs']
-        self.result['songs'] = [{'name':i['name'], 
-        'artists': i['ar'], 
-        'picUrl': i['al']['picUrl'],
-        'mp3Url': self.songsDetail[i['id']],
-        'duration': i['dt']} for i in songs]
-
-
-    def searchFinished(self):
-        text = self.searchLine.text()
-        songsCount = self.result['songCount']
-
-        # 总数是0即没有找到。
-        if not songsCount:
-            songs = []
-        else:
-            songs = self.result['songs'] 
-
-        self.parent.searchArea.setText(text)
-
-        self.parent.searchArea.setSingsData(songs)
-
-        self.parent.setTabIndex(3)
-
+    # 布局。
     def setButtons(self):
         """创建所有的按钮。"""
 
@@ -323,6 +283,43 @@ class Header(QFrame):
 
         self.setLayout(self.mainLayout)
 
+    # 功能。
+    def search(self):
+        text = self.searchLine.text()
+        self.result = netEase.search(text)
+
+        if not self.result['songCount']:
+            songsIds = []
+            self.result['songs'] = []
+        else: 
+            songsIds = [i['id'] for i in self.result['songs']]
+            self.songsDetail = netEase.singsUrl(songsIds)
+            self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
+            # 进行重新编辑方便索引。
+            songs = self.result['songs']
+            self.result['songs'] = [{'name':i['name'], 
+            'artists': i['ar'], 
+            'picUrl': i['al']['picUrl'],
+            'mp3Url': self.songsDetail[i['id']],
+            'duration': i['dt']} for i in songs]
+
+    def searchFinished(self):
+        text = self.searchLine.text()
+        songsCount = self.result['songCount']
+
+        # 总数是0即没有找到。
+        if not songsCount:
+            songs = []
+        else:
+            songs = self.result['songs'] 
+
+        self.parent.searchArea.setText(text)
+
+        self.parent.searchArea.setSingsData(songs)
+
+        self.parent.setTabIndex(3)
+
+    # 事件。
     """重写鼠标事件，实现窗口拖动。"""
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
@@ -375,6 +372,7 @@ class Navigation(QScrollArea):
 
         self.setLayouts()
 
+    # 布局。
     def setLabels(self):
         """定义所有的标签。"""
         self.showLabel = QLabel(" 推荐", self)
@@ -385,7 +383,6 @@ class Navigation(QScrollArea):
 
         self.singsListLabel = QLabel(" 收藏与创建的歌单", self)
         self.singsListLabel.setObjectName("singsListLabel")
-
 
     def setListViews(self):
         """定义承载功能的ListView"""
@@ -406,6 +403,31 @@ class Navigation(QScrollArea):
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/notes.png')," 本地音乐"))
         self.nativeList.itemPressed.connect(self.nativeListItemClickEvent)
 
+    def setLayouts(self):
+        """定义布局。"""
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addSpacing(10)
+        self.mainLayout.addWidget(self.showLabel)
+        self.mainLayout.addSpacing(3)
+        self.mainLayout.addWidget(self.navigationList)
+        self.mainLayout.addSpacing(1)
+        
+        self.mainLayout.addWidget(self.myMusic)
+        self.mainLayout.addSpacing(1)
+        self.mainLayout.addWidget(self.nativeList)
+        self.mainLayout.addSpacing(1)
+
+        self.mainLayout.addWidget(self.singsListLabel)
+        self.mainLayout.addSpacing(1)
+
+        self.setSingsList()
+        self.mainLayout.addStretch(1)
+
+        self.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setSpacing(0)
+        self.frame.setLayout(self.mainLayout)
+
     def setSingsList(self):
         """歌单用按钮显示，不显示在ListWidget里是因为ListWidget只是单个有滚轮，需要全部有滚轮。"""
         self.singsList = []
@@ -419,6 +441,12 @@ class Navigation(QScrollArea):
         #     self.frame.mainLayout.addWidget(i)
         pass
 
+    # 功能。
+    def none(self):
+        # 没有用的空函数。
+        pass
+
+    # 事件。
     def navigationListItemClickEvent(self):
         """用户处理导航栏的点击事件。"""
         # 处理其他组件取消选中。
@@ -454,34 +482,6 @@ class Navigation(QScrollArea):
         """处理事件。"""
         self.singsFunction()
 
-    def setLayouts(self):
-        """定义布局。"""
-        self.mainLayout = QVBoxLayout()
-        self.mainLayout.addSpacing(10)
-        self.mainLayout.addWidget(self.showLabel)
-        self.mainLayout.addSpacing(3)
-        self.mainLayout.addWidget(self.navigationList)
-        self.mainLayout.addSpacing(1)
-        
-        self.mainLayout.addWidget(self.myMusic)
-        self.mainLayout.addSpacing(1)
-        self.mainLayout.addWidget(self.nativeList)
-        self.mainLayout.addSpacing(1)
-
-        self.mainLayout.addWidget(self.singsListLabel)
-        self.mainLayout.addSpacing(1)
-
-        self.setSingsList()
-        self.mainLayout.addStretch(1)
-
-        self.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setSpacing(0)
-        self.frame.setLayout(self.mainLayout)
-
-    def none(self):
-        # 没有用的空函数。
-        pass
 
 
 """主要内容区，包括最新的歌单。"""
@@ -698,6 +698,7 @@ class DetailSings(ScrollArea):
         self.setTabs()
         self.setLayouts()
     
+    # 布局。
     def setLabels(self):
         self.picLabel = QLabel(self.frame)
         self.picLabel.setObjectName('picLabel')
@@ -759,12 +760,6 @@ class DetailSings(ScrollArea):
 
         self.contentsTab.addTab(self.singsTable, "歌曲列表")
 
-    def itemDoubleClickedEvent(self):
-        currentRow = self.singsTable.currentRow()
-        data = self.musicList[currentRow]
-
-        self.playList.setPlayerAndPlayList(data)
-
     def setLayouts(self):
         self.mainLayout = QVBoxLayout()
 
@@ -803,6 +798,7 @@ class DetailSings(ScrollArea):
         
         self.frame.setLayout(self.mainLayout)
 
+    # 功能。
     def test(self):
         self.titleLabel.setText("［日系］电音&人声，电毒侵入脑电波！")
         self.picLabel.setStyleSheet('''QLabel {border-image: url(cache/566527372.jpg); padding: 10px;}''')
@@ -810,6 +806,14 @@ class DetailSings(ScrollArea):
         self.descriptionLabel.setText("test"*30)
 
         self.singsTable.setRowCount(4)
+
+    # 事件。
+    def itemDoubleClickedEvent(self):
+        currentRow = self.singsTable.currentRow()
+        data = self.musicList[currentRow]
+
+        self.playList.setPlayerAndPlayList(data)
+
 
 
 """一个用于承载歌单简单信息的QFrame。"""
@@ -868,22 +872,10 @@ class OneSing(QFrame):
 
         self.parent.mainLayout.addWidget(self, self.row, self.column)
 
+    # 功能。
     def setStyleSheets(self, styleSheet=None):
         if styleSheet:
             self.setStyleSheet(styleSheet)
-
-    def mousePressEvent(self, event):
-        # 记录下当前鼠标的位置。
-        self.mousePos = QCursor.pos()
-
-    def mouseReleaseEvent(self, event):
-        # 先进行判断，防止误点将鼠标移开后还是会判断为已经点击的尴尬。
-        if QCursor.pos() != self.mousePos:
-            return
-        else:
-            self.parent.singsThread.setTarget(self.requestsDetail)
-            self.parent.singsThread.finished.connect(self.setDetail)
-            self.parent.singsThread.start()
 
     def requestsDetail(self):
         """请求本歌单的详情，并复制给detailSings."""
@@ -938,6 +930,20 @@ class OneSing(QFrame):
         # 隐藏原来的区域，显示现在的区域。
         self.ggparent.mainContents.setCurrentIndex(1)
 
+    # 事件。
+    def mousePressEvent(self, event):
+        # 记录下当前鼠标的位置。
+        self.mousePos = QCursor.pos()
+
+    def mouseReleaseEvent(self, event):
+        # 先进行判断，防止误点将鼠标移开后还是会判断为已经点击的尴尬。
+        if QCursor.pos() != self.mousePos:
+            return
+        else:
+            self.parent.singsThread.setTarget(self.requestsDetail)
+            self.parent.singsThread.finished.connect(self.setDetail)
+            self.parent.singsThread.start()
+
 
 """搜索后的结果显示页。"""
 class SearchArea(ScrollArea):
@@ -969,10 +975,7 @@ class SearchArea(ScrollArea):
 
         self.setSingsFrame()
 
-    def setText(self, text):
-        self.text = text
-        self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font><br>".format(self.text))
-
+    # 布局。
     def setSingsFrame(self):
         # 单曲界面。
         self.singsFrame = QFrame()
@@ -1003,11 +1006,10 @@ class SearchArea(ScrollArea):
 
         self.contentsTab.addTab(self.singsFrame, "单曲")
 
-
-    def itemDoubleClickedEvent(self):
-        currentRow = self.singsResultTable.currentRow()
-        data = self.musicList[currentRow]
-        self.parent.playWidgets.setPlayerAndPlayList(data)
+    # 功能。
+    def setText(self, text):
+        self.text = text
+        self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font><br>".format(self.text))
 
     def setSingsData(self, data):
         # 单曲搜索结果。
@@ -1041,6 +1043,12 @@ class SearchArea(ScrollArea):
             self.singsResultTable.show()
 
             self.musicList = musicList
+
+    # 事件。
+    def itemDoubleClickedEvent(self):
+        currentRow = self.singsResultTable.currentRow()
+        data = self.musicList[currentRow]
+        self.parent.playWidgets.setPlayerAndPlayList(data)
 
 
 if __name__ == '__main__':

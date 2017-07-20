@@ -22,7 +22,6 @@ class ScrollArea(QScrollArea):
 
         self.setWidget(self.frame)
 
-
     def noInternet(self):
         # 设置没有网络的提示。
         self.noInternetLayout = QGridLayout()
@@ -64,6 +63,7 @@ class TableWidget(QTableWidget):
     def setColumnWidths(self, widths:dict):
         for key in widths:
             self.setColumnWidth(key, widths[key])
+
 
 # 去除了margin和spacing的布局框。
 class VBoxLayout(QVBoxLayout):

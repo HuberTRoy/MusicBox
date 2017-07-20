@@ -11,14 +11,14 @@ QPushButton{
     margin: 10px;
 }
 
-QPushButton#reverseButton {
-    border-image: url('resource/reverse.png');
+QPushButton#previousButton {
+    border-image: url('resource/previous.png');
     width: 28px;
     height: 28px;
 }
 
-QPushButton#reverseButton:hover {
-    border-image: url('resource/reverse_hover.png');
+QPushButton#previousButton:hover {
+    border-image: url('resource/previous_hover.png');
 }
 
 QPushButton#playButton {

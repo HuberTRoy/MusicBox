@@ -36,11 +36,12 @@ class PlayWidgets(QFrame):
 
         self.setLayouts()
 
+    # 布局。
     def setButtons(self):
         """设置所有的按钮组件，包括前/后一首，暂停/播放等。"""
-        self.reverseButton = QPushButton(self)
-        self.reverseButton.setObjectName("reverseButton")
-        self.reverseButton.clicked.connect(self.reverseSing)
+        self.previousButton = QPushButton(self)
+        self.previousButton.setObjectName("previousButton")
+        self.previousButton.clicked.connect(self.previousSing)
 
         self.playButton = QPushButton(self)
         self.playButton.setObjectName("playButton")
@@ -115,7 +116,38 @@ class PlayWidgets(QFrame):
         self.volumeSlider.setOrientation(Qt.Horizontal)
         self.volumeSlider.valueChanged.connect(self.volumeChangedEvent)
 
-    def reverseSing(self):
+    def setLayouts(self):
+        """设置布局。"""
+        self.mainLayout = QHBoxLayout()
+
+        self.mainLayout.addWidget(self.previousButton)
+        self.mainLayout.addWidget(self.playButton)
+        self.mainLayout.addWidget(self.pauseButton)
+        self.mainLayout.addWidget(self.nextButton)
+
+        self.mainLayout.addWidget(self.currentTime)
+        self.mainLayout.addWidget(self.slider)
+        self.mainLayout.addWidget(self.countTime)
+
+        self.mainLayout.addWidget(self.volume)
+        self.mainLayout.addWidget(self.noVolume)
+
+        self.mainLayout.addWidget(self.volumeSlider)
+        self.mainLayout.addSpacing(10)
+
+        self.mainLayout.addWidget(self.single)
+        self.mainLayout.addWidget(self.repeat)
+        self.mainLayout.addWidget(self.shuffle)
+
+        self.mainLayout.addSpacing(10)
+
+        self.mainLayout.addWidget(self.playlist)
+        self.mainLayout.addStretch(1)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.mainLayout)
+
+    # 功能。
+    def previousSing(self):
         # 前一首。
         self.player.playList.previous()
 
@@ -123,6 +155,32 @@ class PlayWidgets(QFrame):
         # 下一首。
         self.player.playList.next()
 
+    def setPlayerAndPlayList(self, data, index=0):
+        """方便外部调用。一键添加歌曲。"""
+        """防止重复。"""
+        if data in self.playList.musicList:
+            index = self.playList.musicList.index(data)
+            if self.player.playList.currentIndex() == index:
+                return
+
+            self.player.setIndex(index)
+
+            return
+
+        # 添加资源当前项到播放列表。
+        self.playList.addMusic(data)
+        self.player.setMusic(data['url'], data)
+
+        # 添加显示播放列表的显示项。
+        self.playList.addPlayList(data['name'], data['author'], data['time'])
+        # 更改当前音乐的信息。
+        self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
+        # 添加歌曲到播放器。
+        # index = len(self.playList.musicList)
+        index = self.player.playList.mediaCount()
+        self.player.setIndex(index-1)
+
+    # 事件。
     def playEvent(self, media):
         """播放事件。"""
         self.playButton.hide()
@@ -213,61 +271,6 @@ class PlayWidgets(QFrame):
 
         self.currentTime.setText(addition.itv2time(currentSliderTime))
 
-    def setPlayerAndPlayList(self, data, index=0):
-        """方便外部调用。一键添加歌曲。"""
-        """防止重复。"""
-        if data in self.playList.musicList:
-            index = self.playList.musicList.index(data)
-            if self.player.playList.currentIndex() == index:
-                return
-
-            self.player.setIndex(index)
-
-            return
-
-        # 添加资源当前项到播放列表。
-        self.playList.addMusic(data)
-        self.player.setMusic(data['url'], data)
-
-        # 添加显示播放列表的显示项。
-        self.playList.addPlayList(data['name'], data['author'], data['time'])
-        # 更改当前音乐的信息。
-        self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
-        # 添加歌曲到播放器。
-        # index = len(self.playList.musicList)
-        index = self.player.playList.mediaCount()
-        self.player.setIndex(index-1)
-
-    def setLayouts(self):
-        """设置布局。"""
-        self.mainLayout = QHBoxLayout()
-
-        self.mainLayout.addWidget(self.reverseButton)
-        self.mainLayout.addWidget(self.playButton)
-        self.mainLayout.addWidget(self.pauseButton)
-        self.mainLayout.addWidget(self.nextButton)
-
-        self.mainLayout.addWidget(self.currentTime)
-        self.mainLayout.addWidget(self.slider)
-        self.mainLayout.addWidget(self.countTime)
-
-        self.mainLayout.addWidget(self.volume)
-        self.mainLayout.addWidget(self.noVolume)
-
-        self.mainLayout.addWidget(self.volumeSlider)
-        self.mainLayout.addSpacing(10)
-
-        self.mainLayout.addWidget(self.single)
-        self.mainLayout.addWidget(self.repeat)
-        self.mainLayout.addWidget(self.shuffle)
-
-        self.mainLayout.addSpacing(10)
-
-        self.mainLayout.addWidget(self.playlist)
-        self.mainLayout.addStretch(1)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.mainLayout)
-
 
 """音乐列表，用于显示当前添加到播放列表里的音乐。"""
 class PlayList(QFrame):
@@ -301,6 +304,7 @@ class PlayList(QFrame):
 
         self.setLayouts()
 
+    # 布局。
     def setButtons(self):
         self.closeButton = QPushButton("×", self)
         self.closeButton.setObjectName("closeButton")
@@ -326,6 +330,19 @@ class PlayList(QFrame):
 
         self.playList.itemDoubleClicked.connect(self.play)
 
+    def setLayouts(self):
+        self.mainLayout = QVBoxLayout()
+
+        self.headerLayout = QHBoxLayout()
+        self.headerLayout.addStretch(1)
+        self.headerLayout.addWidget(self.closeButton)
+
+        self.mainLayout.addLayout(self.headerLayout)
+        self.mainLayout.addWidget(self.playList)
+
+        self.setLayout(self.mainLayout)
+
+    # 功能。
     def play(self):
         """将当前选中的歌曲添加到播放列表。"""
         if self.currentRow == self.playList.currentRow():
@@ -340,19 +357,6 @@ class PlayList(QFrame):
             self.parent.currentMusic.setShortInfo(currentMusic['name'], currentMusic['author'])
 
             self.currentRow = currentRow
-
-
-    def setLayouts(self):
-        self.mainLayout = QVBoxLayout()
-
-        self.headerLayout = QHBoxLayout()
-        self.headerLayout.addStretch(1)
-        self.headerLayout.addWidget(self.closeButton)
-
-        self.mainLayout.addLayout(self.headerLayout)
-        self.mainLayout.addWidget(self.playList)
-
-        self.setLayout(self.mainLayout)
 
     def addMusic(self, data):
         self.musicList.append(data)
@@ -411,6 +415,7 @@ class CurrentMusic(QFrame):
         self.mainLayout.setSpacing(0)
         self.setLayout(self.mainLayout)
 
+    # 功能。
     def setShortInfo(self, name=None, author=None, pic=None):
         """方便设置信息。"""
         if pic:
@@ -489,6 +494,7 @@ class CurrentMusicShort(QFrame):
 
         self.init()
 
+    # 布局。
     def setLabels(self):
         self.musicName = QLabel(self)
         self.musicName.adjustSize()
@@ -501,11 +507,6 @@ class CurrentMusicShort(QFrame):
         self.musicPic.setMinimumSize(64, 64)
 
         self.musicPic.clicked.connect(self.getDetailInfo)
-
-    def getDetailInfo(self):
-        """点击后将自己隐藏并放大。"""
-        self.parent.getDetailInfo()
-        self.hide()
 
     def setLayouts(self):
         """布局。"""
@@ -526,10 +527,14 @@ class CurrentMusicShort(QFrame):
 
         self.setLayout(self.mainLayout)
 
+    # 功能。
+    def getDetailInfo(self):
+        """点击后将自己隐藏并放大。"""
+        self.parent.getDetailInfo()
+        self.hide()
 
     def init(self):
-        """测试用组件，包括音乐图片，音乐名和音乐作者。"""
-        # self.musicPic.setStyleSheet("""QPushButton#musicPic {background-image: url(resource/no_music.png);}""")
+        """默认情况下的显示，包括音乐图片，音乐名和音乐作者。"""
         self.musicPic.setIcon(QIcon('resource/no_music.png'))
         self.musicPic.setIconSize(QSize(64, 64))
         self.musicName.setText("Enjoy it")
@@ -571,6 +576,7 @@ class Player(QMediaPlayer):
         # http://sc1.111ttt.com/2016/1/12/10/205102159306.mp3
         # self.setMedia(QMediaContent(QUrl(r'file:///F:/Programming%20Files/Music/testMusic/七月上.mp3')))
 
+    # 功能。
     def setConnects(self):
         """用于设置连接的信号槽。"""
         self.durationChanged.connect(self.countTimeEvent)
@@ -607,6 +613,7 @@ class Player(QMediaPlayer):
         else:
             self.playWidgets.playEvent(self)
 
+    # 事件。
     def countTimeEvent(self):
         """总时间改变的事件。相当于加载完成歌曲的事件。"""
         self.musicTime = self.allTime()
@@ -623,7 +630,6 @@ class Player(QMediaPlayer):
             return
         # *1000是为了与进度条的范围相匹配。
         self.playWidgets.slider.setValue(currentTime/self.musicTime*1000)
-
 
     def stateChangedEvent(self):
         """"""
@@ -666,6 +672,7 @@ class _TableWidget(QTableWidget):
 
         self.setActions()
 
+    # 功能。
     def setActions(self):
         
         self.actionClear = QAction('清空', self)
@@ -773,6 +780,7 @@ class _TableWidget(QTableWidget):
         #     # 如果是当前的音乐会切换到下一首，如果没有了就停止，如果到达列表底部则切回顶部。
         #     self.parent.parent.player.stop()
 
+    # 事件。
     def contextMenuEvent(self, event):
         item = self.itemAt(self.mapFromGlobal(QCursor.pos()))
         self.menu = QMenu(self)
@@ -786,7 +794,7 @@ class _TableWidget(QTableWidget):
         self.menu.exec_(QCursor.pos())
 
 
-"""QMediaPlaylist一些功能不好用，改进一下。"""
+"""QMediaPlaylist一些功能不好用，改进一下。还是不好用。囧。"""
 class _MediaPlaylist(QMediaPlaylist):
     def __init__(self, parent=None):
         super(_MediaPlaylist, self).__init__()
@@ -799,6 +807,7 @@ class _MediaPlaylist(QMediaPlaylist):
 
         self.currentMediaChanged.connect(self.tabSing) 
 
+    # 功能。
     def addMedias(self, url, data):
         # url为QMediaContent, data包含这个歌曲的信息。{name, author, url}
         self.addMedia(url)

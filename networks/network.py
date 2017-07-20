@@ -7,6 +7,8 @@ import os
 # 3/3
 # 设计的不好，本来想设计成<img src='1'> 这样的形式，写着写着就变成了老方法。
 # 目前不是主要考虑对象，暂时不修改。
+# 而且变成了单线程。
+
 
 class NetWorkThread(QNetworkAccessManager):
     """用于下载. url是一个列表，里面放置要下载的东西。"""
