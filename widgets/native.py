@@ -76,16 +76,19 @@ class NativeMusic(ScrollArea):
             pass
         else:
             self.folder.append(selectFolder)
-            mediaFiles = glob.glob(selectFolder+'\\*.mp3')
+
+            mediaFiles = glob.glob(selectFolder+'\\*\\*.mp3')
+            
             length = len(mediaFiles)
 
             self.singsTable.setRowCount(self.singsTable.rowCount()+length)
             self.musicList = []
             for i in enumerate(mediaFiles):
-                try:
-                    music = eyed3.load(i[1])
-                except:
-                    music = EmptyMusic()
+                
+                music = eyed3.load(i[1])
+
+                if not music.tag:
+                    continue
 
                 name = music.tag.title
                 if not name:
