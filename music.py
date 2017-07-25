@@ -547,8 +547,11 @@ class NetEaseSingsArea(QFrame):
         with open('QSS/neteaseSings.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
+        # 没有gevent时用这个。
         self.picManager = network.NetWorkThread(self)
         self.userPicManager = network.NetWorkThread(self)
+        # 有gevent时用这个。
+        self.picSession = network.Requests()
         # 连接滑轮到底的信号槽。
         # 同时连接图片下载的线程全部完成的信号槽。
         # 若一轮图片下载完成并且滑到底部则进行下一次线程，否则将不会。
@@ -588,7 +591,11 @@ class NetEaseSingsArea(QFrame):
 
         # 一个线程，初始化用于请求歌单的全部内容。
         self.netThread = RequestThread(self, self.getSings)
+        # if network.noGevent:
         self.netThread.finished.connect(self.setSings)
+        # else:
+            self.netThread.finished.connect(self.geventSetSings)
+
         self.netThread.setFlag(True)
         self.netThread.start()
         # 另一个线程，无限循环的时钟，用于检测当picManager处于工作状态时，暂停下一轮请求。
@@ -656,6 +663,57 @@ class NetEaseSingsArea(QFrame):
                 self.picManager.setUrl(self.singPicUrls)
                 self.picManager.startGet(self.singsFrames)
 
+    def geventSetSings(self):
+        for i in range(30):
+            i += self.offset
+            picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
+            frame = OneSing(self.gridRow, self.gridColumn, self.singIds[i], self, picName)
+            frame.nameLabel.setText(self.singNames[i])
+            
+            # 建立起索引，一是防止垃圾回收了，二是可以找到他的地址。
+            self.singsFrames.append(frame)
+
+            # 用于布局，一行4个。
+            if self.gridColumn == 3:
+                self.gridColumn = 0
+                self.gridRow += 1
+            else:
+                self.gridColumn += 1
+
+            try:
+                cacheList = os.listdir('cache')
+            except:
+                os.mkdir('cache')
+                cacheList = os.listdir('cache')
+            
+            url = self.singPicUrls[i]
+
+            names = str(url[url.rfind('/')+1:])
+            if names in cacheList:
+                frame.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
+            else:
+                self.geventSetSingsPic(frame, url)
+    
+
+        network.pool.join()
+
+    @network.joinJobInGevent
+    def geventSetSingsPic(self, widget, url):
+
+        names = str(url[url.rfind('/')+1:])
+        content = self.picSession.get(url).content
+        
+        # 可能是open读写的问题，用open会导致某些图片显示不出来。
+        # with open('cache/{0}'.format(names), 'wb') as f:
+        #     f.write(content)
+        # 所以改成这样进行存储。
+        pic = QPixmap()
+        pic.loadFromData(content)
+        pic.save("cache/{0}".format(names))
+
+        widget.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
+
+    # 事件。
     def sliderDownEvent(self):
         """滑轮到底的事件。"""
         if self.isHidden() == False:
@@ -1065,3 +1123,4 @@ if __name__ == '__main__':
     main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
 
     sys.exit(app.exec_())
+    
