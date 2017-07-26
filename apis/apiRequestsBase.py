@@ -10,6 +10,20 @@ __author__ = 'cyrbuzz'
 import requests
 
 
+def requestsExceptionFilter(func):
+
+    def _filter(*args, **kwargs):
+        for i in range(3):
+            try:
+                return func(*args, **kwargs)
+            except:
+                continue
+        else:
+            return False
+    
+    return _filter
+
+
 class HttpRequest(object):
     # 使用keep-alive，
     # keep-alive保持持久连接，没有必要开启很多个TCP链接，浪费资源。
@@ -32,6 +46,7 @@ class HttpRequest(object):
 
     cookies = {}
 
+    @requestsExceptionFilter
     def httpRequest(self, action, method="GET", add=None, data=None, headers=None, cookies='',\
                     timeout=default_timeout, urlencode='utf-8', is_json=True):
         """
@@ -58,3 +73,4 @@ class HttpRequest(object):
             html.encoding = urlencode
 
         return html
+

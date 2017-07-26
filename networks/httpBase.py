@@ -18,16 +18,31 @@ headers = {
 cookies = {}
 
 
+def requestsExceptionFilter(func):
+
+    def _filter(*args, **kwargs):
+        for i in range(3):
+            try:
+                return func(*args, **kwargs)
+            except:
+                continue
+        else:
+            return False
+    
+    return _filter
+
 class Requests(object):
     def __init__(self):
         self.headers = headers.copy()
 
+    @requestsExceptionFilter
     def get(self, url, **kwargs):
         if not kwargs.get('headers'):
             kwargs['headers'] = self.headers
 
         return requests.get(url, **kwargs)
-
+    
+    @requestsExceptionFilter
     def post(self, url, **kwargs):
         if not kwargs.get('headers'):
             kwargs['headers'] = self.headers
@@ -41,12 +56,14 @@ class Session(object):
         self.headers = headers.copy()
         self.session = requests.session()
 
+    @requestsExceptionFilter
     def get(self, url, **kwargs):
         if not kwargs.get('headers'):
             kwargs['headers'] = self.headers
 
         return self.session.get(url, **kwargs)
 
+    @requestsExceptionFilter
     def post(self, url, **kwargs):
         if not kwargs.get('headers'):
             kwargs['headers'] = self.headers
