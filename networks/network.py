@@ -2,28 +2,32 @@
 import os
 
 from PyQt5.QtNetwork import *
-from PyQt5.QtCore import QThread, QObject, QUrl, QEventLoop, QByteArray, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThread, QObject, QUrl, QEventLoop, QByteArray, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QPixmap
 
 # 2017/7/25 尝试用协程进行设计。
 # 测试发现会卡界面。
 # 暂时保留不使用。
-try:
-    from gevent import monkey; monkey.patch_all()
-    from gevent import pool
-    import gevent
-    noGevent = False
-except:
-    noGevent = True
+# try:
+#     from gevent import monkey; monkey.patch_all()
+#     from gevent import pool
+#     import gevent
+#     noGevent = False
+# except:
+#     noGevent = True
+noGevent = True
 
-from httpBase import Requests, Session
+import httpBase
 
+Requests = httpBase.Requests()
+Session = httpBase.Session()
 # 3/3
 # 设计的不好，本来想设计成<img src='1'> 这样的形式，写着写着就变成了老方法。
 # 目前不是主要考虑对象，暂时不修改。
 # 而且变成了单线程。
 
-
+# 2017/7/26 后这个基本可以废弃了。
+# 用了线程池的方式。
 class NetWorkThread(QNetworkAccessManager):
     """用于下载. url是一个列表，里面放置要下载的东西。"""
     allFinished = pyqtSignal()
@@ -161,6 +165,7 @@ class Pool(object):
 if noGevent:
     pool = Pool()
     def joinJobInGevent(func):
+
         def join(*args, **kwargs):
 
             func(*args, **kwargs)
