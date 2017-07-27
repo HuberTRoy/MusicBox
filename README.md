@@ -3,7 +3,7 @@
 
 > Python3.4+ <br />
 > PyQt5.5+ <br />
-> requests. -> pip install requests <br /> 
+> requests. <br /> 
 > eyed3 0.8+ <br />
 > crypto/cryptodome. -> pip install pycyrptodome Or pip install pycryptodomex<br />
 
