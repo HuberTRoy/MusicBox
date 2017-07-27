@@ -27,17 +27,29 @@ class NetEaseSingsArea(QFrame):
         with open('QSS/neteaseSings.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
-        # 没有gevent时用这个。
-        self.picManager = network.NetWorkThread(self)
+        # 暂时无用。
         self.userPicManager = network.NetWorkThread(self)
 
-        # 有gevent时用这个。
-        # self.picSession = network.Requests
         
         # ThreadPool方式。
+        # 线程池方法说明:
+        # PyQt的线程池由此创建，最好指定下最大连接数。
+        # QThreadPool需要一个QRunnable对象作为目标。
+        # 如下所创建的_PicThreadTask，需要重写run函数。
+        # 然后在需要使用时创建:
+        # task = _PicThreadTask
+        # 并交由QThreadPool开始，self.picThreadPool(task)
+        # 循环就可以。
+        # 由于QRunnable不是由QObject继承来的，所以无法享受到信号槽机制。
+        # 而PyQt中跨线程最好是不要进行界面操作。否则会有非常多意想不到的后果。
         self.picThreadPool = QThreadPool()
         self.picThreadPool.setMaxThreadCount(5)
 
+        # QueueObject定义在base中，是一个由Queue与QObject组成的对象。
+        # 一方面Queue线程安全，另一方面QObject带有信号槽机制。
+        # 那只要QRunnable线程中请求完了内容，将内容添加到QueueObject中，
+        # 由QueueObject发出信号通知主线程进行界面操作就可以安全的完成。
+        # 这里是图片的操作。
         self.queue = QueueObject()
         self.queue.add.connect(self.setStyleCodes)
 
@@ -45,7 +57,7 @@ class NetEaseSingsArea(QFrame):
         # 同时连接图片下载的线程全部完成的信号槽。
         # 若一轮图片下载完成并且滑到底部则进行下一次线程，否则将不会。
         self.parent.scrollDown.connect(self.sliderDownEvent)
-        self.picManager.allFinished.connect(self.picManagerFinishedEvent)
+        # self.picManager.allFinished.connect(self.picManagerFinishedEvent)
         
         # 用于存储结果。
         self.result = []
@@ -86,18 +98,15 @@ class NetEaseSingsArea(QFrame):
 
         # 一个线程，初始化用于请求歌单的全部内容。
         self.netThread = RequestThread(self, self.getSings)
-        # if network.noGevent:
-        # self.netThread.finished.connect(self.setSings)
         self.netThread.finished.connect(self.threadSetSings)
-
-        # else:
-        # self.netThread.finished.connect(self.geventSetSings)
 
         self.netThread.setFlag(True)
         self.netThread.start()
-        # 另一个线程，无限循环的时钟，用于检测当picManager处于工作状态时，暂停下一轮请求。
-        self.timerThread = Timer(self, self.picManager.picFinished)
-        self.timerThread.finished.connect(self.setSings2)
+
+        # 无用保留观察。
+        # # 另一个线程，无限循环的时钟，用于检测当picManager处于工作状态时，暂停下一轮请求。
+        # self.timerThread = Timer(self, self.picManager.picFinished)
+        # self.timerThread.finished.connect(self.setSings2)
         # 第三个线程，与第一个一样。
         self.singsThread = RequestThread(self)
 
@@ -108,60 +117,9 @@ class NetEaseSingsArea(QFrame):
             self.singNames.append(i['name'])
             self.singPicUrls.append(i['coverImgUrl'])
             self.singIds.append(i['id'])
-
-    def setSings(self):
-        # 先生成QFrame，并附上名字，图片稍后再获取。
-        for i in range(30):
-            i += self.offset
-            picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
-            frame = OneSing(self.gridRow, self.gridColumn, self.singIds[i], self, picName)
-            frame.nameLabel.setText(self.singNames[i])
-            
-            # 建立起索引，一是防止垃圾回收了，二是可以找到他的地址。
-            self.singsFrames.append(frame)
-
-            # 用于布局，一行4个。
-            if self.gridColumn == 3:
-                self.gridColumn = 0
-                self.gridRow += 1
-            else:
-                self.gridColumn += 1
-        
-        # 设置url。
-        self.picManager.setUrl(self.singPicUrls)
-        
-        # 如果没有在工作那就直接进行就好了。
-        if self.picManager.picFinished:
-            # 没有在工作，加载图片。
-            self.pics = self.picManager.startGet(self.singsFrames)
-            # 开启监控的线程，如果是初始化时，没有加载完成就拉到最低时，也可以监控到。
-            self.timerThread.start()
-        else:
-            # 在进行工作，并且监控线程也在工作就不做操作，否则两次start会报错也没有必要。
-            if self.timerThread.isFinished() == False:
-                pass
-            # 下两步可合为一步，懒得改了。
-            elif self.timerThread.times == 0:
-                self.timerThread.timer = 1
-                self.timerThread.start()
-            else:
-                self.timerThread.start()
-
-    def setSings2(self):
-        # 上面那个的副本，只用于发起请求图片的函数。
-        # 监控线程的完成槽。
-        # 先判断图片线程是否在工作，如果没有在工作，那么就判断请求新歌单的线程有没有在工作，
-        # 如果新歌单的线程在工作，那么就重新开启监控线程，因为还不到要进行图片请求的时候。
-        # 否则将进行新的图片请求。
-        if self.picManager.picFinished:
-            if self.netThread.isRunning():
-                self.timerThread.start()
-            else:
-                self.picManager.setUrl(self.singPicUrls)
-                self.picManager.startGet(self.singsFrames)
-
-    """之后的两个是使用gevent请求图片。但是会卡主界面。目前保留但不使用。"""
-    # def geventSetSings(self):
+    # 目前保留不使用。
+    # def setSings(self):
+    #     # 先生成QFrame，并附上名字，图片稍后再获取。
     #     for i in range(30):
     #         i += self.offset
     #         picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
@@ -177,39 +135,39 @@ class NetEaseSingsArea(QFrame):
     #             self.gridRow += 1
     #         else:
     #             self.gridColumn += 1
-
-    #         try:
-    #             cacheList = os.listdir('cache')
-    #         except:
-    #             os.mkdir('cache')
-    #             cacheList = os.listdir('cache')
-            
-    #         url = self.singPicUrls[i]
-
-    #         names = str(url[url.rfind('/')+1:])
-    #         if names in cacheList:
-    #             frame.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
-    #         else:
-    #             self.geventSetSingsPic(frame, url)
-    
-
-    #     network.pool.join()
-
-    # @network.joinJobInGevent
-    # def geventSetSingsPic(self, widget, url):
-
-    #     names = str(url[url.rfind('/')+1:])
-    #     content = self.picSession.get(url).content
         
-    #     # 可能是open读写的问题，用open会导致某些图片显示不出来。
-    #     # with open('cache/{0}'.format(names), 'wb') as f:
-    #     #     f.write(content)
-    #     # 所以改成这样进行存储。
-    #     pic = QPixmap()
-    #     pic.loadFromData(content)
-    #     pic.save("cache/{0}".format(names))
-
-    #     widget.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
+    #     # 设置url。
+    #     self.picManager.setUrl(self.singPicUrls)
+        
+    #     # 如果没有在工作那就直接进行就好了。
+    #     if self.picManager.picFinished:
+    #         # 没有在工作，加载图片。
+    #         self.pics = self.picManager.startGet(self.singsFrames)
+    #         # 开启监控的线程，如果是初始化时，没有加载完成就拉到最低时，也可以监控到。
+    #         self.timerThread.start()
+    #     else:
+    #         # 在进行工作，并且监控线程也在工作就不做操作，否则两次start会报错也没有必要。
+    #         if self.timerThread.isFinished() == False:
+    #             pass
+    #         # 下两步可合为一步，懒得改了。
+    #         elif self.timerThread.times == 0:
+    #             self.timerThread.timer = 1
+    #             self.timerThread.start()
+    #         else:
+    #             self.timerThread.start()
+    # # 目前保留不使用。
+    # def setSings2(self):
+    #     # 上面那个的副本，只用于发起请求图片的函数。
+    #     # 监控线程的完成槽。
+    #     # 先判断图片线程是否在工作，如果没有在工作，那么就判断请求新歌单的线程有没有在工作，
+    #     # 如果新歌单的线程在工作，那么就重新开启监控线程，因为还不到要进行图片请求的时候。
+    #     # 否则将进行新的图片请求。
+    #     if self.picManager.picFinished:
+    #         if self.netThread.isRunning():
+    #             self.timerThread.start()
+    #         else:
+    #             self.picManager.setUrl(self.singPicUrls)
+    #             self.picManager.startGet(self.singsFrames)
 
     """测试线程池方法。"""
     def threadSetSings(self):
