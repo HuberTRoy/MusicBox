@@ -1,9 +1,31 @@
 """用于定义几个需要多次调用的基础类。"""
 __author__ = 'cyrbuzz'
 
+from queue import Queue
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+
+
+"""一个有信号槽机制的安全线程队列。"""
+class QueueObject(QObject):
+    add = pyqtSignal()
+
+    def __init__(self):
+        super(QueueObject, self).__init__()
+        self.queue = Queue()
+
+    def put(self, data):
+        self.queue.put(data)
+        self.add.emit()
+
+    def get(self):
+        if self.queue.empty():
+            return 0
+
+        return self.queue.get()
+
 
 """一个用于继承的类，方便多次调用。"""
 class ScrollArea(QScrollArea):
