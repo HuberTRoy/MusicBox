@@ -5,7 +5,7 @@
 > PyQt5.5+ <br />
 > requests. -> pip install requests <br /> 
 > eyed3 0.8+ <br />
-> crypto/cryptodome. -> pip install pycyrptodome <br />
+> crypto/cryptodome. -> pip install pycyrptodome Or pip install pycryptodomex<br />
 
 ### 目前很多功能没有添加。
 
