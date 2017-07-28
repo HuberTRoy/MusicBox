@@ -4,13 +4,14 @@ import os
 
 import network
 import addition
-
 import netEaseApi
 
 from base import *
 
+
 # netEaseApi
 netEase = netEaseApi.NetEaseWebApi()
+
 
 """一个Tab，网易云的全部歌单。"""
 class NetEaseSingsArea(QFrame):
