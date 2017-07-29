@@ -1,16 +1,17 @@
 """包含音乐的组件, 显示用信息, 一个自定义可HOVER整行效果的TableWidget。"""
 __author__ = 'cyrbuzz'
 
+import os
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QBrush, QColor, QIcon, QCursor
 from PyQt5.QtCore import QUrl, QSize, Qt, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
+import addition
+
 from network import NetWorkThread
 
-import os
-
-import addition
 
 """底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。"""
 class PlayWidgets(QFrame):

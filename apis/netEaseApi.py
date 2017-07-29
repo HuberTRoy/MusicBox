@@ -9,6 +9,7 @@ import urllib.parse
 from apiRequestsBase import HttpRequest
 from netEaseEncode import encrypted_request
 
+
 class NetEaseWebApi(HttpRequest):
     """
         2015年写的，函数名略混乱，不影响使用，暂时不修改。

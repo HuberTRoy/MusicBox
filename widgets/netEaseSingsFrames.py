@@ -52,7 +52,7 @@ class NetEaseSingsArea(QFrame):
         # 由QueueObject发出信号通知主线程进行界面操作就可以安全的完成。
         # 这里是图片的操作。
         self.queue = QueueObject()
-        self.queue.add.connect(self.setStyleCodes)
+        self.queue.add.connect(self._setStyleCodesByThreadPool)
 
         # 连接滑轮到底的信号槽。
         # 同时连接图片下载的线程全部完成的信号槽。
@@ -93,7 +93,6 @@ class NetEaseSingsArea(QFrame):
 
         # 用于网易云的每次请求的歌单数量。
         self.offset = 0
-        # 用于记录次数，多线程的同步。
 
         self.api = netEase
 
@@ -203,7 +202,9 @@ class NetEaseSingsArea(QFrame):
                 task = _PicThreadTask(self.queue, frame, url)
                 self.picThreadPool.start(task)
 
-    def setStyleCodes(self):
+    def _setStyleCodesByThreadPool(self):
+        # data是线程池的请求完成后的对象。
+        # 0下标处是widget，1是style代码。
         data = self.queue.get()
         if not data:
             return

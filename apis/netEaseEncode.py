@@ -18,6 +18,7 @@ modulus = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3
 nonce = b'0CoJUm6Qyw8W8jud'
 pubKey = '010001'
 
+
 def createSecretKey(size):
     # 2中 os.urandom返回是个字符串。3中变成bytes。
     # 不过加密的目的是需要一个字符串。

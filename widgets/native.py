@@ -1,11 +1,13 @@
 """本地音乐的界面，逻辑。"""
 __author__ = 'cyrbuzz'
 
+import glob
+
+import eyed3
+
 from base import *
 from addition import itv2time
 
-import eyed3
-import glob
 
 class NativeMusic(ScrollArea):
     def __init__(self, parent):
