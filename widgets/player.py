@@ -2,10 +2,11 @@
 __author__ = 'cyrbuzz'
 
 import os
+import random
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QBrush, QColor, QIcon, QCursor
-from PyQt5.QtCore import QUrl, QSize, Qt, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
+from PyQt5.QtCore import QUrl, QSize, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 import addition
@@ -161,7 +162,7 @@ class PlayWidgets(QFrame):
         """防止重复。"""
         if data in self.playList.musicList:
             index = self.playList.musicList.index(data)
-            if self.player.playList.currentIndex() == index:
+            if self.player.playList.currentIndex == index:
                 return
 
             self.player.setIndex(index)
@@ -178,8 +179,8 @@ class PlayWidgets(QFrame):
         self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
         # 添加歌曲到播放器。
         # index = len(self.playList.musicList)
-        index = self.player.playList.mediaCount()
-        self.player.setIndex(index-1)
+        # index = self.player.playList.mediaCount()
+        # self.player.setIndex(index-1)
 
     # 事件。
     def playEvent(self, media):
@@ -273,7 +274,7 @@ class PlayWidgets(QFrame):
         self.currentTime.setText(addition.itv2time(currentSliderTime))
 
 
-"""音乐列表，用于显示当前添加到播放列表里的音乐。"""
+"""显示用音乐列表，用于显示当前添加到播放列表里的音乐。"""
 class PlayList(QFrame):
     """播放列表。"""
     def __init__(self, parent=None):
@@ -570,7 +571,7 @@ class Player(QMediaPlayer):
         self.playList = _MediaPlaylist(self)
         # 默认列表循环。
         self.playList.setPlaybackMode(self.playList.Loop)
-        self.setPlaylist(self.playList)
+        # self.setPlaylist(self.playList)
 
         self.setConnects()
         # QUrl 可直接播放网络音乐。
@@ -583,19 +584,19 @@ class Player(QMediaPlayer):
         self.durationChanged.connect(self.countTimeEvent)
         self.positionChanged.connect(self.positionChangedEvent)
         self.stateChanged.connect(self.stateChangedEvent)
+        self.playList.setInitConnection()
         # self.currentMediaChanged.connect(self.currentMediaChangedEvent)
         # self.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
 
     def setMusic(self, url, data):
         """设置当前的音乐，可用直接用网络链接。"""
-        if 'http' in url:
-            self.playList.addMedias(QMediaContent(QUrl(url)), data)
-        else:
-            self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
-        # if 'http' in url:
-        #     self.mediaList.append(QMediaContent(QUrl(url)))
-        # else:
-        #     self.mediaList.append(QMediaContent(QUrl.fromLocalFile(url)))
+        if url:
+            if 'http' in url:
+                self.playList.addMedias(QMediaContent(QUrl(url)), data)
+            else:
+                self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
+    
+            # self.playMusic()
     
     def setIndex(self, index):
         self.playList.setCurrentIndex(index)
@@ -615,15 +616,16 @@ class Player(QMediaPlayer):
             self.playWidgets.playEvent(self)
 
     # 事件。
-    def countTimeEvent(self):
+    def countTimeEvent(self, duration):
         """总时间改变的事件。相当于加载完成歌曲的事件。"""
-        self.musicTime = self.allTime()
+        self.musicTime = duration / 1000
+        # print('COUNT{0}'.format(duration))
         self.playWidgets.countTime.setText(self.transTime(self.musicTime))
+        self.playList.duration = duration
 
     def positionChangedEvent(self):
         """音乐在Media里以毫秒的形式保存，这里是播放时的进度条。"""
         currentTime = self.position()/1000
-
         self.playWidgets.currentTime.setText(self.transTime(currentTime))
 
         # position先于duration变化，会出现/0的情况。
@@ -795,53 +797,100 @@ class _TableWidget(QTableWidget):
         self.menu.exec_(QCursor.pos())
 
 
-"""QMediaPlaylist一些功能不好用，改进一下。还是不好用。囧。"""
-class _MediaPlaylist(QMediaPlaylist):
+class _MediaPlaylist(QObject):
+
     def __init__(self, parent=None):
         super(_MediaPlaylist, self).__init__()
         self.parent = parent
         self.playWidgets = self.parent.parent
-        # 用于记录哪些资源不在可以使用。
-        self.removeList = []
+
+        self.duration = 0
+
+        self.musics = []
+
+        self.currentIndex = 0
+
         # 用于记录歌曲的信息。
         self.mediaList = {}
 
-        self.currentMediaChanged.connect(self.tabSing) 
+        # models.
+        self.single = 1
+        self.Loop = 3
+        self.Random = 4
 
-    # 功能。
+        # currentModel
+        # 默认是3.循环。
+        self.myModel = 3
+
+    def setInitConnection(self):
+        self.parent.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
+
     def addMedias(self, url, data):
         # url为QMediaContent, data包含这个歌曲的信息。{name, author, url}
-        self.addMedia(url)
-        # print(url.canonicalUrl())
+        self.parent.setMedia(url)
+        self.musics.append(url)
+        self.currentIndex = len(self.musics) - 1
         self.mediaList[url.canonicalUrl().toString()] = data
+        self.parent.playMusic()
+
+    def mediaCount(self):
+        return len(self.musics)
 
     def removeMedias(self, row):
-        currentRow = self.currentIndex()
-        # 如果要删除的索引在当前索引之前，当前播放的歌曲会停止。
-        # 所以会把这个在它之前的资源放进删除了的列表里。假装已经删除了。
-        if row < currentRow:
-            media = self.media(row)
-            self.removeList.append(media)
+
+        self.musics.pop(row)
+
+    def next(self):
+        if self.currentIndex + 1 >= len(self.musics):
+            self.currentIndex = 0
         else:
-            self.removeMedia(row)
+            self.currentIndex += 1
 
-    def tabSing(self):
-        """切换歌曲。"""
-        # 主要是shortinfo的改变。
-        # playWidgets = self.parent.playWidgets
-        row = self.currentIndex()
-        if row == -1:
-            return
+        self.play()
+
+    def previous(self):
+        if self.currentIndex - 1 <= -1:
+            self.currentIndex = 0
+        else:
+            self.currentIndex -= 1
         
-        # 
-        currentMedia = self.media(row)
+        self.play()
 
-        if currentMedia in self.removeList:
-            self.next()
-            return
+    def play(self):
+        media = self.musics[self.currentIndex]
 
-        indexUrl = currentMedia.canonicalUrl().toString()
-        # print(indexUrl)
+        if self.parent.currentMedia() == media:
+            self.parent.setMedia(media)
+            self.parent.playMusic()
+        else:
+            self.parent.setMedia(media)
+            self.parent.playMusic()
+
+        self.tabMusicEvent()
+
+    def setCurrentIndex(self, index):
+        self.parent.setMedia(self.musics[index])
+        self.parent.playMusic()
+        self.tabMusicEvent()
+
+    def setPlaybackMode(self, model:int):
+        self.myModel = model
+
+    def mediaStatusChangedEvent(self, status):
+        if status == 7:
+            # 循环。
+            if self.myModel == 3:
+                self.next()
+            # 随机。
+            elif self.myModel == 4:
+                index = random.randint(0, len(self.musics)-1)
+                self.setCurrentIndex(index)
+            # 单曲。
+            else:
+                self.parent.play()
+
+    def tabMusicEvent(self):
+        indexUrl = self.parent.currentMedia().canonicalUrl().toString()
         name = self.mediaList[indexUrl]['name']
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']

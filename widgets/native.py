@@ -1,13 +1,30 @@
 """本地音乐的界面，逻辑。"""
 __author__ = 'cyrbuzz'
 
+import os
 import glob
+import os.path
 
 import eyed3
 
 from base import *
 from addition import itv2time
 
+def getAllFolder(topFolder):
+    result = []
+
+    def findFolder(topFolder):
+        folders = [os.path.join(topFolder, i) for i in os.listdir(topFolder) if not os.path.isfile(os.path.join(topFolder, i))]
+        if not folders:
+            return 
+        else:
+            result.extend(folders)
+            for i in folders:
+                findFolder(i)
+
+    findFolder(topFolder)
+
+    return result
 
 class NativeMusic(ScrollArea):
     def __init__(self, parent):
@@ -79,8 +96,11 @@ class NativeMusic(ScrollArea):
         else:
             self.folder.append(selectFolder)
 
-            mediaFiles = glob.glob(selectFolder+'\\*\\*.mp3')
-            
+            mediaFiles = glob.glob(selectFolder+'/*.mp3')
+            allFolder = getAllFolder(selectFolder)
+            for i in allFolder:
+                mediaFiles.extend(glob.glob(i+'/*.mp3'))
+
             length = len(mediaFiles)
 
             self.singsTable.setRowCount(self.singsTable.rowCount()+length)
@@ -88,8 +108,8 @@ class NativeMusic(ScrollArea):
             for i in enumerate(mediaFiles):
                 
                 music = eyed3.load(i[1])
-
                 if not music.tag:
+                    self.singsTable.removeRow(i[0])
                     continue
 
                 name = music.tag.title
