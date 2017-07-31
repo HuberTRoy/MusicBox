@@ -483,7 +483,6 @@ class Navigation(QScrollArea):
         self.singsFunction()
 
 
-
 """主要内容区，包括最新的歌单。"""
 class MainContent(ScrollArea):
     # 定义一个滑到了最低部的信号。

@@ -170,8 +170,12 @@ class PlayWidgets(QFrame):
             return
 
         # 添加资源当前项到播放列表。
+        sureSetUp = self.player.setMusic(data['url'], data)
+        if not sureSetUp:
+            self.currentMusic.setShortInfo('音乐不可播放', data['author'], data['music_img'])
+            return 
+            
         self.playList.addMusic(data)
-        self.player.setMusic(data['url'], data)
 
         # 添加显示播放列表的显示项。
         self.playList.addPlayList(data['name'], data['author'], data['time'])
@@ -595,7 +599,8 @@ class Player(QMediaPlayer):
                 self.playList.addMedias(QMediaContent(QUrl(url)), data)
             else:
                 self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
-    
+        else:
+            return False
             # self.playMusic()
     
     def setIndex(self, index):
