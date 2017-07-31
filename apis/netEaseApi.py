@@ -1,5 +1,5 @@
 """获取网易云音乐的API。"""
-
+"""暂时没有整改的想法: 一方面旧的API可以用，另一方面逻辑较为简单，当前优先级不高。"""
 
 __author__ = 'cyrbuzz'
 
@@ -7,7 +7,7 @@ import json
 import urllib.parse
 
 from apiRequestsBase import HttpRequest
-from netEaseEncode import encrypted_request
+from netEaseEncode import encrypted_request, hashlib
 
 
 class NetEaseWebApi(HttpRequest):
@@ -24,12 +24,50 @@ class NetEaseWebApi(HttpRequest):
 
     def __init__(self):
         self.headers['Host'] = 'music.163.com'
+        self.headers['Referer'] = 'http://music.163.com'
+        self.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
 
     def httpRequest(self, *args, **kwargs):
+        data = kwargs.get('data')
+        if data:
+            kwargs['data'] = encrypted_request(data)
+
         html = super(NetEaseWebApi, self).httpRequest(*args, **kwargs)
 
-        return json.loads(html.text)
+        try:
+            return json.loads(html.text)
+        except:
+            return {'code':0}
+    def login(self, username, password):
+        """默认记住登陆。"""
+        """
+            phone 用的/weapi/login/cellphone?csrf_token=
+            email 用的/weapi/login?csrf_token=
 
+            还有验证码相关暂时不做。
+        """
+        password = password.encode()
+        md5 = hashlib.md5()
+        md5.update(password)
+        password = md5.hexdigest()
+
+        data = {'password': password, 'rememberLogin': True}
+
+        # email = data.update({'username': username}) if '@' in username else data.update({'phone': username})
+        email = True if '@' in username else False
+        if email:
+            data['username'] = username
+        else:
+            data['phone'] = username
+
+        urlEmail = 'http://www.music.163.com/weapi/login?csrf_token='
+        urlPhone = 'http://www.music.163.com/weapi/login/cellphone?csrf_token='
+        url = urlEmail if email else urlPhonel
+
+        html = self.httpRequest(url, method='POST', data=data)
+
+        return html
 
     def user_playlist(self, uid, offset=0):
         """
@@ -46,7 +84,11 @@ class NetEaseWebApi(HttpRequest):
         url = 'http://music.163.com/api/playlist/list?cat=%s&type=%s&order=%s&offset=%d&total=true&limit=30&index=%d'\
             % (urllib.parse.quote(cat), types, types, offset, index)
         html = self.httpRequest(url, method='GET', cookies=self.cookies)
-        return html['playlists']
+
+        try:
+            return html['playlists']
+        except:
+            return {}
 
     def details_playlist(self, id):
         """
@@ -64,12 +106,12 @@ class NetEaseWebApi(HttpRequest):
         """
         # url = 'http://music.163.com/api/search/get/web'
         url = 'http://music.163.com/weapi/cloudsearch/get/web'
-        data = encrypted_request({
+        data = {
             's': s,
             'offset': str(offset),
             'limit': str(limit),
             'type': str(stype)
-        })
+        }
 
         html = self.httpRequest(url, method='POST', data=data)
         try:
@@ -83,7 +125,7 @@ class NetEaseWebApi(HttpRequest):
         返回歌曲的URL。
         """
 
-        data = encrypted_request({'csrf_token': '', 'ids': ids, 'br': 999000})
+        data = {'csrf_token': '', 'ids': ids, 'br': 999000}
         url = "http://music.163.com/weapi/song/enhance/player/url"
         html = self.httpRequest(url, method='POST', data=data)
 
@@ -112,84 +154,10 @@ class NetEaseWebApi(HttpRequest):
 
 if __name__ == '__main__':
     pass
-    # import json
-    # import os
-    # import random
-    # import binascii
-    # from Cryptodome.Cipher import AES
-    # import base64
-    # modulus = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7'
-    # nonce = b'0CoJUm6Qyw8W8jud'
-    # pubKey = '010001'
-
-    # def createSecretKey(size):
-
-    #     # return (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(size))))[0:16]
-    #     return bytes(''.join(random.sample('1234567890qwertyuipasdfghjklzxcvbnm', 16)), 'utf-8')
-
-    # def aesEncrypt(text, secKey):
-
-    #     pad = 16 - len(text) % 16
-    #     try:
-    #         text = text.decode()
-    #     except:
-    #         pass
-
-    #     text = text + pad * chr(pad)
-    #     try:
-    #         text = text.encode()
-    #     except:
-    #         pass
-
-    #     encryptor = AES.new(secKey, 2, bytes('0102030405060708', 'utf-8'))
-    #     ciphertext = encryptor.encrypt(text)
-    #     ciphertext = base64.b64encode(ciphertext)
-    #     return ciphertext
-
-    # def rsaEncrypt(text, pubKey, modulus):
-    #     text = text[::-1]
-    #     rs = int(binascii.hexlify(text), 16) ** int(pubKey, 16) % int(modulus, 16)
-    #     return format(rs, 'x').zfill(256)
-
-    # def encrypted_request(text):
-    #     text = json.dumps(text)
-    #     secKey = createSecretKey(16)
-    #     encText = aesEncrypt(aesEncrypt(text, nonce), secKey)
-
-    #     # secKey = secKey.decode()
-    #     encSecKey = rsaEncrypt(secKey, pubKey, modulus)
-    #     data = {
-    #         'params': encText.decode(),
-    #         'encSecKey': encSecKey
-    #     }
-    #     return data
-
-    # data = encrypted_request({'csrf_token': '', 'ids': [139357], 'br': 999000})
-    # # data = {'encSecKey': 'd53b10328a0d5dc51b40f0eb562bad633e2597b01ec9abc96f10269189c156f7b1d04cb607a8fdf4a0f588ba941ead598c6bcb67c147fcd957f33fd22a0377212be14cebefe18fb74d6e75ab8e0526523981f3d3cfd5102632d622320e0c529494b6ed28b1156128a43b85d48dc7afac673b2c0c7c3584229cd3c4fff39081d9', 'params': 'jPPhxJu7mgqjwcprjH2zQ+Gy/+s4NbdP1elAG1fxX9rtAQpwxGdI6guQQ0am68S8tHBcoB6Zxb4nQwn84DEMOgDTIi8YTT4Sp3wqZFomSPaNenbD+9Cn84G/SO++mqSy'}
-    
-    # headers = {
-    #         'Accept':
-    #         '*/*',
-    #         'Accept-Language':
-    #         'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
-    #         'Connection':
-    #         'keep-alive',
-    #         'Content-Type':
-    #         'application/x-www-form-urlencoded',
-    #         'Referer':
-    #         'http://music.163.com',
-    #         'Host':
-    #         'music.163.com',
-    #         'User-Agent':
-    #         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'
-    # }
-
-    # import requests
-
-    # req = requests.post('http://music.163.com/weapi/song/enhance/player/url', headers=headers, data=data)
-    # print(req.text)
 
     main = NetEaseWebApi()
+    req = main.login('b754048538@163.com', 'adhere11800')
+    print(req)
     # req = main.details_search([139357])
     # print(req)
     # req = main.all_playlist()
@@ -197,11 +165,11 @@ if __name__ == '__main__':
     # req = main.details_playlist(566527372)
     # print(req)
     # req = main.all_playlist(offset=30)
-    req = main.search("理想三旬")
+    # req = main.search("理想三旬")
 
-    for i in req['songs']:
-        print(i)
-        print('\n')
+    # for i in req['songs']:
+    #     print(i)
+    #     print('\n')
     # print(req['result']['songCount'])
     # print(req[0])
     # for i in req:
