@@ -599,6 +599,7 @@ class Player(QMediaPlayer):
                 self.playList.addMedias(QMediaContent(QUrl(url)), data)
             else:
                 self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
+            return True
         else:
             return False
             # self.playMusic()
