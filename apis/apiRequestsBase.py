@@ -28,7 +28,7 @@ class HttpRequest(object):
     # 使用keep-alive，
     # keep-alive保持持久连接，没有必要开启很多个TCP链接，浪费资源。
     # 使用会话(session)来保持持久连接。
-    sessions = requests.session()
+    # sessions = requests.session()
 
     # TCP重传需要3秒。
     default_timeout = 3.05
@@ -44,6 +44,9 @@ class HttpRequest(object):
     }
 
     cookies = {}
+
+    def __init__(self):
+        self.sessions = requests.session()
 
     @requestsExceptionFilter
     def httpRequest(self, action, method="GET", add=None, data=None, headers=None, cookies='',\
@@ -71,5 +74,19 @@ class HttpRequest(object):
                 html = self.sessions.post(action, headers=headers, cookies=cookies, timeout=timeout)
             html.encoding = urlencode
 
+
         return html
 
+    def __del__(self):
+        # 关闭请求。
+        try:
+            self.sessions.close()
+        except:
+            pass
+
+
+if __name__ == '__main__':
+    a = requests.session()
+
+    b = a.get('http://music.163.com')
+    print(b.cookies)

@@ -23,10 +23,10 @@ class NetEaseWebApi(HttpRequest):
     
 
     def __init__(self):
+        super(NetEaseWebApi, self).__init__()
         self.headers['Host'] = 'music.163.com'
         self.headers['Referer'] = 'http://music.163.com'
         self.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-
 
     def httpRequest(self, *args, **kwargs):
         data = kwargs.get('data')
@@ -39,6 +39,7 @@ class NetEaseWebApi(HttpRequest):
             return json.loads(html.text)
         except:
             return {'code':0}
+
     def login(self, username, password):
         """默认记住登陆。"""
         """
@@ -52,7 +53,7 @@ class NetEaseWebApi(HttpRequest):
         md5.update(password)
         password = md5.hexdigest()
 
-        data = {'password': password, 'rememberLogin': True}
+        data = {'password': password, 'rememberLogin': 'true'}
 
         # email = data.update({'username': username}) if '@' in username else data.update({'phone': username})
         email = True if '@' in username else False
@@ -61,8 +62,8 @@ class NetEaseWebApi(HttpRequest):
         else:
             data['phone'] = username
 
-        urlEmail = 'http://www.music.163.com/weapi/login?csrf_token='
-        urlPhone = 'http://www.music.163.com/weapi/login/cellphone?csrf_token='
+        urlEmail = 'http://music.163.com/weapi/login?csrf_token='
+        urlPhone = 'http://music.163.com/weapi/login/cellphone?csrf_token='
         url = urlEmail if email else urlPhonel
 
         html = self.httpRequest(url, method='POST', data=data)
