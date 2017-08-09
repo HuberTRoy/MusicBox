@@ -1,0 +1,18 @@
+
+QFrame {
+    background: #FFFFFF;
+    /*border-image: url('resource/loginBackground.jpg');*/
+}
+
+QPushButton#enterButton {
+    border: 1px;
+    background: #2E7ECB;
+    /*border-image: url(resource/loginButton.png);*/
+    color: white;
+}
+
+QPushButton#enterButton:hover {
+    background: #4A94D9;
+}
+
+
