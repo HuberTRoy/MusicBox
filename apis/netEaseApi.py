@@ -64,7 +64,7 @@ class NetEaseWebApi(HttpRequest):
 
         urlEmail = 'http://music.163.com/weapi/login?csrf_token='
         urlPhone = 'http://music.163.com/weapi/login/cellphone?csrf_token='
-        url = urlEmail if email else urlPhonel
+        url = urlEmail if email else urlPhone
 
         html = self.httpRequest(url, method='POST', data=data)
 
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     pass
 
     main = NetEaseWebApi()
-    req = main.login('b754048538@163.com', 'adhere11800')
+    req = main.login('13792133179', 'xiaoshen')
     print(req)
     # req = main.details_search([139357])
     # print(req)

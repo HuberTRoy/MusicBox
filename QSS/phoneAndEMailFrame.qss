@@ -6,8 +6,8 @@ QFrame {
 
 QPushButton#enterButton {
     border: 1px;
+    border-radius: 3px;
     background: #2E7ECB;
-    /*border-image: url(resource/loginButton.png);*/
     color: white;
 }
 
@@ -15,4 +15,11 @@ QPushButton#enterButton:hover {
     background: #4A94D9;
 }
 
+QLabel#warningIconLabel {
+    border-image: url(resource/warning.png);
+}
 
+QLabel#warningLabel {
+    color: #E33232;
+    padding: 3px;
+}

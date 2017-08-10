@@ -105,6 +105,38 @@ class HBoxLayout(QHBoxLayout):
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
 
+# 默认情况下。
+# ----!!!----
+# 一个水平居中的布局。
+class HStretchBox(HBoxLayout):
+
+    def __init__(self, parentLayout, *widgets, frontStretch=1, behindStretch=1):
+        super(HStretchBox, self).__init__()
+        self.addStretch(frontStretch)
+        for i in widgets:
+            self.addWidget(i)
+
+        self.addStretch(behindStretch)
+
+        parentLayout.addLayout(self)
+
+
+# 默认情况下。
+#  |
+#  !
+#  |
+# 一个垂直居中的布局。
+class  VStretchBox(VBoxLayout):
+
+    def __init__(self, parentLayout, *widgets, frontStretch=1, behindStretch=1):
+        super(VStretchBox, self).__init__()
+        self.addStretch(frontStretch)
+        for i in widgets:
+            self.addWidget(i)
+        self.addStretch(behindStretch)
+
+        self.parentLayout.addLayout(self)
+
 
 # ---下面是线程，包括网络线程和时钟线程。
 class RequestThread(QThread):

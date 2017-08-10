@@ -107,13 +107,29 @@ class PhoneAndEMailFrame(QFrame):
         self.mainLayout.addStretch(1)
 
         self.usernameLine = InputLine(self, 220, 32, '请输入用户名')
-        self.usernameCenterBox = HCenterBox(self.mainLayout, self.usernameLine)   
+        self.usernameLine.setObjectName('usernameLine')
+        self.usernameCenterBox = HStretchBox(self.mainLayout, self.usernameLine)   
         
         self.mainLayout.addSpacing(10) 
         
         self.passwordLine = InputLine(self, 220, 32, '请输入密码')
-        self.passwordCenterBox = HCenterBox(self.mainLayout, self.passwordLine)
+        self.passwordLine.setObjectName('passwordLine')
+        self.passwordCenterBox = HStretchBox(self.mainLayout, self.passwordLine)
         self.passwordLine.setEchoMode(QLineEdit.Password)
+
+
+        self.warningIconLabel = QLabel()
+        self.warningIconLabel.setObjectName('warningIconLabel')
+        self.warningIconLabel.setMaximumSize(14, 14)
+        self.warningIconLabel.setMinimumSize(14, 14)
+        self.warningIconLabel.hide()
+        self.warningLabel = QLabel("请输入用户名")
+        self.warningLabel.hide()
+        self.warningLabel.setObjectName('warningLabel')
+
+        self.warningCenterBox = HStretchBox(self.mainLayout, self.warningIconLabel, self.warningLabel, 
+            behindStretch=2)
+
 
         self.mainLayout.addSpacing(30) 
 
@@ -121,7 +137,7 @@ class PhoneAndEMailFrame(QFrame):
         self.enterLoginButton.setObjectName("enterButton")
         self.enterLoginButton.setMaximumSize(217, 27)
         self.enterLoginButton.setMinimumSize(217, 27)
-        self.enterLoginCenterBox = HCenterBox(self.mainLayout, self.enterLoginButton)
+        self.enterLoginCenterBox = HStretchBox(self.mainLayout, self.enterLoginButton)
         self.enterLoginButton.clicked.connect(self.login)
 
 
@@ -133,6 +149,22 @@ class PhoneAndEMailFrame(QFrame):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
         
+        if not username or not password:
+            self.warningIconLabel.show()
+
+        if not username:
+            self.warningLabel.setText('请输入用户名')
+            self.warningLabel.show()
+            return 
+
+        if not password:
+            self.warningLabel.setText('请输入密码')
+            self.warningLabel.show()
+            return 
+
+        self.warningIconLabel.hide()
+        self.warningLabel.hide()
+
 
 if __name__ == '__main__':
     import os
