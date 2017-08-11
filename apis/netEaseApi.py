@@ -157,8 +157,11 @@ if __name__ == '__main__':
     pass
 
     main = NetEaseWebApi()
-    req = main.login('13792133179', 'xiaoshen')
-    print(req)
+    # req = main.login('13792133179', 'xiaoshen')
+    req = {'bindings': [{'userId': 426586128, 'expiresIn': 2147483647, 'type': 1, 'refreshTime': 1502328860, 'url': '', 'id': 3193514993, 'expired': False, 'tokenJsonStr': '{"cellphone":"13792133179","hasPassword":true}'}], 'account': {'whitelistAuthority': 0, 'anonimousUser': False, 'vipType': 0, 'createTime': 1502328860867, 'userName': '1_13792133179', 'tokenVersion': 0, 'status': 0, 'donateVersion': 0, 'salt': '[B@11e3b4cd', 'id': 426586128, 'type': 1, 'ban': 0, 'baoyueVersion': 0, 'viptypeVersion': 0}, 'code': 200, 'profile': {'avatarImgIdStr': '18686200114669622', 'detailDescription': '', 'avatarImgId': 18686200114669622, 'vipType': 0, 'description': '', 'defaultAvatar': True, 'authority': 0, 'backgroundImgIdStr': '109951162868128395', 'birthday': -2209017600000, 'signature': '', 'avatarUrl': 'http://p1.music.126.net/VnZiScyynLG7atLIZ2YPkw==/18686200114669622.jpg', 'followed': False, 'province': 370000, 'remarkName': None, 'city': 370900, 'accountStatus': 0, 'userId': 426586128, 'nickname': 'cyrbuzzi', 'mutual': False, 'expertTags': None, 'djStatus': 0, 'gender': 0, 'backgroundUrl': 'http://p1.music.126.net/2zSNIqTcpHL2jIvU6hG0EA==/109951162868128395.jpg', 'authStatus': 0, 'userType': 0, 'backgroundImgId': 109951162868128395, 'avatarImgId_str': '18686200114669622'}, 'loginType': 1}
+    # print(req)
+    for i in req:
+        print(i, req[i])
     # req = main.details_search([139357])
     # print(req)
     # req = main.all_playlist()

@@ -21,6 +21,7 @@ sys.path.append('apis')
 from base import *
 from player import *
 from native import NativeMusic
+from loginFrames import LoginBox
 from netEaseSingsFrames import *
 
 import network
@@ -29,6 +30,7 @@ import netEaseApi
 
 # netEaseApi
 netEase = netEaseApi.NetEaseWebApi()
+# Requests = network.Requests
 
 
 """用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。"""
@@ -40,8 +42,10 @@ class Window(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setWindowIcon(QIcon('resource/format.ico'))
         self.setWindowTitle("Music")
+
         with open('QSS/window.qss', 'r') as f:
             self.setStyleSheet(f.read())
+
         self.resize(1022, 670)
 
         self.header = Header(self)
@@ -185,6 +189,15 @@ class Header(QFrame):
         self.searchThread.setTarget(self.search)
         self.searchThread.finished.connect(self.searchFinished)
 
+        self.loginThread = RequestThread(self)
+        self.loginThread.breakSignal.connect(self.emitWarning)
+        self.loginThread.finished.connect(self.loginFinished)
+
+        self.loginBox = LoginBox(self)
+        self.loginBox.connectLogin(self.login)
+
+        self.loginInfor = {}
+
         with open('QSS/header.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
@@ -215,6 +228,7 @@ class Header(QFrame):
 
         self.loginButton = QPushButton("未登录 ▼", self)
         self.loginButton.setObjectName("loginButton")
+        self.loginButton.clicked.connect(self.showLoginBox)
 
         self.prevButton = QPushButton("<")
         self.prevButton.setObjectName("prevButton")
@@ -230,18 +244,19 @@ class Header(QFrame):
 
     def setLabels(self):
         """创建所需的所有标签。"""
-        self.logoLabel = QLabel(self)
-        self.logoPixmap = QPixmap(r'resource//format.png')
-        self.logoLabel.setPixmap(self.logoPixmap.scaled(22, 22))
-        self.logoLabel.setMaximumSize(22, 22)
+        self.logoLabel = picLabel(r'resource/format.png', 22, 22)
+        # self.logoPixmap = QPixmap(r'resource//format.png')
+        # self.logoLabel.setPixmap(self.logoPixmap.scaled(22, 22))
+        # self.logoLabel.setMaximumSize(22, 22)
 
         self.descriptionLabel = QLabel(self)
         self.descriptionLabel.setText("<b>Music<b>")
 
-        self.userPix = QLabel(self)
-        self.nouserPix = QPixmap(r'resource//nouser.png')
-        self.userPix.setPixmap(self.nouserPix.scaled(22, 22))
-        self.userPix.setMaximumSize(22, 22)
+        # self.userPix = QLabel(self)
+        self.userPix = picLabel(r'resource/nouser.png', 22, 22)
+        # self.nouserPix = QPixmap(r'resource//nouser.png')
+        # self.userPix.setPixmap(self.nouserPix.scaled(22, 22))
+        # self.userPix.setMaximumSize(22, 22)
 
     def setLineEdits(self):
         """创建搜素框。"""
@@ -280,7 +295,6 @@ class Header(QFrame):
         self.mainLayout.addSpacing(3)
         self.mainLayout.addWidget(self.closeButton)
 
-
         self.setLayout(self.mainLayout)
 
     # 功能。
@@ -318,6 +332,49 @@ class Header(QFrame):
         self.parent.searchArea.setSingsData(songs)
 
         self.parent.setTabIndex(3)
+
+    def showLoginBox(self):
+        self.loginBox.open()
+
+    def login(self):
+        informations = self.loginBox.checkAndGetLoginInformation()
+        
+        if not informations:
+            return 
+
+        self.loginThread.setTarget(self.loadLoginInformations)
+        self.loginThread.setArgs(informations)
+        self.loginThread.start()
+
+    def loadLoginInformations(self, informations:tuple):
+        result = netEase.login(*informations)
+        # 网络不通或其他问题。
+        if not result:
+            self.loginThread.breakSignal.emit('请检查网络后重试~.')
+            return
+
+        code = result.get('code')
+        if code != 200 or code != '200':
+            self.loginThread.breakSignal.emit(str(result.get('msg')))
+
+        self.loginInfor = result
+
+    def loginFinished(self):
+        self.loginBox.accept()
+        profile = self.loginInfor['profile']
+        userId = profile['userId']
+        avatarUrl = profile['avatarUrl']
+        nickname = profile['nickname']
+
+        self.loginButton.setText(nickname)
+        self.userPix.setSrc(avatarUrl)
+
+    def emitWarning(self, warningStr):
+        self.loginBox.setWarningAndShowIt(warningStr)
+
+    def exitLogin(self):
+        self.loginButton.setText('未登录 ▼')
+        self.loginButton.clicked.connect(self.showLoginBox)
 
     # 事件。
     """重写鼠标事件，实现窗口拖动。"""
@@ -375,8 +432,8 @@ class Navigation(QScrollArea):
     # 布局。
     def setLabels(self):
         """定义所有的标签。"""
-        self.showLabel = QLabel(" 推荐", self)
-        self.showLabel.setObjectName("showLabel")
+        self.recommendLabel = QLabel(" 推荐", self)
+        self.recommendLabel.setObjectName("recommendLabel")
 
         self.myMusic = QLabel(" 我的音乐", self)
         self.myMusic.setObjectName("myMusic")
@@ -407,13 +464,13 @@ class Navigation(QScrollArea):
         """定义布局。"""
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addSpacing(10)
-        self.mainLayout.addWidget(self.showLabel)
+        self.mainLayout.addWidget(self.recommendLabel)
         self.mainLayout.addSpacing(3)
         self.mainLayout.addWidget(self.navigationList)
         self.mainLayout.addSpacing(1)
         
         self.mainLayout.addWidget(self.myMusic)
-        self.mainLayout.addSpacing(1)
+        self.mainLayout.addSpacing(3)
         self.mainLayout.addWidget(self.nativeList)
         self.mainLayout.addSpacing(1)
 

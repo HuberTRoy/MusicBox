@@ -29,7 +29,8 @@ class HttpRequest(object):
     # keep-alive保持持久连接，没有必要开启很多个TCP链接，浪费资源。
     # 使用会话(session)来保持持久连接。
     # sessions = requests.session()
-
+    # cookies也可以方便管理。
+    
     # TCP重传需要3秒。
     default_timeout = 3.05
     

@@ -7,6 +7,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+# 这是一个次级目录。
+import sys
+sys.path.append('..')
+
+from networks.network import Requests
+
 
 """一个有信号槽机制的安全线程队列。"""
 class QueueObject(QObject):
@@ -140,6 +146,10 @@ class  VStretchBox(VBoxLayout):
 
 # ---下面是线程，包括网络线程和时钟线程。
 class RequestThread(QThread):
+    # 该信号用于在线程执行时发出，通知主线程做些界面更新。
+    # 因为在其他线程修改主界面是非常危险的事情。
+    breakSignal = pyqtSignal(str)
+
     """异步请求，类似Pyhton封装的Thread形式，用QThread在简单封装一下。"""
     def __init__(self, parent=None, target=None, *args, **kwargs):
         super(RequestThread, self).__init__()
@@ -184,3 +194,69 @@ class Timer(QThread):
     def setVar(self, value):
         """设置变量。"""
         self.var = value
+
+
+## 对<img src=1.jpg>的初步探索。
+# 暂只接受http(s)和本地目录。
+class picLabel(QLabel):
+
+    def __init__(self, src=None, width=None, height=None):
+        super(picLabel, self).__init__()
+        global picsThreadPool
+
+        self.width = width
+        self.height = height
+        self.setSrc(src)
+
+    def setSrc(self, src):
+        if 'http' in src or 'https' in src:
+
+            task = GetPicture(self, src)
+            picsThreadPool.start(task)
+        else:
+            self.setMaximumSize(self.width, self.height)
+            self.setMinimumSize(self.width, self.height)
+            self.setStyleSheet('''QLabel{border-image: url(%s);}'''%(src))
+
+
+class GetPicture(QRunnable):
+
+    def __init__(self, widget, src):
+        super(GetPicture, self).__init__()
+        global picsQueue
+        self.widget = widget
+        self.src = src
+
+    def run(self):
+        content = Requests.get(self.src).content
+
+        picsQueue.put([self.widget, content])
+
+
+picsThreadPool = QThreadPool()
+picsThreadPool.setMaxThreadCount(5)
+
+picsQueue = QueueObject()
+
+
+# just for picLabel.
+def __addPic():
+    data = picsQueue.get()
+    if not data:
+        return
+
+    pic = QPixmap()
+    pic.loadFromData(data[1])
+    
+    if data[0].width:
+        data[0].setPixmap(pic.scaled(data[0].width, data[0].height))
+    else:
+        data[0].setPixmap(pic)
+
+
+picsQueue.add.connect(__addPic)
+
+if __name__ == '__main__':
+    import os
+
+    os.chair('..')

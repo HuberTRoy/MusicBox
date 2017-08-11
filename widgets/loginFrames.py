@@ -78,11 +78,26 @@ class LoginBox(QDialog):
 
         self.resize(520, 300)
 
+        # 可能会有多个渠道登陆的后续扩展。
+        self.currentFrame = 0
+
         self.mainLayout = VBoxLayout(self)
 
         self.phoneAndEMailFrame = PhoneAndEMailFrame(self)
 
         self.mainLayout.addWidget(self.phoneAndEMailFrame)
+
+    def setWarningAndShowIt(self, warningStr):
+        if not self.currentFrame:
+            self.phoneAndEMailFrame.setWarningAndShowIt(warningStr)
+
+    def connectLogin(self, functionName):
+        if not self.currentFrame:
+            self.phoneAndEMailFrame.connectLogin(functionName)
+    
+    def checkAndGetLoginInformation(self):
+        if not self.currentFrame:
+            return self.phoneAndEMailFrame.checkAndGetLoginInformation()            
 
 
 class PhoneAndEMailFrame(QFrame):
@@ -138,14 +153,14 @@ class PhoneAndEMailFrame(QFrame):
         self.enterLoginButton.setMaximumSize(217, 27)
         self.enterLoginButton.setMinimumSize(217, 27)
         self.enterLoginCenterBox = HStretchBox(self.mainLayout, self.enterLoginButton)
-        self.enterLoginButton.clicked.connect(self.login)
+        # self.enterLoginButton.clicked.connect(self.login)
 
 
         self.mainLayout.addSpacing(30)
         
         self.mainLayout.addStretch(1)
 
-    def login(self):
+    def checkAndGetLoginInformation(self):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
         
@@ -155,15 +170,28 @@ class PhoneAndEMailFrame(QFrame):
         if not username:
             self.warningLabel.setText('请输入用户名')
             self.warningLabel.show()
-            return 
+            return False
 
         if not password:
             self.warningLabel.setText('请输入密码')
             self.warningLabel.show()
-            return 
+            return False
 
         self.warningIconLabel.hide()
         self.warningLabel.hide()
+
+        return username, password
+
+    def setWarningAndShowIt(self, warningStr):
+        self.warningLabel.setText(warningStr)
+
+        self.warningLabel.show()
+        self.warningIconLabel.show()
+
+    def connectLogin(self, functionName):
+        self.enterLoginButton.clicked.connect(functionName)
+
+
 
 
 if __name__ == '__main__':

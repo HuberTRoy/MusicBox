@@ -31,6 +31,7 @@ def requestsExceptionFilter(func):
     
     return _filter
 
+
 class Requests(object):
     def __init__(self):
         self.headers = headers.copy()
