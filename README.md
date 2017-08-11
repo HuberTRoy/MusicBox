@@ -17,10 +17,24 @@
 
 ### 不仅仅可以作为音乐播放器，添加更多API支持，可以添加更多内容。
 
+## 2017/8/11 更新: <br />
+    0. 目前可用手机号登陆。还不可以获取歌单, 仅登陆和头像, 其他功能待更新。详情见下图。
+    1. 做了<img src=1.jpg>的初步尝试。 多线程(线程池。详情请看base文件.)，杜绝卡界面。
+    使用方法: 
+    ···
+    from base import picLabel
+    # 支持本地目录和带http(s)的url.
+    # url必须有，width, height可选.
+    mypic = picLabel('url', width:int, height:int)
+    ...
+    ···
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/11.jpg"/>
+
 ## 2017/7/31 更新: <br />
     0. 重构播放列表。将之前关于播放列表的问题全部修复。
     1. 音频无效不会退出，而是会将不可播放的信息反馈到简介框。
-    2. 目前登陆API已经更新，尚处于测试阶段。欢迎折腾一波。
+    2. 目前登陆API已经更新，尚处于测试阶段。欢迎折腾一波~。
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/9.jpg" />
 
 ## 2017/7/26 更新: <br />
