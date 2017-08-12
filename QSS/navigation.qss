@@ -18,14 +18,14 @@ QLabel {
 
 QListWidget {
     background: #191B1F;
-    border: 0;
+    border: 0px;
     outline: none;
 }
 
 QListWidget#navigationList::item, QListWidget#nativeList::item {
     padding-left: 10px;
     height: 32px;
-    border-left: 2px solid #191B1F;
+    border-left: 3px solid #191B1F;
     outline: none;
     background: none;
     color: #A3A5A8;
@@ -39,7 +39,7 @@ QListWidget#navigationList::item:hover, QListWidget#nativeList::item:hover {
 
 QListWidget#navigationList::item:selected, QListWidget#nativeList::item:selected {
     /*background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(255, 0, 0, 255), stop:0.0213636 rgba(38, 40, 44, 255));*/
-    border-left: 2px solid #B82525;
+    border-left: 3px solid #B82525;
     background: #26282C;
     color: #DCDDE3;
 }
@@ -47,7 +47,7 @@ QListWidget#navigationList::item:selected, QListWidget#nativeList::item:selected
 QPushButton {
     padding-left: 10px;
     height: 32px;
-    border-left: 2px solid #191B1F;
+    border: none;
     outline: none;
     background: none;
     color: #A3A5A8;
@@ -60,9 +60,6 @@ QPushButton:hover{
 }
 
 QPushButton:checked {
-    /*background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(255, 0, 0, 255), stop:0.0213636 rgba(38, 40, 44, 255));*/
-    /*border-left: 3px solid white;*/
-    border-left: 2px solid #B82525;
-    background: #26282C;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(255, 0, 0, 255), stop:0.0213636 rgba(38, 40, 44, 255));
     color: #DCDDE3;
 }
