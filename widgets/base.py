@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 # 这是一个次级目录。
 import sys
 sys.path.append('..')
+sys.path.append('../networks')
 
 from networks.network import Requests
 
@@ -159,9 +160,10 @@ class RequestThread(QThread):
         self.kwargs = kwargs
         self.target = target
         self.flag = False
+        self.result = None
 
     def run(self):
-        self.target(*self.args, **self.kwargs)
+        self.result = self.target(*self.args, **self.kwargs)
 
     def setTarget(self, target=None):
         """方便多次调用。"""
@@ -198,10 +200,10 @@ class Timer(QThread):
 
 ## 对<img src=1.jpg>的初步探索。
 # 暂只接受http(s)和本地目录。
-class picLabel(QLabel):
+class PicLabel(QLabel):
 
     def __init__(self, src=None, width=None, height=None):
-        super(picLabel, self).__init__()
+        super(PicLabel, self).__init__()
         global picsThreadPool
 
         self.width = width
@@ -209,13 +211,16 @@ class picLabel(QLabel):
         self.setSrc(src)
 
     def setSrc(self, src):
+        src = str(src)
         if 'http' in src or 'https' in src:
 
             task = GetPicture(self, src)
             picsThreadPool.start(task)
         else:
-            self.setMaximumSize(self.width, self.height)
-            self.setMinimumSize(self.width, self.height)
+            if self.width:
+                self.setMaximumSize(self.width, self.height)
+                self.setMinimumSize(self.width, self.height)
+            
             self.setStyleSheet('''QLabel{border-image: url(%s);}'''%(src))
 
 
@@ -258,5 +263,23 @@ picsQueue.add.connect(__addPic)
 
 if __name__ == '__main__':
     import os
+    os.chdir('..')
+    class Window(QWidget):
+        def __init__(self):
+            super(Window, self).__init__()
 
-    os.chair('..')
+            self.test = []
+            self.mainLayout = HBoxLayout(self)
+
+            for i in range(10):
+                t = picLabel('http://xxx.fishc.com/forum/201708/08/165343y2sgkos2o8otcx66.jpg', 100, 100)
+                self.test.append(t)
+
+                self.mainLayout.addWidget(t)
+
+    app = QApplication([])
+
+    main = Window()
+    main.show()
+
+    exit(app.exec_())

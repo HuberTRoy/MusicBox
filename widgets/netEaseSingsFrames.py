@@ -11,7 +11,7 @@ from base import *
 
 # netEaseApi
 netEase = netEaseApi.NetEaseWebApi()
-
+transTime = addition.itv2time
 
 """一个Tab，网易云的全部歌单。"""
 class NetEaseSingsArea(QFrame):
@@ -277,10 +277,11 @@ class DetailSings(ScrollArea):
     
     # 布局。
     def setLabels(self):
-        self.picLabel = QLabel(self.frame)
+        # self.picLabel = QLabel(self.frame)
+        self.picLabel = PicLabel(width=200, height=200)
         self.picLabel.setObjectName('picLabel')
-        self.picLabel.setMinimumSize(200, 200)
-        self.picLabel.setMaximumSize(200, 200)
+        # self.picLabel.setMinimumSize(200, 200)
+        # self.picLabel.setMaximumSize(200, 200)
 
         self.titleLabel = QLabel(self.frame)
         self.titleLabel.setObjectName('titleLabel')
@@ -319,20 +320,7 @@ class DetailSings(ScrollArea):
         self.singsTable.setMinimumWidth(self.width())
         self.singsTable.setColumnWidths({i:j for i,j in zip(range(3), 
             [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
-        # self.singsTable.setColumnCount(3)
-        # self.singsTable.setHorizontalHeaderLabels(['音乐标题', '歌手', '时长'])
 
-        # self.singsTable.setColumnWidth(0, self.width()/3*1.25)
-        # self.singsTable.setColumnWidth(1, self.width()/3*1.25)
-        # self.singsTable.setColumnWidth(2, self.width()/3*0.5)
-        # # self.singsTable.horizontalHeader().setVisible(False)
-        # self.singsTable.horizontalHeader().setStretchLastSection(True)
-        # self.singsTable.verticalHeader().setVisible(False)
-        # self.singsTable.setShowGrid(False)
-        # self.singsTable.setAlternatingRowColors(True)
-
-        # self.singsTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # self.singsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.singsTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
 
         self.contentsTab.addTab(self.singsTable, "歌曲列表")
@@ -399,7 +387,7 @@ class OneSing(QFrame):
      'picName', 'picLabel', 'nameLabel',
      'mainLayout',
      'mousePos',
-     'result',
+     'result','catch',
      'singsIds', 'singsUrls')
 
     def __init__(self, row, column, ids=None, parent=None, picName=None):
@@ -429,6 +417,9 @@ class OneSing(QFrame):
         self.singsUrls = []
         # 大图的缓存名。
         self.picName = picName
+
+        # 添加缓存。
+        self.catch = None
 
         self.setMinimumSize(180, 235)
 
@@ -508,6 +499,8 @@ class OneSing(QFrame):
         # 隐藏原来的区域，显示现在的区域。
         self.ggparent.mainContents.setCurrentIndex(1)
 
+        self.result = self.catch
+
     # 事件。
     def mousePressEvent(self, event):
         # 记录下当前鼠标的位置。
@@ -518,6 +511,108 @@ class OneSing(QFrame):
         if QCursor.pos() != self.mousePos:
             return
         else:
+            if self.catch:
+                self.result = self.catch
+                self.setDetail()
+                return
+
             self.parent.singsThread.setTarget(self.requestsDetail)
             self.parent.singsThread.finished.connect(self.setDetail)
             self.parent.singsThread.start()
+
+
+# 设计的不好。暂时这样。
+# 功能逻辑方面与上面那个一样。(仅图片处不同.)
+# 区别是一个是QFrame一个是Button....
+class PlaylistButton(QPushButton):
+    # parent = navigation
+    __solts__ = ('parent', 'grandparent', 'ids', 'coverImgUrl', 
+        'catch', 'detailFrame', 'transTime', 'result', 'singsIds', 'singsUrls'
+        )
+    def __init__(self, parent, ids, coverImgUrl, *args):
+        global transTime
+        super(PlaylistButton, self).__init__(*args)
+        self.parent = parent
+        self.grandparent = self.parent.parent
+        
+        self.setCheckable(True)
+        self.setAutoExclusive(True)
+
+        self.ids = ids
+        self.coverImgUrl = coverImgUrl
+
+        self.catch = None
+        self.result = None
+        self.singsIds = None
+        self.singsUrls = None
+
+        # 一个拼写错误QAQ..frame or sings......
+        self.detailFrame = self.parent.parent.detailSings
+        self.transTime = transTime
+        self.clicked.connect(self.clickedEvent)
+
+    def requestsDetail(self):
+        """请求本歌单的详情，并复制给detailSings."""
+        result = self.parent.api.details_playlist(self.ids)
+        self.result = result
+
+        # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
+        self.singsIds = [i['id'] for i in result['tracks']]
+
+        # 此处还有些问题。
+        # 由于是两次url请求，稍微变得有点慢。
+        self.singsUrls = {i['id']:i['url'] for i in self.parent.api.singsUrl(self.singsIds)}
+        self.singsUrls = [self.singsUrls[i] for i in self.singsIds]
+    
+    def setDetail(self):
+        # 方便书写。
+        result = self.result
+        self.detailFrame.musicList = []
+        self.detailFrame.singsTable.clearContents()
+        # 一些信息，包括展示大图，标题，创建者，简介。
+        # self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
+        
+        self.detailFrame.picLabel.setSrc(self.coverImgUrl)
+        self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
+
+        self.detailFrame.titleLabel.setText(result['name'])
+        self.detailFrame.authorName.setText(result['creator']['nickname'])
+        # 简介有些太长了，暂时只截取前107个字符。
+        description = result['description']
+        # 有些没有简介会报错的。
+        if not description:
+            description = ''
+        self.detailFrame.descriptionLabel.setText(description[:107])
+        # 这边添加歌曲的信息到table。
+        self.detailFrame.singsTable.setRowCount(result['trackCount'])
+
+        for i, j, t in zip(result['tracks'], range(result['trackCount']), self.singsUrls):
+            names = i['name']
+            musicName = QTableWidgetItem(names)
+            self.detailFrame.singsTable.setItem(j, 0, musicName)
+
+            author = i['artists'][0]['name']
+            musicAuthor = QTableWidgetItem(author)
+            self.detailFrame.singsTable.setItem(j, 1, musicAuthor)
+
+            times = self.transTime(i['duration']/1000)
+            musicTime = QTableWidgetItem(times)
+            self.detailFrame.singsTable.setItem(j, 2, musicTime)
+
+            music_img = i['album']['blurPicUrl']
+            self.detailFrame.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
+
+        self.parent.playlistThread.finished.disconnect()
+        
+        # 隐藏原来的区域，显示现在的区域。
+        self.grandparent.mainContents.setCurrentIndex(1)
+
+        self.result = self.catch
+
+    def clickedEvent(self):
+        self.parent.playlistThread.setTarget(self.requestsDetail)
+        self.parent.playlistThread.finished.connect(self.setDetail)
+        self.parent.playlistThread.start()
+        self.parent.singsButtonClickEvent()
+
+        

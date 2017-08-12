@@ -193,6 +193,9 @@ class Header(QFrame):
         self.loginThread.breakSignal.connect(self.emitWarning)
         self.loginThread.finished.connect(self.loginFinished)
 
+        self.loadUserPlaylistThread = RequestThread(self)
+        self.loadUserPlaylistThread.finished.connect(self.loadUserPlaylistFinished)
+
         self.loginBox = LoginBox(self)
         self.loginBox.connectLogin(self.login)
 
@@ -244,7 +247,7 @@ class Header(QFrame):
 
     def setLabels(self):
         """创建所需的所有标签。"""
-        self.logoLabel = picLabel(r'resource/format.png', 22, 22)
+        self.logoLabel = PicLabel(r'resource/format.png', 22, 22)
         # self.logoPixmap = QPixmap(r'resource//format.png')
         # self.logoLabel.setPixmap(self.logoPixmap.scaled(22, 22))
         # self.logoLabel.setMaximumSize(22, 22)
@@ -253,7 +256,7 @@ class Header(QFrame):
         self.descriptionLabel.setText("<b>Music<b>")
 
         # self.userPix = QLabel(self)
-        self.userPix = picLabel(r'resource/nouser.png', 22, 22)
+        self.userPix = PicLabel(r'resource/nouser.png', 22, 22)
         # self.nouserPix = QPixmap(r'resource//nouser.png')
         # self.userPix.setPixmap(self.nouserPix.scaled(22, 22))
         # self.userPix.setMaximumSize(22, 22)
@@ -362,12 +365,17 @@ class Header(QFrame):
     def loginFinished(self):
         self.loginBox.accept()
         profile = self.loginInfor['profile']
-        userId = profile['userId']
         avatarUrl = profile['avatarUrl']
-        nickname = profile['nickname']
-
-        self.loginButton.setText(nickname)
         self.userPix.setSrc(avatarUrl)
+        
+        # 加载该账户创建及喜欢的歌单。
+        userId = profile['userId']
+        self.loadUserPlaylistThread.setTarget(netEase.user_playlist)
+        self.loadUserPlaylistThread.setArgs(userId)
+        self.loadUserPlaylistThread.start()
+
+        nickname = profile['nickname']
+        self.loginButton.setText(nickname)
 
     def emitWarning(self, warningStr):
         self.loginBox.setWarningAndShowIt(warningStr)
@@ -375,6 +383,11 @@ class Header(QFrame):
     def exitLogin(self):
         self.loginButton.setText('未登录 ▼')
         self.loginButton.clicked.connect(self.showLoginBox)
+        self.userPix.setSrc('resource/nouser.png')
+
+    def loadUserPlaylistFinished(self):
+        result = self.loadUserPlaylistThread.result
+        self.parent.navigation.setPlaylists(result)
 
     # 事件。
     """重写鼠标事件，实现窗口拖动。"""
@@ -417,6 +430,13 @@ class Navigation(QScrollArea):
         self.nativeListFunction = self.none
         self.singsFunction = self.none
 
+        self.playlists = []
+        self.playlistThread = RequestThread(self)
+
+        # 需要让子控件使用。
+        # 设计的不好，暂时这样。
+        self.api = netEase
+
         with open('QSS/navigation.qss', 'r') as f:
             style = f.read()
             self.setStyleSheet(style)
@@ -432,14 +452,17 @@ class Navigation(QScrollArea):
     # 布局。
     def setLabels(self):
         """定义所有的标签。"""
-        self.recommendLabel = QLabel(" 推荐", self)
+        self.recommendLabel = QLabel(" 推荐")
         self.recommendLabel.setObjectName("recommendLabel")
+        self.recommendLabel.setMaximumHeight(27)
 
-        self.myMusic = QLabel(" 我的音乐", self)
+        self.myMusic = QLabel(" 我的音乐")
         self.myMusic.setObjectName("myMusic")
+        self.myMusic.setMaximumHeight(27)
 
-        self.singsListLabel = QLabel(" 收藏与创建的歌单", self)
+        self.singsListLabel = QLabel(" 收藏与创建的歌单")
         self.singsListLabel.setObjectName("singsListLabel")
+        self.singsListLabel.setMaximumHeight(27)
 
     def setListViews(self):
         """定义承载功能的ListView"""
@@ -462,7 +485,7 @@ class Navigation(QScrollArea):
 
     def setLayouts(self):
         """定义布局。"""
-        self.mainLayout = QVBoxLayout()
+        self.mainLayout = VBoxLayout(self.frame)
         self.mainLayout.addSpacing(10)
         self.mainLayout.addWidget(self.recommendLabel)
         self.mainLayout.addSpacing(3)
@@ -477,25 +500,26 @@ class Navigation(QScrollArea):
         self.mainLayout.addWidget(self.singsListLabel)
         self.mainLayout.addSpacing(1)
 
-        self.setSingsList()
         self.mainLayout.addStretch(1)
 
         self.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setSpacing(0)
-        self.frame.setLayout(self.mainLayout)
 
+    # just a test.
     def setSingsList(self):
+        # print(self.mainLayout.count())
         """歌单用按钮显示，不显示在ListWidget里是因为ListWidget只是单个有滚轮，需要全部有滚轮。"""
-        self.singsList = []
-        # for i in range(25):
-        #     self.singsList.append(QPushButton(QIcon('resource/notes.png'),'TestSingsListaaaaaaaaaaaaaaaaaaaaaaaaa'))
+        # self.singsList = []
+        # for i in range(3):
+        #     temp = QPushButton(QIcon('resource/notes.png'),'TestSingsListaaaaaaaaaaaaaaaaaaaaaaaaa')
+        # #     temp.setObjectName('playlistButton')
+        #     self.playlists.append(temp)
 
-        # for i in self.singsList:
+        # for i in self.playlists:
         #     i.setCheckable(True)
         #     i.setAutoExclusive(True)
-        #     i.clicked.connect(self.singsButtonClickEvent)
-        #     self.frame.mainLayout.addWidget(i)
+        # #     i.clicked.connect(self.singsButtonClickEvent)
+        #     self.mainLayout.addWidget(i)
+
         pass
 
     # 功能。
@@ -503,11 +527,22 @@ class Navigation(QScrollArea):
         # 没有用的空函数。
         pass
 
+    def setPlaylists(self, datas):
+        # 布局原因，需要在最后加一个stretch才可以正常布局。
+        # 所以这边先将最后一个stretch删去，将所有的内容添加完成后在加上。
+        self.mainLayout.takeAt(self.mainLayout.count()-1)
+        for i in datas:
+            button = PlaylistButton(self, i['id'], i['coverImgUrl'], QIcon('resource/notes.png'), i['name'])
+            self.playlists.append(button)
+            self.mainLayout.addWidget(button)       
+        
+        self.mainLayout.addStretch(1)
+
     # 事件。
     def navigationListItemClickEvent(self):
         """用户处理导航栏的点击事件。"""
         # 处理其他组件取消选中。
-        for i in self.singsList:
+        for i in self.playlists:
             if i.isChecked():
                 i.setCheckable(False)
                 i.setCheckable(True)
@@ -520,7 +555,7 @@ class Navigation(QScrollArea):
 
     def nativeListItemClickEvent(self):
         """本地功能的点击事件。"""
-        for i in self.singsList:
+        for i in self.playlists:
             if i.isChecked():
                 i.setCheckable(False)
                 i.setCheckable(True)
