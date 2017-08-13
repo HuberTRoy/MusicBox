@@ -17,6 +17,12 @@
 
 ### 不仅仅可以作为音乐播放器，添加更多API支持，可以添加更多内容。
 
+## 2017/8/13 更新: <br />
+    0. 一个被遗忘的功能. -> 全部播放现在可用~。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/13.jpg"/>
+
+
 ## 2017/8/12 更新: <br />
     0. 现在可以获取到登陆后的用户收藏及创建的歌单。
 
