@@ -269,6 +269,8 @@ class DetailSings(ScrollArea):
         self.player = self.grandparent.playWidgets.player
         self.playList = self.grandparent.playWidgets
         self.currentMusic = self.grandparent.playWidgets.currentMusic
+        
+        self.transTime = transTime
 
         self.setLabels()
         self.setButtons()
@@ -369,6 +371,39 @@ class DetailSings(ScrollArea):
     def addAllMusicToPlayer(self):
         self.playList.setPlayerAndPlaylists(self.musicList)
 
+    def setupDetailFrames(self, datas, singsUrls):
+        result = datas
+        self.musicList = []
+        
+        self.singsTable.clearContents()
+
+        self.titleLabel.setText(result['name'])
+        self.authorName.setText(result['creator']['nickname'])
+        # 简介有些太长了，暂时只截取前107个字符。
+        description = result['description']
+        # 有些没有简介会报错的。
+        if not description:
+            description = ''
+        self.descriptionLabel.setText(description[:107])
+        # 这边添加歌曲的信息到table。
+        self.singsTable.setRowCount(result['trackCount'])
+
+        for i, j, t in zip(result['tracks'], range(result['trackCount']), singsUrls):
+            names = i['name']
+            musicName = QTableWidgetItem(names)
+            self.singsTable.setItem(j, 0, musicName)
+
+            author = i['artists'][0]['name']
+            musicAuthor = QTableWidgetItem(author)
+            self.singsTable.setItem(j, 1, musicAuthor)
+
+            times = self.transTime(i['duration']/1000)
+            musicTime = QTableWidgetItem(times)
+            self.singsTable.setItem(j, 2, musicTime)
+
+            music_img = i['album']['blurPicUrl']
+            self.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
+
     def test(self):
         self.titleLabel.setText("［日系］电音&人声，电毒侵入脑电波！")
         self.picLabel.setStyleSheet('''QLabel {border-image: url(cache/566527372.jpg); padding: 10px;}''')
@@ -388,7 +423,7 @@ class DetailSings(ScrollArea):
 """一个用于承载歌单简单信息的QFrame。"""
 class OneSing(QFrame):
     # 大量创建，这样可以省内存。
-    __solts__ = ('parent', 'ggparent', 'detailFrame', 'transTime', 'row', 'column', 'ids',
+    __solts__ = ('parent', 'ggparent', 'detailFrame', 'row', 'column', 'ids',
      'picName', 'picLabel', 'nameLabel',
      'mainLayout',
      'mousePos',
@@ -403,12 +438,12 @@ class OneSing(QFrame):
             self.parent = parent
             self.ggparent = self.parent.parent.parent
             self.detailFrame = self.ggparent.detailSings
-            self.transTime = self.parent.transTime
+            # self.transTime = self.parent.transTime
         else:
             self.parent = None
             self.ggparent = None
             self.detailFrame = None
-            self.transTime = None
+            # self.transTime = None
             
         self.setObjectName('oneSing')
         # 自己的位置信息。
@@ -467,37 +502,9 @@ class OneSing(QFrame):
     def setDetail(self):
         # 方便书写。
         result = self.result
-        self.detailFrame.musicList = []
-        self.detailFrame.singsTable.clearContents()
-        # 一些信息，包括展示大图，标题，创建者，简介。
+
+        self.detailFrame.setupDetailFrames(result, self.singsUrls)
         self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
-        self.detailFrame.titleLabel.setText(result['name'])
-        self.detailFrame.authorName.setText(result['creator']['nickname'])
-        # 简介有些太长了，暂时只截取前107个字符。
-        description = result['description']
-        # 有些没有简介会报错的。
-        if not description:
-            description = ''
-        self.detailFrame.descriptionLabel.setText(description[:107])
-        # 这边添加歌曲的信息到table。
-        self.detailFrame.singsTable.setRowCount(result['trackCount'])
-
-
-        for i, j, t in zip(result['tracks'], range(result['trackCount']), self.singsUrls):
-            names = i['name']
-            musicName = QTableWidgetItem(names)
-            self.detailFrame.singsTable.setItem(j, 0, musicName)
-
-            author = i['artists'][0]['name']
-            musicAuthor = QTableWidgetItem(author)
-            self.detailFrame.singsTable.setItem(j, 1, musicAuthor)
-
-            times = self.transTime(i['duration']/1000)
-            musicTime = QTableWidgetItem(times)
-            self.detailFrame.singsTable.setItem(j, 2, musicTime)
-
-            music_img = i['album']['blurPicUrl']
-            self.detailFrame.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
 
         self.parent.singsThread.finished.disconnect()
         
@@ -532,10 +539,9 @@ class OneSing(QFrame):
 class PlaylistButton(QPushButton):
     # parent = navigation
     __solts__ = ('parent', 'grandparent', 'ids', 'coverImgUrl', 
-        'catch', 'detailFrame', 'transTime', 'result', 'singsIds', 'singsUrls'
+        'catch', 'detailFrame', 'result', 'singsIds', 'singsUrls'
         )
     def __init__(self, parent, ids, coverImgUrl, *args):
-        global transTime
         super(PlaylistButton, self).__init__(*args)
         self.parent = parent
         self.grandparent = self.parent.parent
@@ -553,7 +559,7 @@ class PlaylistButton(QPushButton):
 
         # 一个拼写错误QAQ..frame or sings......
         self.detailFrame = self.parent.parent.detailSings
-        self.transTime = transTime
+        # self.transTime = transTime
         self.clicked.connect(self.clickedEvent)
 
     def requestsDetail(self):
@@ -572,40 +578,10 @@ class PlaylistButton(QPushButton):
     def setDetail(self):
         # 方便书写。
         result = self.result
-        self.detailFrame.musicList = []
-        self.detailFrame.singsTable.clearContents()
-        # 一些信息，包括展示大图，标题，创建者，简介。
-        # self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
-        
+
+        self.detailFrame.setupDetailFrames(result, self.singsUrls)
         self.detailFrame.picLabel.setSrc(self.coverImgUrl)
         self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
-
-        self.detailFrame.titleLabel.setText(result['name'])
-        self.detailFrame.authorName.setText(result['creator']['nickname'])
-        # 简介有些太长了，暂时只截取前107个字符。
-        description = result['description']
-        # 有些没有简介会报错的。
-        if not description:
-            description = ''
-        self.detailFrame.descriptionLabel.setText(description[:107])
-        # 这边添加歌曲的信息到table。
-        self.detailFrame.singsTable.setRowCount(result['trackCount'])
-
-        for i, j, t in zip(result['tracks'], range(result['trackCount']), self.singsUrls):
-            names = i['name']
-            musicName = QTableWidgetItem(names)
-            self.detailFrame.singsTable.setItem(j, 0, musicName)
-
-            author = i['artists'][0]['name']
-            musicAuthor = QTableWidgetItem(author)
-            self.detailFrame.singsTable.setItem(j, 1, musicAuthor)
-
-            times = self.transTime(i['duration']/1000)
-            musicTime = QTableWidgetItem(times)
-            self.detailFrame.singsTable.setItem(j, 2, musicTime)
-
-            music_img = i['album']['blurPicUrl']
-            self.detailFrame.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
 
         self.parent.playlistThread.finished.disconnect()
         
