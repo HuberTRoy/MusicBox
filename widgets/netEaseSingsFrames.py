@@ -311,6 +311,7 @@ class DetailSings(ScrollArea):
         self.playAllButton.setIcon(QIcon('resource/playAll.png'))
         self.playAllButton.setObjectName('playAllButton')
         self.playAllButton.setMaximumSize(90, 24)
+        self.playAllButton.clicked.connect(self.addAllMusicToPlayer)
 
     def setTabs(self):
         self.contentsTab = QTabWidget(self.frame)
@@ -364,6 +365,10 @@ class DetailSings(ScrollArea):
         self.frame.setLayout(self.mainLayout)
 
     # 功能。
+
+    def addAllMusicToPlayer(self):
+        self.playList.setPlayerAndPlaylists(self.musicList)
+
     def test(self):
         self.titleLabel.setText("［日系］电音&人声，电毒侵入脑电波！")
         self.picLabel.setStyleSheet('''QLabel {border-image: url(cache/566527372.jpg); padding: 10px;}''')

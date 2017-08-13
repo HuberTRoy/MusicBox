@@ -186,6 +186,24 @@ class PlayWidgets(QFrame):
         # index = self.player.playList.mediaCount()
         # self.player.setIndex(index-1)
 
+    def setPlayerAndPlaylists(self, datas:list):
+        datas = datas[::-1]
+        for i in datas:
+            # self.playList.addMusic(i)
+            self.playList.addPlayList(i['name'], i['author'], i['time'])
+
+        self.playList.addMusics(datas)
+        
+        self.player.setAllMusics(datas)
+
+        sureSetUp = self.player.setMusic(i['url'], i)
+        if not sureSetUp:
+            self.currentMusic.setShortInfo('音乐不可播放', data['author'], data['music_img'])
+            self.nextSing()
+            return
+
+        self.currentMusic.setShortInfo(i['name'], i['author'], i['music_img'])
+
     # 事件。
     def playEvent(self, media):
         """播放事件。"""
@@ -364,6 +382,9 @@ class PlayList(QFrame):
 
             self.currentRow = currentRow
 
+    def clear(self):
+        self.playList.clears()
+
     def addMusic(self, data):
         self.musicList.append(data)
         # self.mediaList[self.parent]
@@ -459,7 +480,7 @@ class CurrentMusic(QFrame):
 
         self.showDetail.setStartValue(QRect(x, y, self.width(), self.height()))
         # 获取顶层父窗口的长度。
-        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height(), self.grandparent.width(), self.grandparent.mainContent.height()))
+        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height(), self.grandparent.width(), self.grandparent.mainContent.height()+10))
         self.showDetail.setDuration(300)
         self.showDetail.setEasingCurve(QEasingCurve.InBack)
 
@@ -604,6 +625,10 @@ class Player(QMediaPlayer):
             return False
             # self.playMusic()
     
+    def setAllMusics(self, datas):
+        pass
+        self.playList.addAllMedias(datas)
+
     def setIndex(self, index):
         self.playList.setCurrentIndex(index)
         self.playMusic()
@@ -612,10 +637,10 @@ class Player(QMediaPlayer):
         """返回当前音乐的总时间。（秒）"""
         return self.duration()/1000
 
-    def playMusic(self, url=None):
+    def playMusic(self, url=None, data=None):
         """播放音乐。"""
         if url:
-            self.setMusic(url)
+            self.setMusic(url, data)
             # 播放事件。
             self.playWidgets.playEvent(self)
         else:
@@ -752,9 +777,10 @@ class _TableWidget(QTableWidget):
         # setFroeground会出错，因为None对象是不能设置的。
         self.clearContents()
         self.setRowCount(0)
-        self.parent.parent.player.playList.clear()
-        self.parent.parent.player.playList.removeList = []
-        self.parent.parent.player.playList.mediaList = {}
+        playlist = self.parent.parent.player.playList
+        playlist.clear()
+        playlist.removeList = []
+        playlist.mediaList = {}
         # 将音乐信息及索引回归初始化。
         self.parent.musicList = []
         self.parent.currentRow = -1
@@ -839,6 +865,12 @@ class _MediaPlaylist(QObject):
         self.mediaList[url.canonicalUrl().toString()] = data
         self.parent.playMusic()
 
+    def addAllMedias(self, datas):
+        # self.musics.extend(datas)
+        for i in datas:
+            self.musics.append(i['url'])
+            self.mediaList[i['url']] = i
+
     def mediaCount(self):
         return len(self.musics)
 
@@ -875,7 +907,17 @@ class _MediaPlaylist(QObject):
         self.tabMusicEvent()
 
     def setCurrentIndex(self, index):
-        self.parent.setMedia(self.musics[index])
+        media = self.musics[index]
+        if type(media) == str:
+            if 'http' in media:
+                content = QMediaContent(QUrl(media))
+            else:
+                content = QMediaContent(QUrl.fromLocalFile(media))
+
+            self.musics = self.musics[:index] + [content] + self.musics[index+1:]
+            self.parent.setMedia(content)
+        else:
+            self.parent.setMedia(self.musics[index])
         self.parent.playMusic()
         self.tabMusicEvent()
 
