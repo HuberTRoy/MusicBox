@@ -247,19 +247,14 @@ class Header(QFrame):
 
     def setLabels(self):
         """创建所需的所有标签。"""
-        self.logoLabel = PicLabel(r'resource/format.png', 22, 22)
-        # self.logoPixmap = QPixmap(r'resource//format.png')
-        # self.logoLabel.setPixmap(self.logoPixmap.scaled(22, 22))
-        # self.logoLabel.setMaximumSize(22, 22)
+        self.logoLabel = PicLabel(r'resource/format.png', 32, 32)
 
         self.descriptionLabel = QLabel(self)
         self.descriptionLabel.setText("<b>Music<b>")
 
-        # self.userPix = QLabel(self)
-        self.userPix = PicLabel(r'resource/nouser.png', 22, 22)
-        # self.nouserPix = QPixmap(r'resource//nouser.png')
-        # self.userPix.setPixmap(self.nouserPix.scaled(22, 22))
-        # self.userPix.setMaximumSize(22, 22)
+        self.userPix = PicLabel(r'resource/no_music.png', 32, 32, r'resource/user_pic_mask.png')
+        self.userPix.setMinimumSize(22, 22)
+        self.userPix.setObjectName("userPix")
 
     def setLineEdits(self):
         """创建搜素框。"""

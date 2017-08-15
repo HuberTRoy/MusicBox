@@ -202,13 +202,24 @@ class Timer(QThread):
 # 暂只接受http(s)和本地目录。
 class PicLabel(QLabel):
 
-    def __init__(self, src=None, width=None, height=None):
+    def __init__(self, src=None, width=None, height=None, pixMask=None):
         super(PicLabel, self).__init__()
         global picsThreadPool
 
         self.width = width
         self.height = height
-        self.setSrc(src)
+
+        self.pixMask = None
+        if pixMask:
+            self.pixMask = pixMask
+        
+        if src:
+            self.setSrc(src)
+
+        if self.width:
+            self.setMaximumSize(self.width, self.height)
+            self.setMinimumSize(self.width, self.height)
+
 
     def setSrc(self, src):
         src = str(src)
@@ -217,11 +228,18 @@ class PicLabel(QLabel):
             task = GetPicture(self, src)
             picsThreadPool.start(task)
         else:
-            if self.width:
-                self.setMaximumSize(self.width, self.height)
-                self.setMinimumSize(self.width, self.height)
-            
-            self.setStyleSheet('''QLabel{border-image: url(%s);}'''%(src))
+            # self.setStyleSheet('''QLabel{border-image: url(%s);}'''%(src))
+            pix = QPixmap(src)
+            pix.load(src)
+            pix = pix.scaled(self.width, self.height)
+
+            # mask需要与pix是相同大小。
+            if self.pixMask:
+                mask = QPixmap(self.pixMask)
+                mask = mask.scaled(self.width, self.height)
+                pix.setMask(mask.createHeuristicMask())
+
+            self.setPixmap(pix)
 
 
 class GetPicture(QRunnable):
@@ -250,16 +268,29 @@ def __addPic():
     if not data:
         return
 
+    widget = data[0]
+    width = widget.width
+    height = widget.height
+
+
     pic = QPixmap()
     pic.loadFromData(data[1])
+    pic = pic.scaled(width, height)
+    if widget.pixMask:
+        mask = QPixmap()
+        mask.load(widget.pixMask)
+        mask = mask.scaled(width, height)
+
+        pic.setMask(mask.createHeuristicMask())
     
-    if data[0].width:
-        data[0].setPixmap(pic.scaled(data[0].width, data[0].height))
+    if widget.width:
+        widget.setPixmap(pic)
     else:
-        data[0].setPixmap(pic)
+        widget.setPixmap(pic)
 
 
 picsQueue.add.connect(__addPic)
+
 
 if __name__ == '__main__':
     import os
