@@ -17,6 +17,17 @@
 
 ### 不仅仅可以作为音乐播放器，添加更多API支持，可以添加更多内容。
 
+## 2017/8/15 更新: <br />
+    0. 将头像处方形图片变成圆形图片。
+    1. 使用方法:
+    ```
+    from base import PicLabel
+    picture = PicLabel(url, width, height, mask:filename)
+    # mask就是显示方法，是个圆形就会显示圆形,是个不规则图形就是不规则图形。
+    # 传入路径即可。mask不支持网络图片。
+    ```
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
+
 ## 2017/8/13 更新: <br />
     0. 一个被遗忘的功能. -> 全部播放现在可用~。
 
