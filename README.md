@@ -17,6 +17,22 @@
 
 ### 不仅仅可以作为音乐播放器，添加更多API支持，可以添加更多内容。
 
+## 2017/8/18 更新: <br />
+    0. 添加保存上一次的功能。具体为:
+    0.0 保存登陆的状态(歌单/昵称/头像). 目前没有用到cookies功能暂未保存cookies.
+    0.1 保存正在听的歌(歌曲列表. 未保存当前播放歌曲的状态.)。
+
+    1. 扩展上: 需实现类里的saveCookies和loadCookies方法。目前需要在类中明确调用.
+    widget/base.py -> checkFolder提供方便检测所需目录是否存在的装饰器。
+    ```
+    class Test:
+        saveFolder = 'test/test/save.suffix'
+        @checkFolder(saveFolder):
+        def saveCookies(self):
+            pass
+            ...
+    ```
+
 ## 2017/8/15 更新: <br />
     0. 将头像处方形图片变成圆形图片。
     1. 使用方法:
