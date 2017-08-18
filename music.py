@@ -178,6 +178,7 @@ class Window(QWidget):
         self.header.saveCookies()
         self.playWidgets.saveCookies()
 
+
 """标题栏，包括logo，搜索，登陆，最小化/关闭。"""
 class Header(QFrame):
 
