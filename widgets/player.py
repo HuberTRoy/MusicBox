@@ -11,6 +11,7 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 
 import addition
 
+from base import checkFolder, pickle
 from network import NetWorkThread
 
 
@@ -37,6 +38,8 @@ class PlayWidgets(QFrame):
         self.setSliders()
 
         self.setLayouts()
+
+        self.loadCookies()
 
     # 布局。
     def setButtons(self):
@@ -204,6 +207,14 @@ class PlayWidgets(QFrame):
 
         self.currentMusic.setShortInfo(i['name'], i['author'], i['music_img'])
 
+    def saveCookies(self):
+        self.playList.saveCookies()
+        self.player.saveCookies()
+
+    def loadCookies(self):
+        self.playList.loadCookies()
+        self.player.loadCookies()
+
     # 事件。
     def playEvent(self, media):
         """播放事件。"""
@@ -299,6 +310,9 @@ class PlayWidgets(QFrame):
 """显示用音乐列表，用于显示当前添加到播放列表里的音乐。"""
 class PlayList(QFrame):
     """播放列表。"""
+    musicListCookiesFolder = 'cookies/playlist/musicList.cks'
+    allCookiesFolder = [musicListCookiesFolder]
+
     def __init__(self, parent=None):
         super(PlayList, self).__init__()
         
@@ -408,6 +422,19 @@ class PlayList(QFrame):
         self.playList.setItem(self.allRow, 2, musicTime)
 
         self.allRow += 1
+
+    @checkFolder(allCookiesFolder)
+    def saveCookies(self):
+        with open(self.musicListCookiesFolder, 'wb') as f:
+            pickle.dump(self.musicList, f)
+
+    @checkFolder(allCookiesFolder)
+    def loadCookies(self):
+        with open(self.musicListCookiesFolder, 'rb') as f:
+            self.musicList = pickle.load(f)
+
+        for i in self.musicList:
+            self.addPlayList(i['name'], i['author'], i['time'])
 
 
 """当前播放的音乐，位于左侧导航栏最下方，播放组件的上方。包括当前音乐的logo，音乐名/作者。点击图片会显示详细信息(暂不完善。)"""
@@ -597,11 +624,11 @@ class Player(QMediaPlayer):
         # 默认列表循环。
         self.playList.setPlaybackMode(self.playList.Loop)
         # self.setPlaylist(self.playList)
-
         self.setConnects()
         # QUrl 可直接播放网络音乐。
         # http://sc1.111ttt.com/2016/1/12/10/205102159306.mp3
         # self.setMedia(QMediaContent(QUrl(r'file:///F:/Programming%20Files/Music/testMusic/七月上.mp3')))
+        # self.loadCookies()
 
     # 功能。
     def setConnects(self):
@@ -645,6 +672,12 @@ class Player(QMediaPlayer):
             self.playWidgets.playEvent(self)
         else:
             self.playWidgets.playEvent(self)
+
+    def saveCookies(self):
+        self.playList.saveCookies()
+
+    def loadCookies(self):
+        self.playList.loadCookies()
 
     # 事件。
     def countTimeEvent(self, duration):
@@ -830,6 +863,9 @@ class _TableWidget(QTableWidget):
 
 
 class _MediaPlaylist(QObject):
+    musicsCookiesFolder = 'cookies/mediaPlaylist/musics.cks'
+    mediaListCookiesFolder = 'cookies/mediaPlaylist/mediaList.cks'
+    allCookiesFolder = [musicsCookiesFolder, mediaListCookiesFolder]
 
     def __init__(self, parent=None):
         super(_MediaPlaylist, self).__init__()
@@ -924,6 +960,24 @@ class _MediaPlaylist(QObject):
     def setPlaybackMode(self, model:int):
         self.myModel = model
 
+    @checkFolder(allCookiesFolder)
+    def saveCookies(self):
+        with open(self.musicsCookiesFolder, 'wb') as f:
+            pickle.dump(self.musics, f)
+
+        with open(self.mediaListCookiesFolder, 'wb') as f:
+            pickle.dump(self.mediaList, f)
+
+    @checkFolder(allCookiesFolder)
+    def loadCookies(self):
+        with open(self.musicsCookiesFolder, 'rb') as f:
+            self.musics = pickle.load(f)
+
+        with open(self.mediaListCookiesFolder, 'rb') as f:
+            self.mediaList = pickle.load(f)
+
+
+    # 事件。
     def mediaStatusChangedEvent(self, status):
         if status == 7:
             # 循环。

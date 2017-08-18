@@ -3,16 +3,47 @@ __author__ = 'cyrbuzz'
 
 from queue import Queue
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-
 # 这是一个次级目录。
+import os
 import sys
 sys.path.append('..')
 sys.path.append('../networks')
 
+import pickle
+import os.path
+
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
 from networks.network import Requests
+
+
+# 保存cookies的基础装饰器用于检测是否存在这个文件。
+# 保存为pickle.
+def checkFolder(filenames:iter):
+    # /test/test/file.suffix
+    for filename in filenames:
+        splits = filename.split('/')
+        # 检查目录是否存在.
+        for i in range(len(splits[:-1])):
+            dirs = '/'.join(splits[:i+1])
+            if not os.path.isdir(dirs):
+                os.mkdir(dirs)
+
+        if not os.path.isfile(filename):
+            with open(filename, 'wb') as f:
+                pass
+
+    def _check(func):
+        def _exec(*args):
+            try:
+                func(*args)
+            except:
+                print('读取或保存cookies出错', filenames)
+
+        return _exec
+    return _check
 
 
 """一个有信号槽机制的安全线程队列。"""

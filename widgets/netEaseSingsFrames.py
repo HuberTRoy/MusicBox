@@ -228,6 +228,12 @@ class NetEaseSingsArea(QFrame):
         # 让监控线程停止。
         self.timerThread.setVar(True)
 
+    def closeEvent(self, event):
+        print(1)
+
+    def __del__(self):
+        print(3)
+
 
 class _PicThreadTask(QRunnable):
     # finished = pyqtSignal(QFrame, str)

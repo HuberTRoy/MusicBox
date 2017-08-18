@@ -173,10 +173,18 @@ class Window(QWidget):
             self.currentIndex += 1
             self.mainContents.setCurrentIndex(self.history[self.currentIndex])
 
+    def closeEvent(self, event):
+        # 主要是保存cookies.
+        self.header.saveCookies()
+        self.playWidgets.saveCookies()
 
 """标题栏，包括logo，搜索，登陆，最小化/关闭。"""
 class Header(QFrame):
 
+    # 装饰器初始化时还不会调用__init__.
+    loginCookiesFolder = 'cookies/headers/loginInfor.cks'
+    allCookiesFolder = [loginCookiesFolder]
+    
     def __init__(self, parent=None):
         """头部区域，包括图标/搜索/设置/登陆/最大/小化/关闭。"""
 
@@ -199,6 +207,7 @@ class Header(QFrame):
         self.loginBox = LoginBox(self)
         self.loginBox.connectLogin(self.login)
 
+        # 
         self.loginInfor = {}
 
         with open('QSS/header.qss', 'r', encoding='utf-8') as f:
@@ -214,6 +223,9 @@ class Header(QFrame):
         self.setLines()
         # 加载布局设置。
         self.setLayouts()
+
+        # 加载cookies.
+        self.loadCookies()
 
     # 布局。
     def setButtons(self):
@@ -359,6 +371,21 @@ class Header(QFrame):
 
     def loginFinished(self):
         self.loginBox.accept()
+        self.setUserData()
+        # profile = self.loginInfor['profile']
+        # avatarUrl = profile['avatarUrl']
+        # self.userPix.setSrc(avatarUrl)
+        
+        # # 加载该账户创建及喜欢的歌单。
+        # userId = profile['userId']
+        # self.loadUserPlaylistThread.setTarget(netEase.user_playlist)
+        # self.loadUserPlaylistThread.setArgs(userId)
+        # self.loadUserPlaylistThread.start()
+
+        # nickname = profile['nickname']
+        # self.loginButton.setText(nickname)
+
+    def setUserData(self):
         profile = self.loginInfor['profile']
         avatarUrl = profile['avatarUrl']
         self.userPix.setSrc(avatarUrl)
@@ -383,6 +410,17 @@ class Header(QFrame):
     def loadUserPlaylistFinished(self):
         result = self.loadUserPlaylistThread.result
         self.parent.navigation.setPlaylists(result)
+
+    @checkFolder(allCookiesFolder)
+    def saveCookies(self):
+        with open(self.loginCookiesFolder, 'wb') as f:
+            pickle.dump(self.loginInfor, f)
+
+    @checkFolder(allCookiesFolder)
+    def loadCookies(self):
+        with open(self.loginCookiesFolder, 'rb') as f:
+            self.loginInfor = pickle.load(f)
+        self.setUserData()
 
     # 事件。
     """重写鼠标事件，实现窗口拖动。"""
