@@ -8,10 +8,10 @@ import netEaseApi
 
 from base import *
 
-
 # netEaseApi
 netEase = netEaseApi.NetEaseWebApi()
 transTime = addition.itv2time
+
 
 """一个Tab，网易云的全部歌单。"""
 class NetEaseSingsArea(QFrame):
@@ -222,11 +222,11 @@ class NetEaseSingsArea(QFrame):
             else:
                 self.netThread.start()
 
-    def picManagerFinishedEvent(self):
-        # 图片线程已经完成，进行标记。
-        self.picManager.picFinished = True
-        # 让监控线程停止。
-        self.timerThread.setVar(True)
+    # def picManagerFinishedEvent(self):
+    #     # 图片线程已经完成，进行标记。
+    #     self.picManager.picFinished = True
+    #     # 让监控线程停止。
+    #     self.timerThread.setVar(True)
 
     def closeEvent(self, event):
         print(1)
@@ -249,6 +249,7 @@ class _PicThreadTask(QRunnable):
         
         pic = QPixmap()
         pic.loadFromData(content)
+        pic = pic.scaled(180, 180)
         pic.save("cache/{0}".format(names))
 
         self.queue.put([self.widget, "QLabel#picLabel{border-image: url(cache/%s)}"%(names)])
@@ -469,21 +470,19 @@ class OneSing(QFrame):
 
         self.setMinimumSize(180, 235)
 
-        self.picLabel = QLabel(self)
+        self.picLabel = QLabel()
         self.picLabel.setObjectName('picLabel')
         self.picLabel.setMinimumSize(180, 180)
         self.picLabel.setMaximumSize(180, 180)
 
-        self.nameLabel = QLabel(self)
+        self.nameLabel = QLabel()
         self.nameLabel.setMaximumWidth(180)
         self.nameLabel.setWordWrap(True)
 
-        self.mainLayout = QVBoxLayout()
+        self.mainLayout = QVBoxLayout(self)
 
         self.mainLayout.addWidget(self.picLabel)
         self.mainLayout.addWidget(self.nameLabel)
-
-        self.setLayout(self.mainLayout)
 
         self.parent.mainLayout.addWidget(self, self.row, self.column)
 
