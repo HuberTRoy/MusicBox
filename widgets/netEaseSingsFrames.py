@@ -249,12 +249,11 @@ class _PicThreadTask(QRunnable):
         
         pic = QPixmap()
         pic.loadFromData(content)
+        # 缩小到合适的大小会让QT合理的利用内存资源。
         pic = pic.scaled(180, 180)
         pic.save("cache/{0}".format(names))
 
         self.queue.put([self.widget, "QLabel#picLabel{border-image: url(cache/%s)}"%(names)])
-        # self.widget.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
-        # self.finished.emit(self.widget, "QLabel#picLabel{border-image: url(cache/%s)}"%(names))
 
 
 """歌单详情页。"""
