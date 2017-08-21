@@ -930,13 +930,17 @@ class _MediaPlaylist(QObject):
 
     def play(self):
         media = self.musics[self.currentIndex]
+        if type(media) == str:
+            if 'http' in media:
+                content = QMediaContent(QUrl(media))
+            else:
+                content = QMediaContent(QUrl.fromLocalFile(media))
 
-        if self.parent.currentMedia() == media:
-            self.parent.setMedia(media)
-            self.parent.playMusic()
-        else:
-            self.parent.setMedia(media)
-            self.parent.playMusic()
+            self.musics = self.musics[:self.currentIndex] + [content] + self.musics[self.currentIndex+1:]
+            media = content
+
+        self.parent.setMedia(media)
+        self.parent.playMusic()
 
         self.tabMusicEvent()
 
