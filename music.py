@@ -390,7 +390,6 @@ class Header(QFrame):
         profile = self.loginInfor['profile']
         avatarUrl = profile['avatarUrl']
         self.userPix.setSrc(avatarUrl)
-        
         # 加载该账户创建及喜欢的歌单。
         userId = profile['userId']
         self.loadUserPlaylistThread.setTarget(netEase.user_playlist)

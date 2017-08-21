@@ -46,6 +46,21 @@ def checkFolder(filenames:iter):
     return _check
 
 
+def checkOneFolder(folderName:str):
+    if not os.path.isdir(folderName):
+        os.mkdir(folderName)
+
+    def _check(func):
+        def _exec(*args):
+            try:
+                func(*args)
+            except:
+                print('读取或保存cookies出错', filenames)
+
+        return _exec
+    return _check
+
+
 """一个有信号槽机制的安全线程队列。"""
 class QueueObject(QObject):
     add = pyqtSignal()
@@ -164,7 +179,7 @@ class HStretchBox(HBoxLayout):
 #  !
 #  |
 # 一个垂直居中的布局。
-class  VStretchBox(VBoxLayout):
+class VStretchBox(VBoxLayout):
 
     def __init__(self, parentLayout, *widgets, frontStretch=1, behindStretch=1):
         super(VStretchBox, self).__init__()
@@ -229,6 +244,16 @@ class Timer(QThread):
         self.var = value
 
 
+# <img src=1.jpg>相关变量。
+
+picsThreadPool = QThreadPool()
+picsThreadPool.setMaxThreadCount(5)
+
+picsQueue = QueueObject()
+
+# 缓存目录。
+cacheFolder = 'cache'
+
 ## 对<img src=1.jpg>的初步探索。
 # 暂只接受http(s)和本地目录。
 class PicLabel(QLabel):
@@ -251,15 +276,20 @@ class PicLabel(QLabel):
             self.setMaximumSize(self.width, self.height)
             self.setMinimumSize(self.width, self.height)
 
-
+    @checkOneFolder(cacheFolder)
     def setSrc(self, src):
         src = str(src)
         if 'http' in src or 'https' in src:
+            cacheList = os.listdir(cacheFolder)
+
+            names = str(src[src.rfind('/')+1:])
+            if names in cacheList:
+                self.setSrc(cacheFolder+'/'+names)
+                return
 
             task = GetPicture(self, src)
             picsThreadPool.start(task)
         else:
-            # self.setStyleSheet('''QLabel{border-image: url(%s);}'''%(src))
             pix = QPixmap(src)
             pix.load(src)
             pix = pix.scaled(self.width, self.height)
@@ -282,20 +312,15 @@ class GetPicture(QRunnable):
         self.src = src
 
     def run(self):
+        names = str(self.src[self.src.rfind('/')+1:])
         content = Requests.get(self.src).content
-
-        picsQueue.put([self.widget, content])
-
-
-picsThreadPool = QThreadPool()
-picsThreadPool.setMaxThreadCount(5)
-
-picsQueue = QueueObject()
+        picsQueue.put([self.widget, content, names])
 
 
 # just for picLabel.
 def __addPic():
     data = picsQueue.get()
+    # widget, content, names.
     if not data:
         return
 
@@ -303,10 +328,12 @@ def __addPic():
     width = widget.width
     height = widget.height
 
-
     pic = QPixmap()
     pic.loadFromData(data[1])
     pic = pic.scaled(width, height)
+    pic.save(cacheFolder+'/'+data[2])
+
+    # 上遮罩。
     if widget.pixMask:
         mask = QPixmap()
         mask.load(widget.pixMask)
@@ -314,10 +341,7 @@ def __addPic():
 
         pic.setMask(mask.createHeuristicMask())
     
-    if widget.width:
-        widget.setPixmap(pic)
-    else:
-        widget.setPixmap(pic)
+    widget.setPixmap(pic)
 
 
 picsQueue.add.connect(__addPic)

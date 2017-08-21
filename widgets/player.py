@@ -5,13 +5,13 @@ import os
 import random
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QBrush, QColor, QIcon, QCursor
-from PyQt5.QtCore import QUrl, QSize, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
+from PyQt5.QtGui import QBrush, QColor, QCursor
+from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 import addition
 
-from base import checkFolder, pickle
+from base import checkFolder, pickle, PicLabel, cacheFolder, checkOneFolder
 from network import NetWorkThread
 
 
@@ -455,45 +455,30 @@ class CurrentMusic(QFrame):
         self.raise_()
         self.activateWindow()
 
-        self.picManager = NetWorkThread(self)
-        self.picManager.saveFinished.connect(self.setMusicPic)
-
         self.shortInfo = CurrentMusicShort(self)
         self.detailInfo = CurrentMusicDetail(self)
 
-        self.mainLayout = QHBoxLayout()
+        self.mainLayout = QHBoxLayout(self)
         self.mainLayout.addWidget(self.shortInfo)
         self.mainLayout.addWidget(self.detailInfo)
         # 保证没有间隙。
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
-        self.setLayout(self.mainLayout)
 
     # 功能。
+    @checkOneFolder(cacheFolder)
     def setShortInfo(self, name=None, author=None, pic=None):
         """方便设置信息。"""
         if pic:
-            cacheList = os.listdir('cache')
-            picName = pic[pic.rfind('/')+1:]
-            if picName in cacheList:
-                self.setMusicPic(picName)
-            else:
-                # 历史问题。
-                self.picManager.offset = 0
-                self.picManager.currentUrl = -1
-                self.picManager.setUrl([pic])
-                self.picManager.startGet()
+            cacheList = os.listdir(cacheFolder)
+            names = str(pic[pic.rfind('/')+1:])
+            if names in cacheList:
+                pic = cacheFolder+'/'+names
+
+            self.shortInfo.musicPic.setSrc(pic)
 
         self.shortInfo.musicName.setText(name)
         self.shortInfo.musicAuthor.setText(author)
-
-    def setMusicPic(self, name='None'):
-        if name != 'None':
-            self.shortInfo.musicPic.setIcon(QIcon('cache/%s'%(name)))
-            self.shortInfo.musicPic.setIconSize(QSize(64, 64))
-        else:
-            self.shortInfo.musicPic.setIcon(QIcon('resource/no_music.png'))
-            self.shortInfo.musicPic.setIconSize(QSize(64, 64))
 
     def setDetailInfo(self):
         pass
@@ -540,6 +525,9 @@ class CurrentMusicShort(QFrame):
         super(CurrentMusicShort, self).__init__()
         self.parent = parent
         self.setObjectName('short')
+
+        self.mousePos = None
+
         self.setLabels()
 
         self.setButtons()
@@ -555,12 +543,11 @@ class CurrentMusicShort(QFrame):
         self.musicAuthor = QLabel(self)
 
     def setButtons(self):
-        self.musicPic = QPushButton(self)
+        # self.musicPic = QPushButton(self)
+        self.musicPic = PicLabel('resource/no_music.png', 64, 64)
         self.musicPic.setObjectName("musicPic")
-        self.musicPic.resize(64, 64)
-        self.musicPic.setMinimumSize(64, 64)
-
-        self.musicPic.clicked.connect(self.getDetailInfo)
+        self.musicPic.mousePressEvent = self.musicPicMousePressEvent
+        self.musicPic.mouseReleaseEvent = self.musicPicMouseReleaseEvent
 
     def setLayouts(self):
         """布局。"""
@@ -584,19 +571,24 @@ class CurrentMusicShort(QFrame):
     # 功能。
     def getDetailInfo(self):
         """点击后将自己隐藏并放大。"""
+        return
         self.parent.getDetailInfo()
         self.hide()
 
     def init(self):
         """默认情况下的显示，包括音乐图片，音乐名和音乐作者。"""
-        self.musicPic.setIcon(QIcon('resource/no_music.png'))
-        self.musicPic.setIconSize(QSize(64, 64))
         self.musicName.setText("Enjoy it")
         self.musicAuthor.setText("Enjoy it")
 
-    # def mouseMoveEvent(self, event):
-        # self.mask = QPixmap('resource/music_mask.png')
-        # self.musicPic.setMask(self.mask.createHeuristicMask())
+    # 事件。
+    def musicPicMousePressEvent(self, event):
+        self.mousePos = QCursor.pos()
+
+    def musicPicMouseReleaseEvent(self, evnet):
+        if QCursor.pos() != self.mousePos:
+            return
+        else:
+            self.getDetailInfo()
 
 
 """显示详细信息（点击后的信息，不完善。）"""
@@ -907,6 +899,12 @@ class _MediaPlaylist(QObject):
             self.musics.append(i['url'])
             self.mediaList[i['url']] = i
 
+    def clear(self):
+        self.musics = []
+        self.mediaList = {}
+        self.currentIndex = 0
+        self.duration = 0
+
     def mediaCount(self):
         return len(self.musics)
 
@@ -953,7 +951,8 @@ class _MediaPlaylist(QObject):
             self.musics = self.musics[:index] + [content] + self.musics[index+1:]
             self.parent.setMedia(content)
         else:
-            self.parent.setMedia(self.musics[index])
+            self.parent.setMedia(media)
+
         self.parent.playMusic()
         self.tabMusicEvent()
 
@@ -963,6 +962,10 @@ class _MediaPlaylist(QObject):
     @checkFolder(allCookiesFolder)
     def saveCookies(self):
         with open(self.musicsCookiesFolder, 'wb') as f:
+            for row, data in enumerate(self.musics):
+                if type(data) == QMediaContent:
+                    self.musics[row] = data.canonicalUrl().toString()
+
             pickle.dump(self.musics, f)
 
         with open(self.mediaListCookiesFolder, 'wb') as f:
@@ -975,7 +978,6 @@ class _MediaPlaylist(QObject):
 
         with open(self.mediaListCookiesFolder, 'rb') as f:
             self.mediaList = pickle.load(f)
-
 
     # 事件。
     def mediaStatusChangedEvent(self, status):
