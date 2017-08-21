@@ -615,12 +615,8 @@ class Player(QMediaPlayer):
         self.playList = _MediaPlaylist(self)
         # 默认列表循环。
         self.playList.setPlaybackMode(self.playList.Loop)
-        # self.setPlaylist(self.playList)
+
         self.setConnects()
-        # QUrl 可直接播放网络音乐。
-        # http://sc1.111ttt.com/2016/1/12/10/205102159306.mp3
-        # self.setMedia(QMediaContent(QUrl(r'file:///F:/Programming%20Files/Music/testMusic/七月上.mp3')))
-        # self.loadCookies()
 
     # 功能。
     def setConnects(self):
@@ -628,6 +624,7 @@ class Player(QMediaPlayer):
         self.durationChanged.connect(self.countTimeEvent)
         self.positionChanged.connect(self.positionChangedEvent)
         self.stateChanged.connect(self.stateChangedEvent)
+        self.error.connect(self.dealError)
         self.playList.setInitConnection()
         # self.currentMediaChanged.connect(self.currentMediaChangedEvent)
         # self.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
@@ -664,6 +661,13 @@ class Player(QMediaPlayer):
             self.playWidgets.playEvent(self)
         else:
             self.playWidgets.playEvent(self)
+        
+    def dealError(self, error):
+        # 具体内容看文档:
+        # http://doc.qt.io/qt-5/qmediaplayer.html
+
+        if error:
+            self.playWidgets.nextSing()
 
     def saveCookies(self):
         self.playList.saveCookies()
