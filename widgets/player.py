@@ -12,7 +12,6 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 import addition
 
 from base import checkFolder, pickle, PicLabel, cacheFolder, checkOneFolder
-from network import NetWorkThread
 
 
 """底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。"""
@@ -163,14 +162,18 @@ class PlayWidgets(QFrame):
     def setPlayerAndPlayList(self, data, index=0):
         """方便外部调用。一键添加歌曲。"""
         """防止重复。"""
-        if data in self.playList.musicList:
-            index = self.playList.musicList.index(data)
-            if self.player.playList.currentIndex == index:
+        authorAndName = data['author'] + data['name']
+        for i, mediaInfo in enumerate(self.playList.musicList):
+            checkAuthorAndName = mediaInfo['author'] + mediaInfo['name']
+            # if data in self.playList.musicList:
+            if authorAndName == checkAuthorAndName:
+                # index = self.playList.musicList.index(data)
+                if self.player.playList.currentIndex == i and i != 0:
+                    return
+
+                self.player.setIndex(i)
+
                 return
-
-            self.player.setIndex(index)
-
-            return
 
         # 添加资源当前项到播放列表。
         sureSetUp = self.player.setMusic(data['url'], data)
@@ -401,7 +404,6 @@ class PlayList(QFrame):
 
     def addMusic(self, data):
         self.musicList.append(data)
-        # self.mediaList[self.parent]
 
     def addMusics(self, mlist):
         self.musicList.extend(mlist)
@@ -632,7 +634,7 @@ class Player(QMediaPlayer):
     def setMusic(self, url, data):
         """设置当前的音乐，可用直接用网络链接。"""
         if url:
-            if 'http' in url:
+            if 'http' in url or 'file' in url:
                 self.playList.addMedias(QMediaContent(QUrl(url)), data)
             else:
                 self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
@@ -647,7 +649,7 @@ class Player(QMediaPlayer):
 
     def setIndex(self, index):
         self.playList.setCurrentIndex(index)
-        self.playMusic()
+        # self.playMusic()
 
     def allTime(self):
         """返回当前音乐的总时间。（秒）"""
@@ -935,7 +937,7 @@ class _MediaPlaylist(QObject):
     def play(self):
         media = self.musics[self.currentIndex]
         if type(media) == str:
-            if 'http' in media:
+            if 'http' in media or 'file' in media:
                 content = QMediaContent(QUrl(media))
             else:
                 content = QMediaContent(QUrl.fromLocalFile(media))
@@ -951,7 +953,7 @@ class _MediaPlaylist(QObject):
     def setCurrentIndex(self, index):
         media = self.musics[index]
         if type(media) == str:
-            if 'http' in media:
+            if 'http' in media or 'file' in media:
                 content = QMediaContent(QUrl(media))
             else:
                 content = QMediaContent(QUrl.fromLocalFile(media))
@@ -1003,6 +1005,7 @@ class _MediaPlaylist(QObject):
 
     def tabMusicEvent(self):
         indexUrl = self.parent.currentMedia().canonicalUrl().toString()
+
         name = self.mediaList[indexUrl]['name']
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']

@@ -198,7 +198,7 @@ class RequestThread(QThread):
     breakSignal = pyqtSignal(str)
 
     """异步请求，类似Pyhton封装的Thread形式，用QThread在简单封装一下。"""
-    def __init__(self, parent=None, target=None, *args, **kwargs):
+    def __init__(self, parent=None, target=None, finishedConnection=None, *args, **kwargs):
         super(RequestThread, self).__init__()
 
         self.parent = parent
@@ -207,7 +207,9 @@ class RequestThread(QThread):
         self.target = target
         self.flag = False
         self.result = None
-
+        if finishedConnection:
+            self.finished.connect(finishedConnection)
+            
     def run(self):
         self.result = self.target(*self.args, **self.kwargs)
 
