@@ -2,7 +2,7 @@ __author__ = 'cyrbuzz'
 """不要单独运行。"""
 # from configFeatures import *
 from base import (QFrame, QTabWidget, QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
-    PicLabel, ScrollArea, TableWidget)
+                  PicLabel, ScrollArea, TableWidget)
 
 import addition
 

@@ -12,6 +12,8 @@ sys.path.append('../networks')
 import pickle
 import os.path
 
+# PEP8不允许使用通配符的原因是会混淆命名空间。
+# PyQt5的所有命名都是QXXX, 这边暂时不改了。
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

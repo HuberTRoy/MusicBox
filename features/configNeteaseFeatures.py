@@ -8,7 +8,7 @@ import network
 import addition
 import netEaseApi
 
-from base import *
+from base import (QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, QTableWidgetItem, QThreadPool, QueueObject)
 
 from netEaseSingsWidgets import OneSing, PlaylistButton
 

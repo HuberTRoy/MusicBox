@@ -1,7 +1,7 @@
 __author__ = 'cyrbuzz'
 """制作登陆区盒子。"""
 
-from base import *
+from base import QDialog, QFrame, HBoxLayout, HStretchBox, QLabel, QLineEdit, QPushButton, Qt, VBoxLayout, RequestThread
 
 
 class InputLine(QLineEdit):
@@ -132,7 +132,6 @@ class PhoneAndEMailFrame(QFrame):
         self.passwordCenterBox = HStretchBox(self.mainLayout, self.passwordLine)
         self.passwordLine.setEchoMode(QLineEdit.Password)
 
-
         self.warningIconLabel = QLabel()
         self.warningIconLabel.setObjectName('warningIconLabel')
         self.warningIconLabel.setMaximumSize(14, 14)
@@ -145,7 +144,6 @@ class PhoneAndEMailFrame(QFrame):
         self.warningCenterBox = HStretchBox(self.mainLayout, self.warningIconLabel, self.warningLabel, 
             behindStretch=2)
 
-
         self.mainLayout.addSpacing(30) 
 
         self.enterLoginButton = QPushButton("登 录")
@@ -153,8 +151,6 @@ class PhoneAndEMailFrame(QFrame):
         self.enterLoginButton.setMaximumSize(217, 27)
         self.enterLoginButton.setMinimumSize(217, 27)
         self.enterLoginCenterBox = HStretchBox(self.mainLayout, self.enterLoginButton)
-        # self.enterLoginButton.clicked.connect(self.login)
-
 
         self.mainLayout.addSpacing(30)
         
@@ -190,8 +186,6 @@ class PhoneAndEMailFrame(QFrame):
 
     def connectLogin(self, functionName):
         self.enterLoginButton.clicked.connect(functionName)
-
-
 
 
 if __name__ == '__main__':

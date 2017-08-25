@@ -1,10 +1,15 @@
 """包含音乐的组件, 显示用信息, 一个自定义可HOVER整行效果的TableWidget。"""
+"""
+这是一个独立的播放器组件，只需要调用playWidgets里的setPlayerAndPlayList(s)即可播放音乐。
+需要的data类型是{'name': str, 'time': str, 'author': str, music_img: None/url}
+"""
 __author__ = 'cyrbuzz'
 
 import os
 import random
 
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QPushButton, QSlider, QTableWidget, QTableWidgetItem, 
+                             QVBoxLayout, QApplication)
 from PyQt5.QtGui import QBrush, QColor, QCursor
 from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
@@ -159,7 +164,7 @@ class PlayWidgets(QFrame):
         # 下一首。
         self.player.playList.next()
 
-    def setPlayerAndPlayList(self, data, index=0):
+    def setPlayerAndPlayList(self, data:dict, index=0):
         """方便外部调用。一键添加歌曲。"""
         """防止重复。"""
         authorAndName = data['author'] + data['name']
@@ -1010,3 +1015,16 @@ class _MediaPlaylist(QObject):
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']
         self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+
+
+if __name__ == '__main__':
+    import sys
+    os.chdir('..')
+    app = QApplication(sys.argv)
+
+    main = PlayWidgets()
+
+    main.show()
+
+    sys.exit(app.exec_())
+    

@@ -1,6 +1,8 @@
 __author__ = 'cyrbuzz'
 
-from base import *
+import pickle
+
+from base import checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
 from netEaseSingsWidgets import PlaylistButton
 
 import netEaseApi
@@ -25,9 +27,6 @@ class ConfigWindow(QObject):
 
         self.bindConnect()
 
-    def bindConnect(self):
-        self.window.mainContents.currentChanged.connect(self.addTabHistory)
-
     def addTab(self, widget, name=''):
         self.window.mainContents.addTab(widget, name)
 
@@ -47,17 +46,8 @@ class ConfigWindow(QObject):
         else:
             self.isTab = False
 
-    def setTabIndex(self, index):
-        self.window.mainContents.setCurrentIndex(index)
-
-    def prevTab(self):
-        # 前一个的切换。
-        if self.currentIndex == 0 or self.currentIndex == -1:
-            return
-        else:
-            self.isTab = True
-            self.currentIndex -= 1
-            self.window.mainContents.setCurrentIndex(self.history[self.currentIndex])
+    def bindConnect(self):
+        self.window.mainContents.currentChanged.connect(self.addTabHistory)
 
     def nextTab(self):
         # 后一个的切换。
@@ -68,6 +58,18 @@ class ConfigWindow(QObject):
             self.isTab = True
             self.currentIndex += 1
             self.window.mainContents.setCurrentIndex(self.history[self.currentIndex])
+
+    def prevTab(self):
+        # 前一个的切换。
+        if self.currentIndex == 0 or self.currentIndex == -1:
+            return
+        else:
+            self.isTab = True
+            self.currentIndex -= 1
+            self.window.mainContents.setCurrentIndex(self.history[self.currentIndex])
+
+    def setTabIndex(self, index):
+        self.window.mainContents.setCurrentIndex(index)
 
 
 class ConfigHeader(QObject):
@@ -90,7 +92,9 @@ class ConfigHeader(QObject):
         self.loginInfor = {}
         self.result = None
         self.songsDetail = None
-
+        # 用于确定登陆状态。
+        self.code = 200
+        
         self.bindConnect()
         self.loadCookies()
 
@@ -155,17 +159,22 @@ class ConfigHeader(QObject):
         # 网络不通或其他问题。
         if not result:
             self.loginThread.breakSignal.emit('请检查网络后重试~.')
+            self.code = 500
             return
 
         code = result.get('code')
         if code != 200 or code != '200':
             self.loginThread.breakSignal.emit(str(result.get('msg')))
+            self.code = 500
+            return 
 
         self.loginInfor = result
+        self.code = 200
 
     def loginFinished(self):
-        self.header.loginBox.accept()
-        self.setUserData()
+        if str(self.code) == '200': 
+            self.header.loginBox.accept()
+            self.setUserData()
 
     def setUserData(self):
         profile = self.loginInfor['profile']
@@ -344,8 +353,6 @@ class ConfigMainContent(QObject):
     def __init__(self, mainContent):
         super(ConfigMainContent, self).__init__()
         self.mainContent = mainContent
-
-
 
 
 class ConfigSearchArea(QObject):
