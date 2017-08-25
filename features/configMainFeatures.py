@@ -163,7 +163,7 @@ class ConfigHeader(QObject):
             return
 
         code = result.get('code')
-        if code != 200 or code != '200':
+        if str(code) != '200':
             self.loginThread.breakSignal.emit(str(result.get('msg')))
             self.code = 500
             return 

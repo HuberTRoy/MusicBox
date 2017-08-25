@@ -110,8 +110,6 @@ class PhoneAndEMailFrame(QFrame):
 
             self.setStyleSheet(f.read())
 
-        self.requestsThread = RequestThread(self)
-
         self.mainLayout = VBoxLayout(self)
 
         self.header = Header("用户名", self)
