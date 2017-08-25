@@ -8,7 +8,7 @@ __author__ = 'cyrbuzz'
 import os
 import random
 
-from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QPushButton, QSlider, QTableWidget, QTableWidgetItem, 
+from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, QTableWidgetItem, 
                              QVBoxLayout, QApplication)
 from PyQt5.QtGui import QBrush, QColor, QCursor
 from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
