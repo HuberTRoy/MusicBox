@@ -20,17 +20,20 @@ sys.path.append('apis')
 sys.path.append('features')
 
 # widgets
-from base import *
-from player import *
+from base import (QApplication, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
+                  QPushButton, PicLabel, QScrollArea, ScrollArea, Qt, QTabWidget, TableWidget, QVBoxLayout, VBoxLayout,
+                  QWidget)
+from player import PlayWidgets
 from native import NativeMusic
 from loginFrames import LoginBox
-from netEaseSingsFrames import NetEaseSingsArea, DetailSings
+from netEaseSingsFrames import DetailSings, NetEaseSingsArea
 from netEaseSingsWidgets import PlaylistButton
 from addition import SearchLineEdit
 
 # features
-from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 from configMainFeatures import ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea
+from configNativeFeatures import ConfigNative
+from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 
 
 """用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。"""
@@ -120,9 +123,10 @@ class Window(QWidget):
     def configFeatures(self):
         self.config = ConfigWindow(self)
         self.header.config = ConfigHeader(self.header)
-        self.navigation.config = ConfigNavigation(self.navigation)
-        self.mainContent.config = ConfigMainContent(self.mainContent)
         self.searchArea.config = ConfigSearchArea(self.searchArea)
+        self.navigation.config = ConfigNavigation(self.navigation)
+        self.nativeMusic.config = ConfigNative(self.nativeMusic)
+        self.mainContent.config = ConfigMainContent(self.mainContent)
         self.detailSings.config = ConfigDetailSings(self.detailSings)
         self.mainContent.indexNetEaseSings.config = ConfigNetEase(self.mainContent.indexNetEaseSings)
 
