@@ -8,8 +8,8 @@ __author__ = 'cyrbuzz'
 import os
 import random
 
-from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, QTableWidgetItem, 
-                             QVBoxLayout, QApplication)
+from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, 
+                             QTableWidgetItem, QVBoxLayout, QApplication)
 from PyQt5.QtGui import QBrush, QColor, QCursor
 from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
@@ -903,6 +903,9 @@ class _MediaPlaylist(QObject):
         self.currentIndex = len(self.musics) - 1
         self.mediaList[url.canonicalUrl().toString()] = data
         self.parent.playMusic()
+        
+        # window
+        self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(data['name'], data['author']))
 
     def addAllMedias(self, datas):
         # self.musics.extend(datas)
@@ -1015,6 +1018,9 @@ class _MediaPlaylist(QObject):
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']
         self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+
+        # window.
+        self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@ __author__ = 'cyrbuzz'
 
 import pickle
 
-from base import checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
+from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
 from netEaseSingsWidgets import PlaylistButton
 
 import netEaseApi
@@ -408,3 +408,21 @@ class ConfigSearchArea(QObject):
         currentRow = self.searchArea.singsResultTable.currentRow()
         data = self.musicList[currentRow]
         self.searchArea.parent.playWidgets.setPlayerAndPlayList(data)
+
+
+class ConfigSystemTray(QObject):
+
+    def __init__(self, systemTray):
+        super(ConfigSystemTray, self).__init__()
+        self.systemTray = systemTray
+
+        self.addActions()
+        self.bindConnect()
+
+    def addActions(self):
+        closeAction = QAction('退出', self.systemTray, triggered=self.systemTray.parent.close)
+
+        self.systemTray.addAction(closeAction)
+        
+    def bindConnect(self):
+        pass

@@ -25,13 +25,15 @@ from base import (QApplication, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon,
                   QWidget)
 from player import PlayWidgets
 from native import NativeMusic
+from addition import SearchLineEdit
+from systemTray import SystemTray
 from loginFrames import LoginBox
 from netEaseSingsFrames import DetailSings, NetEaseSingsArea
 from netEaseSingsWidgets import PlaylistButton
-from addition import SearchLineEdit
 
 # features
-from configMainFeatures import ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea
+from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
+                                ConfigSystemTray)
 from configNativeFeatures import ConfigNative
 from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 
@@ -61,6 +63,8 @@ class Window(QWidget):
 
         self.mainContents = QTabWidget()
         self.mainContents.tabBar().setObjectName("mainTab")
+
+        self.systemTray = SystemTray('resource/logo.png', self)
 
         # 加载tab设置。
         self.setContents()
@@ -129,12 +133,16 @@ class Window(QWidget):
         self.mainContent.config = ConfigMainContent(self.mainContent)
         self.detailSings.config = ConfigDetailSings(self.detailSings)
         self.mainContent.indexNetEaseSings.config = ConfigNetEase(self.mainContent.indexNetEaseSings)
+        self.systemTray.config = ConfigSystemTray(self.systemTray)
+
 
     def closeEvent(self, event):
         # 主要是保存cookies.
         self.header.config.saveCookies()
         self.playWidgets.saveCookies()
 
+        # 系统托盘需要先隐藏，否则退出后会残留在任务栏。
+        self.systemTray.hide()
 
 """标题栏，包括logo，搜索，登陆，最小化/关闭。"""
 class Header(QFrame):
