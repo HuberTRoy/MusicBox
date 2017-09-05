@@ -19,6 +19,13 @@ sys.path.append('networks')
 sys.path.append('apis')
 sys.path.append('features')
 
+import asyncio
+
+# event loop
+# https://github.com/harvimt/quamash
+# an asyncio eventloop for PyQt.
+from quamash import QEventLoop
+
 # widgets
 from base import (QApplication, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
                   QPushButton, PicLabel, QScrollArea, ScrollArea, Qt, QTabWidget, TableWidget, QVBoxLayout, VBoxLayout,
@@ -135,7 +142,6 @@ class Window(QWidget):
         self.mainContent.indexNetEaseSings.config = ConfigNetEase(self.mainContent.indexNetEaseSings)
         self.systemTray.config = ConfigSystemTray(self.systemTray)
 
-
     def closeEvent(self, event):
         # 主要是保存cookies.
         self.header.config.saveCookies()
@@ -144,13 +150,10 @@ class Window(QWidget):
         # 系统托盘需要先隐藏，否则退出后会残留在任务栏。
         self.systemTray.hide()
 
+
 """标题栏，包括logo，搜索，登陆，最小化/关闭。"""
 class Header(QFrame):
 
-    # 装饰器初始化时还不会调用__init__.
-    loginCookiesFolder = 'cookies/headers/loginInfor.cks'
-    allCookiesFolder = [loginCookiesFolder]
-    
     def __init__(self, parent=None):
         """头部区域，包括图标/搜索/设置/登陆/最大/小化/关闭。"""
 
@@ -460,6 +463,11 @@ class SearchArea(ScrollArea):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    # 将Qt事件循环写到asyncio事件循环里。
+    # QEventLoop不是Qt原生事件循环，
+    # 是被asyncio重写的事件循环。
+    eventLoop = QEventLoop(app)
+    asyncio.set_event_loop(eventLoop)
     main = Window()
 
     main.show()
@@ -469,6 +477,8 @@ if __name__ == '__main__':
     # 需要获取宽，高并嵌入到父窗口里。
     main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
     main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
+    
+    eventLoop.run_forever()
 
-    sys.exit(app.exec_())
+    sys.exit(0)
     
