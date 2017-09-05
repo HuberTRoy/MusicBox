@@ -80,11 +80,11 @@ class ARequests(httpBase.Requests):
         
         return True
 
-    def _httpRequest(self, methed, url, kwargs):
-        methed = methed.upper()
-        if methed == 'GET':
+    def _httpRequest(self, method, url, kwargs):
+        method = method.upper()
+        if method == 'GET':
             data = super().get(url, **kwargs)
-        elif methed == 'POST':
+        elif method == 'POST':
             data = super().post(url, **kwargs)
 
         return data
