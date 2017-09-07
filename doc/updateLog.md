@@ -1,3 +1,23 @@
+## 2017/9/7 更新: <br />
+    0. 添加简单将普通函数变为异步函数的方法。(features/asyncBase.py)
+    1. 将几个不太需要线程的方法修改为异步方式。
+    异步方式说明:
+    ···
+    @toTask
+    def test(x):
+
+        future = aAsync(requests.get, 'http://www.xxx.com', headers=headers)
+        print(x)
+        data = yield from future
+
+        print(data)
+    ···
+    将普通函数用aAsync方法执行即可。
+    ···
+    for x in range(5):
+        test(x)
+    ···
+
 ## 2017/9/5 更新: <br />
     0. 添加基于asyncio+requests的异步请求类
 
