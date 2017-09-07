@@ -114,18 +114,12 @@ class ARequests(httpBase.Requests):
 
     def post(self, url, **kwargs):
         eventLoop = asyncio.get_event_loop()
-        future = eventLoop.create_task(self._post(url, kwargs))
+        future = eventLoop.create_task(self._post(url, **kwargs))
         future.add_done_callback(self.callback)
 
 
 if __name__ == '__main__':
     pass
     # eventLoop = asyncio.get_event_loop()
-    # def x(future):
-        # print(future.result().text)
-    
-    # b = ARequests(x)
 
-    # for i in range(5):
-        # data = b.get('http://www.baidu.com', headers={})
     # eventLoop.run_forever()

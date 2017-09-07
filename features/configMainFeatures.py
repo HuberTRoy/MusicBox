@@ -1,7 +1,9 @@
 __author__ = 'cyrbuzz'
 
+import asyncio
 import pickle
 
+from asyncBase import aAsync, toTask
 from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
 from netEaseSingsWidgets import PlaylistButton
 
@@ -80,12 +82,12 @@ class ConfigHeader(QObject):
         super(ConfigHeader, self).__init__()
         self.header = header
 
-        self.searchThread = RequestThread(self, self.search, self.searchFinished)
+        # self.searchThread = RequestThread(self, self.search, self.searchFinished)
 
         self.loginThread = RequestThread(self, None, self.loginFinished)
         self.loginThread.breakSignal.connect(self.emitWarning)
 
-        self.loadUserPlaylistThread = RequestThread(self, None, self.loadUserPlaylistFinished)
+        # self.loadUserPlaylistThread = RequestThread(self, None, self.loadUserPlaylistFinished)
         
         self.header.loginBox.connectLogin(self.login)
         
@@ -104,18 +106,21 @@ class ConfigHeader(QObject):
         self.header.loginButton.clicked.connect(self.showLoginBox)
         self.header.prevButton.clicked.connect(self.header.parent.config.prevTab)
         self.header.nextButton.clicked.connect(self.header.parent.config.nextTab)
-        self.header.searchLine.setButtonSlot(self.searchThread.start)
+        self.header.searchLine.setButtonSlot(lambda: self.search())
 
+    @toTask
     def search(self):
         text = self.header.searchLine.text()
-        self.result = netEase.search(text)
+        future = aAsync(netEase.search, text)
+        self.result = yield from future
 
         if not self.result['songCount']:
             songsIds = []
             self.result['songs'] = []
         else: 
             songsIds = [i['id'] for i in self.result['songs']]
-            self.songsDetail = netEase.singsUrl(songsIds)
+            future = aAsync(netEase.singsUrl, songsIds)
+            self.songsDetail = yield from future
             self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
             # 进行重新编辑方便索引。
             songs = self.result['songs']
@@ -125,8 +130,6 @@ class ConfigHeader(QObject):
             'mp3Url': self.songsDetail[i['id']],
             'duration': i['dt']} for i in songs]
 
-    def searchFinished(self):
-        text = self.header.searchLine.text()
         songsCount = self.result['songCount']
 
         # 总数是0即没有找到。
@@ -176,21 +179,23 @@ class ConfigHeader(QObject):
             self.header.loginBox.accept()
             self.setUserData()
 
+    @toTask
     def setUserData(self):
         profile = self.loginInfor['profile']
         avatarUrl = profile['avatarUrl']
         self.header.userPix.setSrc(avatarUrl)
         # 加载该账户创建及喜欢的歌单。
         userId = profile['userId']
-        self.loadUserPlaylistThread.setTarget(netEase.user_playlist)
-        self.loadUserPlaylistThread.setArgs(userId)
-        self.loadUserPlaylistThread.start()
+        future = aAsync(netEase.user_playlist, userId)
+        data = yield from future
 
         nickname = profile['nickname']
         self.header.loginButton.setText(nickname)
 
         self.header.loginButton.clicked.disconnect()
         self.header.loginButton.clicked.connect(self.exitLogin)
+        
+        self.header.parent.navigation.config.setPlaylists(data)
   
     def emitWarning(self, warningStr):
         self.header.loginBox.setWarningAndShowIt(warningStr)
@@ -201,10 +206,6 @@ class ConfigHeader(QObject):
         self.header.loginButton.clicked.connect(self.showLoginBox)
         self.header.userPix.setSrc('resource/nouser.png')
         self.header.parent.navigation.config.clearPlaylists()
-
-    def loadUserPlaylistFinished(self):
-        result = self.loadUserPlaylistThread.result
-        self.header.parent.navigation.config.setPlaylists(result)
 
     @checkFolder(allCookiesFolder)
     def saveCookies(self):
@@ -234,9 +235,9 @@ class ConfigNavigation(QObject):
         self.singsFunction = self.none
         
         self.playlists = []
-        self.playlistThread = RequestThread(self)
-        self.playlistThread.setTarget(self.requestsDetail)
-        self.playlistThread.finished.connect(self.setDetail)
+        # self.playlistThread = RequestThread(self)
+        # self.playlistThread.setTarget(self.requestsDetail)
+        # self.playlistThread.finished.connect(self.setDetail)
 
         self.result = None
         self.singsUrls = None
@@ -309,34 +310,53 @@ class ConfigNavigation(QObject):
 
         self.navigation.mainLayout.addStretch(1)
 
+    @toTask
     def startRequest(self, ids, coverImgUrl):
         self.coverImgUrl = coverImgUrl
-        self.playlistThread.setArgs(ids)
-        self.playlistThread.start()
         self.singsButtonClickEvent()
 
-    def requestsDetail(self, ids):
-        result = self.api.details_playlist(ids)
-        self.result = result
+        future = aAsync(self.api.details_playlist, ids)
+        self.result = yield from future
 
         # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
-        singsIds = [i['id'] for i in result['tracks']]
+        singsIds = [i['id'] for i in self.result['tracks']]
 
         # 此处还有些问题。
         # 由于是两次url请求，稍微变得有点慢。
-        self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(singsIds)}
+        future = aAsync(self.api.singsUrl, singsIds)
+        data = yield from future
+        self.singsUrls = {i['id']:i['url'] for i in data}
         self.singsUrls = [self.singsUrls[i] for i in singsIds]
 
-    def setDetail(self):
-        # 方便书写。 
-        result = self.result
-
-        self.detailFrame.config.setupDetailFrames(result, self.singsUrls)
+        self.detailFrame.config.setupDetailFrames(self.result, self.singsUrls)
         self.detailFrame.picLabel.setSrc(self.coverImgUrl)
         self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
 
         # 隐藏原来的区域，显示现在的区域。
         self.mainContents.mainContents.setCurrentIndex(1)
+        
+    # def requestsDetail(self, ids):
+    #     result = self.api.details_playlist(ids)
+    #     self.result = result
+
+    #     # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
+    #     singsIds = [i['id'] for i in result['tracks']]
+
+    #     # 此处还有些问题。
+    #     # 由于是两次url请求，稍微变得有点慢。
+    #     self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(singsIds)}
+    #     self.singsUrls = [self.singsUrls[i] for i in singsIds]
+
+    # def setDetail(self):
+    #     # 方便书写。 
+    #     result = self.result
+
+    #     self.detailFrame.config.setupDetailFrames(result, self.singsUrls)
+    #     self.detailFrame.picLabel.setSrc(self.coverImgUrl)
+    #     self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
+
+    #     # 隐藏原来的区域，显示现在的区域。
+    #     self.mainContents.mainContents.setCurrentIndex(1)
 
     def navigationListFunction(self):
         isVisible = self.navigation.parent.mainContent.tab.isVisible()
