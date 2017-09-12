@@ -10,13 +10,16 @@
 > crypto/cryptodome. -> pip install pycyrptodome Or pip install pycryptodomex<br />
 > quamash -> pip install quamash <br />
 
+#### *nix额外依赖:
+> python3-pyqt5.qtmultimedia
+
 #### 存在的问题:
 > 目前没有某项音乐的详细信息。<br />
 > 大部分的网络异常没有考虑。 <br />
 > 目前没有MV。 <br />
 > 目前没有私人FM。 <br />
 
-### <a href="https://github.com/HuberTRoy/MusicPlayer/blob/master/doc/updateLog.md">更新日志</a>
+### 开发详情请移步至： <a href="https://github.com/HuberTRoy/MusicPlayer/blob/master/doc/updateLog.md">更新日志~</a>
 
 ## 截图:
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg"/>

@@ -1,3 +1,9 @@
+## 2017/9/12 更新: <br />
+    0. 若歌曲url已失效会尝试重新获取。
+    1. ubuntu下测试通过。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/15.jpg"/>
+
 ## 2017/9/7 更新: <br />
     0. 添加简单将普通函数变为异步函数的方法。(features/asyncBase.py)
     1. 将几个不太需要线程的方法修改为异步方式。
