@@ -11,7 +11,7 @@
 > quamash -> pip install quamash <br />
 
 #### *nix额外依赖:
-> sudo apt-get install pyqt5.qtmultimedia
+> sudo apt-get install pyqt5.qtmultimedia <br />
 > sudo apt-get install libqt5multimedia5-plugins
 
 #### 存在的问题:
