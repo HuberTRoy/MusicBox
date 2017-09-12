@@ -128,7 +128,8 @@ class ConfigHeader(QObject):
             'artists': i['ar'], 
             'picUrl': i['al']['picUrl'],
             'mp3Url': self.songsDetail[i['id']],
-            'duration': i['dt']} for i in songs]
+            'duration': i['dt'],
+            'music_id':i['id']} for i in songs]
 
         songsCount = self.result['songCount']
 
@@ -328,7 +329,7 @@ class ConfigNavigation(QObject):
         self.singsUrls = {i['id']:i['url'] for i in data}
         self.singsUrls = [self.singsUrls[i] for i in singsIds]
 
-        self.detailFrame.config.setupDetailFrames(self.result, self.singsUrls)
+        self.detailFrame.config.setupDetailFrames(self.result, self.singsUrls, singsIds)
         self.detailFrame.picLabel.setSrc(self.coverImgUrl)
         self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
 
@@ -409,6 +410,7 @@ class ConfigSearchArea(QObject):
                 name = datas['name']
                 authors = ','.join([t['name'] for t in datas['artists']])
                 duration = self.transTime(datas['duration']/1000)
+                musicId = datas['music_id']
 
                 self.searchArea.singsResultTable.setItem(count, 0, QTableWidgetItem(name))
                 self.searchArea.singsResultTable.setItem(count, 1, QTableWidgetItem(authors))
@@ -417,7 +419,8 @@ class ConfigSearchArea(QObject):
                     'name': name, 
                     'time':duration, 
                     'author':authors, 
-                    'music_img': picUrl})
+                    'music_img': picUrl,
+                    'music_id': musicId})
 
             self.searchArea.noSingsContentsLabel.hide()
             self.searchArea.singsResultTable.show()

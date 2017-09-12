@@ -326,7 +326,7 @@ class Navigation(QScrollArea):
         self.navigationList.setMinimumHeight(110)
         self.navigationList.setMaximumHeight(110)
         self.navigationList.setObjectName("navigationList")
-        self.navigationList.addItem(QListWidgetItem(QIcon('resource/Music.png'), " 发现音乐"))
+        self.navigationList.addItem(QListWidgetItem(QIcon('resource/music.png'), " 发现音乐"))
         self.navigationList.addItem(QListWidgetItem(QIcon('resource/signal.png'), " 私人FM"))
         self.navigationList.addItem(QListWidgetItem(QIcon('resource/movie.png'), " MV"))
         self.navigationList.setCurrentRow(0)

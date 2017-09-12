@@ -17,6 +17,11 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 import addition
 
 from base import checkFolder, pickle, PicLabel, cacheFolder, checkOneFolder
+from asyncBase import aAsync, toTask
+from netEaseApi import NetEaseWebApi
+
+
+api = NetEaseWebApi()
 
 
 """底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。"""
@@ -674,7 +679,33 @@ class Player(QMediaPlayer):
         # http://doc.qt.io/qt-5/qmediaplayer.html
 
         if error:
+            musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
+            self.loadRealMusicUrl(musicInfo)
+
+    @toTask
+    def loadRealMusicUrl(self, musicInfo):
+        # 如果有个Url出错，比如音乐地址403重新获取下地址。
+        musicId = musicInfo.get('music_id')
+        # invalidUrl = musicInfo.get('url')
+
+        if not musicId:
             self.playWidgets.nextSing()
+            return
+
+        future = aAsync(api.singsUrl, [musicId])
+        data = yield from future
+
+        if not data:
+            self.playWidgets.nextSing()
+            return 
+
+        url = data[0]['url']
+        musicInfo['url'] = url
+        self.playList.mediaList[url] = musicInfo
+        # replaceIndex = self.playList.musics.index(invalidUrl)
+
+        self.playList.musics[self.playList.currentIndex] = url
+        self.playList.play()
 
     def saveCookies(self):
         self.playList.saveCookies()
@@ -897,7 +928,7 @@ class _MediaPlaylist(QObject):
         self.parent.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
 
     def addMedias(self, url, data):
-        # url为QMediaContent, data包含这个歌曲的信息。{name, author, url}
+        # url为QMediaContent, data包含这个歌曲的信息。{name, author, url, music_id}
         self.parent.setMedia(url)
         self.musics.append(url)
         self.currentIndex = len(self.musics) - 1
@@ -996,7 +1027,6 @@ class _MediaPlaylist(QObject):
 
         with open(self.mediaListCookiesFolder, 'rb') as f:
             self.mediaList = pickle.load(f)
-
     # 事件。
     def mediaStatusChangedEvent(self, status):
         if status == 7:
@@ -1013,7 +1043,6 @@ class _MediaPlaylist(QObject):
 
     def tabMusicEvent(self):
         indexUrl = self.parent.currentMedia().canonicalUrl().toString()
-
         name = self.mediaList[indexUrl]['name']
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']

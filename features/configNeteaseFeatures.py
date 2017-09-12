@@ -74,7 +74,10 @@ class ConfigNetEase(QObject):
         self.singNames = []
         
         # 歌单id。
-        self.singIds = []
+        self.playlistIds = []
+
+        # 歌曲ids。
+        self.singsIds = []
 
         # 一个是否滑到底部的flag。
         self.sliderDown = False
@@ -106,14 +109,14 @@ class ConfigNetEase(QObject):
             self.result.append(i)
             self.singNames.append(i['name'])
             self.singPicUrls.append(i['coverImgUrl'])
-            self.singIds.append(i['id'])
+            self.playlistIds.append(i['id'])
   
     """测试线程池方法。"""
     def threadSetSings(self):
         for i in range(30):
             i += self.offset
             picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
-            frame = OneSing(self.gridRow, self.gridColumn, self.singIds[i], self, picName)
+            frame = OneSing(self.gridRow, self.gridColumn, self.playlistIds[i], self, picName)
             frame.clicked.connect(self.startRequest)
             frame.nameLabel.setText(self.singNames[i])
             
@@ -163,17 +166,17 @@ class ConfigNetEase(QObject):
         self.reqResult = reqResult
 
         # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
-        singsIds = [i['id'] for i in reqResult['tracks']]
+        self.singsIds = [i['id'] for i in reqResult['tracks']]
 
         # 此处还有些问题。
         # 由于是两次url请求，稍微变得有点慢。
-        self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(singsIds)}
-        self.singsUrls = [self.singsUrls[i] for i in singsIds]   
+        self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(self.singsIds)}
+        self.singsUrls = [self.singsUrls[i] for i in self.singsIds]   
 
     def setRequestsDetail(self):
         result = self.reqResult
 
-        self.detailFrame.config.setupDetailFrames(result, self.singsUrls)
+        self.detailFrame.config.setupDetailFrames(result, self.singsUrls, self.singsIds)
         self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
 
         # 隐藏原来的区域，显示现在的区域。
@@ -215,7 +218,7 @@ class ConfigDetailSings(QObject):
     def addAllMusicToPlayer(self):
         self.playList.setPlayerAndPlaylists(self.musicList)
 
-    def setupDetailFrames(self, datas, singsUrls):
+    def setupDetailFrames(self, datas, singsUrls, singsIds):
         result = datas
         self.musicList = []
         
@@ -233,7 +236,7 @@ class ConfigDetailSings(QObject):
         # 这边添加歌曲的信息到table。
         self.detailSings.singsTable.setRowCount(result['trackCount'])
 
-        for i, j, t in zip(result['tracks'], range(result['trackCount']), singsUrls):
+        for i, j, t, x in zip(result['tracks'], range(result['trackCount']), singsUrls, singsIds):
             names = i['name']
             musicName = QTableWidgetItem(names)
             self.detailSings.singsTable.setItem(j, 0, musicName)
@@ -247,7 +250,7 @@ class ConfigDetailSings(QObject):
             self.detailSings.singsTable.setItem(j, 2, musicTime)
 
             music_img = i['album']['blurPicUrl']
-            self.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img})
+            self.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img, 'music_id':x})
 
     # 事件。
     def itemDoubleClickedEvent(self):
