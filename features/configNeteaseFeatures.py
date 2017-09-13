@@ -177,8 +177,10 @@ class ConfigNetEase(QObject):
         result = self.reqResult
 
         self.detailFrame.config.setupDetailFrames(result, self.singsUrls, self.singsIds)
-        self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
-
+        # self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
+        self.detailFrame.picLabel.setSrc('cache/{0}'.format(self.picName))
+        self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
+        
         # 隐藏原来的区域，显示现在的区域。
         self.mainContents.mainContents.setCurrentIndex(1)
 
