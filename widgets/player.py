@@ -16,7 +16,8 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 
 import addition
 
-from base import checkFolder, pickle, PicLabel, cacheFolder, checkOneFolder
+from base import checkFolder, cacheFolder, checkOneFolder, HBoxLayout, pickle, PicLabel, QTextEdit, VBoxLayout
+# ..features
 from asyncBase import aAsync, toTask
 from netEaseApi import NetEaseWebApi
 
@@ -24,7 +25,7 @@ from netEaseApi import NetEaseWebApi
 api = NetEaseWebApi()
 
 
-"""底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。"""
+# 底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。
 class PlayWidgets(QFrame):
     """播放组件，包括播放按钮，进度条君，音量君，当前歌曲菜单君。"""
 
@@ -320,7 +321,7 @@ class PlayWidgets(QFrame):
         self.currentTime.setText(addition.itv2time(currentSliderTime))
 
 
-"""显示用音乐列表，用于显示当前添加到播放列表里的音乐。"""
+# 显示用音乐列表，用于显示当前添加到播放列表里的音乐。
 class PlayList(QFrame):
     """播放列表。"""
     musicListCookiesFolder = 'cookies/playlist/musicList.cks'
@@ -449,7 +450,7 @@ class PlayList(QFrame):
             self.addPlayList(i['name'], i['author'], i['time'])
 
 
-"""当前播放的音乐，位于左侧导航栏最下方，播放组件的上方。包括当前音乐的logo，音乐名/作者。点击图片会显示详细信息(暂不完善。)"""
+# 当前播放的音乐，位于左侧导航栏最下方，播放组件的上方。包括当前音乐的logo，音乐名/作者。点击图片会显示详细信息(暂不完善。)
 class CurrentMusic(QFrame):
     """当前正在播放的音乐，包括一个图片，音乐名称，作曲人。以及鼠标移动到上面的遮罩。"""
 
@@ -469,6 +470,11 @@ class CurrentMusic(QFrame):
 
         self.shortInfo = CurrentMusicShort(self)
         self.detailInfo = CurrentMusicDetail(self)
+        
+        # 
+        self.showDetail = 'animation'
+        self.showShort = 'animation'
+        self.mousePos = None
 
         self.mainLayout = QHBoxLayout(self)
         self.mainLayout.addWidget(self.shortInfo)
@@ -476,6 +482,8 @@ class CurrentMusic(QFrame):
         # 保证没有间隙。
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
+
+        self.setFeatures()
 
     # 功能。
     @checkOneFolder(cacheFolder)
@@ -497,6 +505,8 @@ class CurrentMusic(QFrame):
 
     def getDetailInfo(self):
         """点击后进行动画效果的: 显示某歌曲的详细信息。"""
+        self.shortInfo.hide()
+        self.detailInfo.show()
         self.showDetail = QPropertyAnimation(self, b"geometry")
 
         x = self.pos().x()
@@ -513,8 +523,8 @@ class CurrentMusic(QFrame):
         self.raise_()
 
     def getShortInfo(self):
-
         """返回到原来的缩略图信息。"""
+        self.detailInfo.hide()
         self.showShort = QPropertyAnimation(self, b"geometry")
         
         x = self.pos().x()
@@ -527,10 +537,24 @@ class CurrentMusic(QFrame):
         
         self.showShort.start(QAbstractAnimation.DeleteWhenStopped)
 
+        self.shortInfo.show()
         self.raise_()
 
+    def setFeatures(self):
+        self.detailInfo.recoveryButton.clicked.connect(self.getShortInfo)
 
-"""显示简短信息（默认。）"""
+    # 事件。
+    def mousePressEvent(self, event):
+        self.mousePos = QCursor.pos()
+
+    def mouseReleaseEvent(self, evnet):
+        if QCursor.pos() != self.mousePos:
+            return
+        else:
+            self.getDetailInfo()
+
+
+# 显示简短信息（默认。）
 class CurrentMusicShort(QFrame):
     """用于显示当前歌曲的简单信息。"""
     def __init__(self,parent=None):
@@ -542,7 +566,7 @@ class CurrentMusicShort(QFrame):
 
         self.setLabels()
 
-        self.setButtons()
+        # self.setButtons()
 
         self.setLayouts()
 
@@ -554,12 +578,21 @@ class CurrentMusicShort(QFrame):
         self.musicName.adjustSize()
         self.musicAuthor = QLabel(self)
 
-    def setButtons(self):
+    # def setButtons(self):
         # self.musicPic = QPushButton(self)
         self.musicPic = PicLabel('resource/no_music.png', 64, 64)
         self.musicPic.setObjectName("musicPic")
-        self.musicPic.mousePressEvent = self.musicPicMousePressEvent
-        self.musicPic.mouseReleaseEvent = self.musicPicMouseReleaseEvent
+        # self.musicPic.mousePressEvent = self.musicPicMousePressEvent
+        # self.musicPic.mouseReleaseEvent = self.musicPicMouseReleaseEvent
+
+        self.musicMask = PicLabel('resource/expand.png', 64, 64)
+        self.musicMask.hide()
+        # 设置背景透明。
+        self.musicMask.setStyleSheet('QLabel {background-color: rgba(0, 0, 0, 50%;)}')
+
+        # 遮罩层属于musicPic, 用布局简单弄一下即可。
+        self.musicLayout = VBoxLayout(self.musicPic)
+        self.musicLayout.addWidget(self.musicMask)
 
     def setLayouts(self):
         """布局。"""
@@ -580,40 +613,76 @@ class CurrentMusicShort(QFrame):
 
         self.setLayout(self.mainLayout)
 
-    # 功能。
-    def getDetailInfo(self):
-        """点击后将自己隐藏并放大。"""
-        return
-        self.parent.getDetailInfo()
-        self.hide()
-
+    # 功能.
     def init(self):
         """默认情况下的显示，包括音乐图片，音乐名和音乐作者。"""
         self.musicName.setText("Enjoy it")
         self.musicAuthor.setText("Enjoy it")
 
     # 事件。
-    def musicPicMousePressEvent(self, event):
-        self.mousePos = QCursor.pos()
+    def enterEvent(self, event):
+        if not self.musicMask.isVisible():
+            self.musicMask.show()
 
-    def musicPicMouseReleaseEvent(self, evnet):
-        if QCursor.pos() != self.mousePos:
-            return
-        else:
-            self.getDetailInfo()
+    def leaveEvent(self, event):
+        if self.musicMask.isVisible():
+            self.musicMask.hide()
 
 
-"""显示详细信息（点击后的信息，不完善。）"""
+# 显示详细信息（点击后的信息，不完善。）
 class CurrentMusicDetail(QFrame):
+    """
+    showPic | MusicDetails
+    ---------------------
+    comments.
 
+    MusicDetails
+    title| recovery
+    T        E        X        T
+    """
     def __init__(self, parent):
         super(CurrentMusicDetail, self).__init__()
-
+        # with open('QSS/')
         self.setObjectName('detail')
         self.hide()
 
+        self.mainLayout = VBoxLayout(self)
+        self.topLayout = HBoxLayout()
+        self.topMainLayout = VBoxLayout()
+        self.topHeaderLayout = HBoxLayout()
 
-"""真 · 播放器，用于播放音频。"""
+        self.detailText = QTextEdit()
+        self.detailText.setObjectName('detailText')
+        # self.detailText.setReadOnly(True)
+        self.titleLabel = QLabel("Test")
+        self.titleLabel.setObjectName('titleLabel')
+
+        self.recoveryButton = QPushButton()
+        self.recoveryButton.setObjectName('recoveryButton')
+        self.recoveryButton.setMinimumSize(24, 24)
+        self.recoveryButton.setMaximumSize(36, 36)
+
+        self.setLayouts()
+
+    def setLayouts(self):
+        self.mainLayout.addLayout(self.topLayout)
+
+        # 为showPic预留。
+        self.topLayout.addStretch(1)
+        
+        self.topLayout.addLayout(self.topMainLayout)
+        self.topMainLayout.addSpacing(25)
+        self.topMainLayout.addLayout(self.topHeaderLayout)
+        self.topHeaderLayout.addWidget(self.titleLabel)
+        self.topHeaderLayout.addStretch(1)
+        self.topHeaderLayout.addSpacing(20)
+        self.topHeaderLayout.addWidget(self.recoveryButton)
+        self.topHeaderLayout.addSpacing(50)
+        self.topMainLayout.addSpacing(30)
+        self.topMainLayout.addWidget(self.detailText)
+
+
+# 真 · 播放器，用于播放音频。
 class Player(QMediaPlayer):
     """播放器组件。"""
     def __init__(self, parent=None):
@@ -744,7 +813,7 @@ class Player(QMediaPlayer):
             # print(self.playList.currentIndex(), "当前下标")
 
 
-"""自定义的QTableWidget, 做了hover一整行的操作，和右键菜单。"""
+# 自定义的QTableWidget, 做了hover一整行的操作，和右键菜单。
 class _TableWidget(QTableWidget):
 
     def __init__(self,parent=None):

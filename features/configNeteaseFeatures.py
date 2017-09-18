@@ -234,7 +234,7 @@ class ConfigDetailSings(QObject):
         if not description:
             description = ''
 
-        self.detailSings.descriptionLabel.setText(description[:107])
+        self.detailSings.descriptionText.setText(description)
         # 这边添加歌曲的信息到table。
         self.detailSings.singsTable.setRowCount(result['trackCount'])
 

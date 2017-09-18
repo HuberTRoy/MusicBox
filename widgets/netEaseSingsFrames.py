@@ -1,8 +1,8 @@
 __author__ = 'cyrbuzz'
 """不要单独运行。"""
 # from configFeatures import *
-from base import (QFrame, QTabWidget, QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
-                  PicLabel, ScrollArea, TableWidget)
+from base import (QFrame, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
+                  PicLabel, ScrollArea, TableWidget, VBoxLayout, HBoxLayout)
 
 import addition
 
@@ -58,17 +58,21 @@ class DetailSings(ScrollArea):
         self.titleLabel = QLabel(self.frame)
         self.titleLabel.setObjectName('titleLabel')
         self.titleLabel.setWordWrap(True)
+        self.titleLabel.setMaximumHeight(40)
 
         self.authorPic = QLabel(self.frame)
         self.authorName = QLabel(self.frame)
         self.authorName.setObjectName('authorName')
         self.authorName.setMaximumHeight(28)
 
-        self.descriptionLabel = QLabel(self.frame)
-        self.descriptionLabel.setObjectName('descriptionLabel')
-        self.descriptionLabel.setMaximumWidth(450)
-        self.descriptionLabel.setMaximumHeight(100)
-        self.descriptionLabel.setWordWrap(True)
+        # self.descriptionLabel = QLabel(self.frame)
+        self.descriptionText = QTextEdit(self.frame)
+        self.descriptionText.setReadOnly(True)
+        self.descriptionText.setObjectName('descriptionText')
+        self.descriptionText.setMaximumWidth(450)
+        self.descriptionText.setMaximumHeight(100)
+        self.descriptionText.setMinimumHeight(100)
+        # self.descriptionLabel.setWordWrap(True)
 
     def setButtons(self):
         self.showButton = QPushButton("歌单")
@@ -99,25 +103,26 @@ class DetailSings(ScrollArea):
         self.contentsTab.addTab(self.singsTable, "歌曲列表")
 
     def setLayouts(self):
-        self.mainLayout = QVBoxLayout()
+        self.mainLayout = VBoxLayout()
 
-        self.topLayout = QHBoxLayout()
+        self.topLayout = HBoxLayout()
 
-        self.descriptionLayout = QVBoxLayout()
-        self.titleLayout = QHBoxLayout()
+        self.descriptionLayout = VBoxLayout()
+        self.titleLayout = HBoxLayout()
         self.titleLayout.addWidget(self.showButton)
         self.titleLayout.addSpacing(5)
         self.titleLayout.addWidget(self.titleLabel)
 
-        self.authorLayout = QHBoxLayout()
+        self.authorLayout = HBoxLayout()
         self.authorLayout.addWidget(self.authorPic)
         self.authorLayout.addWidget(self.authorName)
         self.authorLayout.addStretch(1)
 
-        self.descriptLayout = QHBoxLayout()
+        self.descriptLayout = HBoxLayout()
         self.descriptLayout.addWidget(self.descriptionButton)
-        self.descriptLayout.addWidget(self.descriptionLabel)
-
+        self.descriptLayout.addWidget(self.descriptionText)
+        
+        self.descriptionLayout.addSpacing(5)
         self.descriptionLayout.addLayout(self.titleLayout)
         self.descriptionLayout.addLayout(self.authorLayout)
         self.descriptionLayout.addSpacing(5)
@@ -125,7 +130,7 @@ class DetailSings(ScrollArea):
         self.descriptionLayout.addSpacing(10)
         self.descriptionLayout.addLayout(self.descriptLayout)
 
-        self.descriptionLayout.setSpacing(0)
+        # self.descriptionLayout.setSpacing(0)
 
         self.topLayout.addWidget(self.picLabel)
         self.topLayout.addSpacing(18)

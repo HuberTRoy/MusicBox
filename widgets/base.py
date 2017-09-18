@@ -57,7 +57,7 @@ def checkOneFolder(folderName:str):
             try:
                 func(*args)
             except:
-                print('读取或保存cookies出错', filenames)
+                print('读取或保存cookies出错', folderName)
 
         return _exec
     return _check
@@ -262,7 +262,7 @@ cacheFolder = 'cache'
 # 暂只接受http(s)和本地目录。
 class PicLabel(QLabel):
 
-    def __init__(self, src=None, width=None, height=None, pixMask=None):
+    def __init__(self, src=None, width=200, height=200, pixMask=None):
         super(PicLabel, self).__init__()
         global picsThreadPool
 
@@ -297,7 +297,6 @@ class PicLabel(QLabel):
             pix = QPixmap(src)
             pix.load(src)
             pix = pix.scaled(self.width, self.height)
-
             # mask需要与pix是相同大小。
             if self.pixMask:
                 mask = QPixmap(self.pixMask)
@@ -354,22 +353,18 @@ picsQueue.add.connect(__addPic)
 if __name__ == '__main__':
     import os
     os.chdir('..')
-    class Window(QWidget):
-        def __init__(self):
-            super(Window, self).__init__()
-
-            self.test = []
-            self.mainLayout = HBoxLayout(self)
-
-            for i in range(10):
-                t = picLabel('http://xxx.fishc.com/forum/201708/08/165343y2sgkos2o8otcx66.jpg', 100, 100)
-                self.test.append(t)
-
-                self.mainLayout.addWidget(t)
 
     app = QApplication([])
 
-    main = Window()
-    main.show()
+    # a = QFrame()
+    a = PicLabel('F:/pics/Crow.jpg', width=64, height=64)
+    # a.setObjectName('sss')
+    # a.setStyleSheet('QLabel#sss {border-image: url(F:/pics/Crow.jpg);}')
+    # a.resize(500, 600)
+    b = PicLabel('resource/expand.png', 64, 64)
+    b.setStyleSheet('QLabel {background-color: rgba(0, 0, 0,50%);}')
+    c = VBoxLayout(a)
+    c.addWidget(b)
+    a.show()
 
     exit(app.exec_())

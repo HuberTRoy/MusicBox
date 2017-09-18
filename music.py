@@ -45,7 +45,7 @@ from configNativeFeatures import ConfigNative
 from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 
 
-"""用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。"""
+# 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
 class Window(QWidget):
     """Window 承载整个界面。"""
     def __init__(self):
@@ -151,7 +151,7 @@ class Window(QWidget):
         self.systemTray.hide()
 
 
-"""标题栏，包括logo，搜索，登陆，最小化/关闭。"""
+# 标题栏，包括logo，搜索，登陆，最小化/关闭。
 class Header(QFrame):
 
     def __init__(self, parent=None):
@@ -272,19 +272,19 @@ class Header(QFrame):
             self.m_drag = False
 
 
-"""左侧的导航栏，包括发现音乐/歌单/本地音乐。"""
+# 左侧的导航栏，包括发现音乐/歌单/本地音乐。
 class Navigation(QScrollArea):
     def __init__(self, parent=None):
         """包括发现音乐，MV，我的音乐, 歌单等导航信息。"""
         super(Navigation, self).__init__(parent)
         self.parent = parent
         self.frame = QFrame()
-        self.setMaximumHeight(576)
+        # self.setMaximumHeight(576)
         self.setMaximumWidth(200)
 
         self.setWidget(self.frame)
         self.setWidgetResizable(True)
-        self.frame.setMaximumWidth(200)
+        # self.frame.setMaximumWidth(200)
         self.frame.setMinimumWidth(200)
 
         # 定义3个事件函数，方便扩展。
@@ -323,7 +323,7 @@ class Navigation(QScrollArea):
     def setListViews(self):
         """定义承载功能的ListView"""
         self.navigationList = QListWidget()
-        self.navigationList.setMinimumHeight(110)
+        # self.navigationList.setMinimumHeight(110)
         self.navigationList.setMaximumHeight(110)
         self.navigationList.setObjectName("navigationList")
         self.navigationList.addItem(QListWidgetItem(QIcon('resource/music.png'), " 发现音乐"))
@@ -333,7 +333,7 @@ class Navigation(QScrollArea):
 
         self.nativeList = QListWidget()
         self.nativeList.setObjectName("nativeList")
-        self.nativeList.setMinimumHeight(50)
+        # self.nativeList.setMinimumHeight(50)
         self.nativeList.setMaximumHeight(50)
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/notes.png')," 本地音乐"))
 
@@ -369,7 +369,7 @@ class Navigation(QScrollArea):
         pass
 
 
-"""主要内容区，包括最新的歌单。"""
+# 主要内容区，包括最新的歌单。
 class MainContent(ScrollArea):
     # 定义一个滑到了最低部的信号。
     # 方便子控件得知已经滑到了最底部，要做些加载的动作。
@@ -402,7 +402,7 @@ class MainContent(ScrollArea):
         self.tab.addTab(widget, name)
 
 
-"""搜索后的结果显示页。"""
+# 搜索后的结果显示页。
 class SearchArea(ScrollArea):
 
     def __init__(self, parent=None):

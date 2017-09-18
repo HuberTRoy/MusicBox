@@ -18,7 +18,9 @@ QLabel#authorName {
     /*margin-bottom: 5px;*/
 }
 
-QLabel#descriptionLabel {
+QTextEdit#descriptionText {
+    color: #DCDDE4;
+    font-family: "宋体";
     font-size: 10pt;
     font: bold;
 }
