@@ -2,18 +2,19 @@
     0. 歌单简介现在可完全阅读。
     1. 新增歌曲详细信息的布局-> 功能还未添加。
     1.1 图片叠加透明遮罩效果说明：
-          创建两个PicLabel. 
-```
-          img1, img2 = PicLabel()
-          # 将img2作为img1的子部件添加到img1，这里可简单使用布局方式。
-          img1Layout = VBoxLayout(img1)
-          img1Layout.addWidget(img2)
-          # 设置img2的背景颜色即可设置遮罩效果。
-          # rgba的最后一个参数设置透明度，0-255或百分比。100%为不透明。
-          img2.setStyleSheet('QLabel {background-color:
-            rgba(0, 0, 0, 50%);}')
-```
+              创建两个PicLabel. 
+    ···
+              img1, img2 = PicLabel()
+              # 将img2作为img1的子部件添加到img1，这里可简单使用布局方式。
+              img1Layout = VBoxLayout(img1)
+              img1Layout.addWidget(img2)
+              # 设置img2的背景颜色即可设置遮罩效果。
+              # rgba的最后一个参数设置透明度，0-255或百分比。100%为不透明。
+              img2.setStyleSheet('QLabel {background-color:
+                rgba(0, 0, 0, 50%);}')
+    ···
     2. 几处不合理的注释修改~。
+    3. 由于 ubuntu下可随意拉伸，修复部分拉伸后崩的很厉害的画风。(还有一些崩的不厉害的暂未修复。>_<)
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/17.jpg"/>
 
 ## 2017/9/13 更新: <br />
