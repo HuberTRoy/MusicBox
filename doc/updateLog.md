@@ -4,7 +4,7 @@
     1.1 图片叠加透明遮罩效果说明：
               创建两个PicLabel. 
     ···
-              img1, img2 = PicLabel()
+              img1, img2 = PicLabel(), PicLabel()
               # 将img2作为img1的子部件添加到img1，这里可简单使用布局方式。
               img1Layout = VBoxLayout(img1)
               img1Layout.addWidget(img2)
