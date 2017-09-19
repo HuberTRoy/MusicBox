@@ -1,3 +1,9 @@
+## 2017/9/19 更新: <br />
+    0. 添加歌曲详细信息。歌词还不能滚动。演示见下图。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/18.jpg"/>
+
+
 ## 2017/9/18 更新: <br />
     0. 歌单简介现在可完全阅读。
     1. 新增歌曲详细信息的布局-> 功能还未添加。
