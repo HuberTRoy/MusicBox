@@ -5,6 +5,7 @@
 """
 __author__ = 'cyrbuzz'
 
+import re
 import os
 import random
 
@@ -16,7 +17,7 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 
 import addition
 
-from base import checkFolder, cacheFolder, checkOneFolder, HBoxLayout, pickle, PicLabel, QTextEdit, VBoxLayout
+from base import checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, pickle, PicLabel,QTextEdit, VBoxLayout
 # ..features
 from asyncBase import aAsync, toTask
 from netEaseApi import NetEaseWebApi
@@ -464,6 +465,10 @@ class CurrentMusic(QFrame):
         with open('QSS/currentMusic.qss', 'r') as f:
             self.setStyleSheet(f.read())
 
+
+        # 用于标记是否切换了歌曲，防止多次获取同一个歌词。
+        self.currentMusicId = 0
+
         # 将窗口提前并激活窗口。
         self.raise_()
         self.activateWindow()
@@ -501,12 +506,16 @@ class CurrentMusic(QFrame):
         self.shortInfo.musicAuthor.setText(author)
 
     def setDetailInfo(self):
-        pass
+        title = self.shortInfo.musicName.text()
+        self.detailInfo.titleLabel.setText(title)
+        
+        self.showLyric()
 
     def getDetailInfo(self):
         """点击后进行动画效果的: 显示某歌曲的详细信息。"""
         self.shortInfo.hide()
         self.detailInfo.show()
+
         self.showDetail = QPropertyAnimation(self, b"geometry")
 
         x = self.pos().x()
@@ -514,13 +523,42 @@ class CurrentMusic(QFrame):
 
         self.showDetail.setStartValue(QRect(x, y, self.width(), self.height()))
         # 获取顶层父窗口的长度。
-        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height(), self.grandparent.width(), self.grandparent.mainContent.height()+10))
+        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height()+2, self.grandparent.width(), self.grandparent.mainContent.height()))
         self.showDetail.setDuration(300)
         self.showDetail.setEasingCurve(QEasingCurve.InBack)
 
         self.showDetail.start(QAbstractAnimation.DeleteWhenStopped)
         # 将该组件显示在最前，默认会嵌入到父组件里面。
         self.raise_()
+
+        self.setDetailInfo()
+
+    def showLyric(self):
+        lyric = self.getLyric()
+        lyric.add_done_callback(lambda future: self.detailInfo.detailText.setText(centerHTML(future.result)()))
+
+    @toTask
+    def getLyric(self):
+        musicInfo = self.parent.player.getCurrentMusicInfo()
+        if not musicInfo:
+            return "✧请慢慢欣赏~"
+
+        musicId = musicInfo.get('music_id')
+        if self.currentMusicId == musicId:
+            return "✧请慢慢欣赏~"
+
+        future = aAsync(api.lyric, musicId)
+        data = yield from future
+
+        if not data:
+            self.currentMusicId = musicId
+            return "✧请慢慢欣赏~"
+
+        # 这里暂时处理下不获取时间信息，只获取歌词信息。
+        data = re.sub(r'\[.*?\]', '', data)
+        self.currentMusicId = musicId
+
+        return data    
 
     def getShortInfo(self):
         """返回到原来的缩略图信息。"""
@@ -578,12 +616,8 @@ class CurrentMusicShort(QFrame):
         self.musicName.adjustSize()
         self.musicAuthor = QLabel(self)
 
-    # def setButtons(self):
-        # self.musicPic = QPushButton(self)
         self.musicPic = PicLabel('resource/no_music.png', 64, 64)
         self.musicPic.setObjectName("musicPic")
-        # self.musicPic.mousePressEvent = self.musicPicMousePressEvent
-        # self.musicPic.mouseReleaseEvent = self.musicPicMouseReleaseEvent
 
         self.musicMask = PicLabel('resource/expand.png', 64, 64)
         self.musicMask.hide()
@@ -653,8 +687,9 @@ class CurrentMusicDetail(QFrame):
 
         self.detailText = QTextEdit()
         self.detailText.setObjectName('detailText')
-        # self.detailText.setReadOnly(True)
-        self.titleLabel = QLabel("Test")
+        self.detailText.setReadOnly(True)
+
+        self.titleLabel = QLabel("✧✧✧")
         self.titleLabel.setObjectName('titleLabel')
 
         self.recoveryButton = QPushButton()
@@ -668,11 +703,13 @@ class CurrentMusicDetail(QFrame):
         self.mainLayout.addLayout(self.topLayout)
 
         # 为showPic预留。
-        self.topLayout.addStretch(1)
+        # self.topLayout.addStretch(1)
         
         self.topLayout.addLayout(self.topMainLayout)
         self.topMainLayout.addSpacing(25)
         self.topMainLayout.addLayout(self.topHeaderLayout)
+        self.topHeaderLayout.addStretch(1)
+        self.topHeaderLayout.addSpacing(80)
         self.topHeaderLayout.addWidget(self.titleLabel)
         self.topHeaderLayout.addStretch(1)
         self.topHeaderLayout.addSpacing(20)
@@ -733,6 +770,10 @@ class Player(QMediaPlayer):
     def allTime(self):
         """返回当前音乐的总时间。（秒）"""
         return self.duration()/1000
+
+    def getCurrentMusicInfo(self):
+
+        return self.playList.mediaList.get(self.currentMedia().canonicalUrl().toString())
 
     def playMusic(self, url=None, data=None):
         """播放音乐。"""
@@ -1074,6 +1115,8 @@ class _MediaPlaylist(QObject):
         self.parent.playMusic()
         self.tabMusicEvent()
 
+        self.currentIndex = index
+
     def setPlaybackMode(self, model:int):
         self.myModel = model
 
@@ -1096,6 +1139,7 @@ class _MediaPlaylist(QObject):
 
         with open(self.mediaListCookiesFolder, 'rb') as f:
             self.mediaList = pickle.load(f)
+
     # 事件。
     def mediaStatusChangedEvent(self, status):
         if status == 7:
@@ -1116,6 +1160,7 @@ class _MediaPlaylist(QObject):
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']
         self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+        self.playWidgets.currentMusic.setDetailInfo()
 
         # window.
         self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))

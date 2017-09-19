@@ -63,7 +63,22 @@ def checkOneFolder(folderName:str):
     return _check
 
 
-"""一个有信号槽机制的安全线程队列。"""
+# Qt的一些部件是直接支持HTML的，
+# 做个用于方便支持居中的装饰器。
+def centerHTML(func):
+    def wrap(*args):
+        centerHTML = '''
+                    <p align="center">
+                    %s
+                    </p>
+            '''% (func(*args).replace('\n', '<br>'))
+
+        return centerHTML
+
+    return wrap
+
+
+# 一个有信号槽机制的安全线程队列。
 class QueueObject(QObject):
     add = pyqtSignal()
 
@@ -82,7 +97,7 @@ class QueueObject(QObject):
         return self.queue.get()
 
 
-"""一个用于继承的类，方便多次调用。"""
+# 一个用于继承的类，方便多次调用。
 class ScrollArea(QScrollArea):
     """包括一个ScrollArea做主体承载一个QFrame的基础类。"""
     scrollDown = pyqtSignal()
