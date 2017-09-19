@@ -67,11 +67,8 @@ def checkOneFolder(folderName:str):
 # 做个用于方便支持居中的装饰器。
 def centerHTML(func):
     def wrap(*args):
-        centerHTML = '''
-                    <p align="center">
-                    %s
-                    </p>
-            '''% (func(*args).replace('\n', '<br>'))
+
+        centerHTML = '<p align="center" style="line-height: 175%">{0}</p>'.format(func(*args).replace('\n', '<br>'))
 
         return centerHTML
 

@@ -545,7 +545,7 @@ class CurrentMusic(QFrame):
 
         musicId = musicInfo.get('music_id')
         if self.currentMusicId == musicId:
-            return "✧请慢慢欣赏~"
+            return self.detailInfo.detailText.text()
 
         future = aAsync(api.lyric, musicId)
         data = yield from future
@@ -1160,7 +1160,9 @@ class _MediaPlaylist(QObject):
         author = self.mediaList[indexUrl]['author']
         pic = self.mediaList[indexUrl]['music_img']
         self.playWidgets.currentMusic.setShortInfo(name, author, pic)
-        self.playWidgets.currentMusic.setDetailInfo()
+
+        if self.playWidgets.currentMusic.detailInfo.isVisible():
+            self.playWidgets.currentMusic.setDetailInfo()
 
         # window.
         self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))

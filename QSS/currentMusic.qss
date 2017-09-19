@@ -13,7 +13,8 @@ QFrame#short {
 }
 
 QFrame#detail {
-    background: #191B1F;
+    background-color: rgba(25, 27, 31, 100%);
+    /*border-image: url(resource/lyric.jpg);*/
     border: none;
     border-right: 1px solid #23262C;
     border-top: 1px solid #23262C;
@@ -44,14 +45,16 @@ QLabel {
 
 QLabel#titleLabel {
     color: #D5D5D6;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 QTextEdit {
+    /*background-image: url(resource/lyric.jpg);*/
     background-color: rgba(0, 0, 0, 0%);
     border: none;
     margin-right: : 100px;
     color: #67686A;
     font: bold;
-    font-size: 13px;
+    font-size: 15px;
+    text-align: center;
 }
