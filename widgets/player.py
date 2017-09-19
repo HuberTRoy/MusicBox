@@ -545,7 +545,7 @@ class CurrentMusic(QFrame):
 
         musicId = musicInfo.get('music_id')
         if self.currentMusicId == musicId:
-            return self.detailInfo.detailText.text()
+            return self.detailInfo.detailText.toPlainText()
 
         future = aAsync(api.lyric, musicId)
         data = yield from future
