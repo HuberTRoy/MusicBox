@@ -24,7 +24,7 @@
 
 ## 截图:
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/18.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
