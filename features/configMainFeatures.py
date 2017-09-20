@@ -119,9 +119,13 @@ class ConfigHeader(QObject):
             self.result['songs'] = []
         else: 
             songsIds = [i['id'] for i in self.result['songs']]
-            future = aAsync(netEase.singsUrl, songsIds)
-            self.songsDetail = yield from future
-            self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
+
+            # future = aAsync(netEase.singsUrl, songsIds)
+
+            # self.songsDetail = yield from future
+            # self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
+            self.songsDetail = {i:'http' for i in songsIds}
+           
             # 进行重新编辑方便索引。
             songs = self.result['songs']
             self.result['songs'] = [{'name':i['name'], 
@@ -321,13 +325,13 @@ class ConfigNavigation(QObject):
 
         # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
         singsIds = [i['id'] for i in self.result['tracks']]
-
         # 此处还有些问题。
         # 由于是两次url请求，稍微变得有点慢。
-        future = aAsync(self.api.singsUrl, singsIds)
-        data = yield from future
-        self.singsUrls = {i['id']:i['url'] for i in data}
-        self.singsUrls = [self.singsUrls[i] for i in singsIds]
+        # future = aAsync(self.api.singsUrl, singsIds)
+        # data = yield from future
+        # self.singsUrls = {i['id']:i['url'] for i in data}
+        # self.singsUrls = [self.singsUrls[i] for i in singsIds]
+        self.singsUrls = ['http' for i in singsIds]
 
         self.detailFrame.config.setupDetailFrames(self.result, self.singsUrls, singsIds)
         self.detailFrame.picLabel.setSrc(self.coverImgUrl)
