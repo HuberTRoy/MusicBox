@@ -1,5 +1,6 @@
 ## 2017/9/20 更新: <br />
     0. 添加歌词高亮滚动。
+    1. 优化歌单的响应速度。
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
 
