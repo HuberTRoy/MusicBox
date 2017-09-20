@@ -1,3 +1,8 @@
+## 2017/9/20 更新: <br />
+    0. 添加歌词高亮滚动。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
+
 ## 2017/9/19 更新: <br />
     0. 添加歌曲详细信息。歌词还不能滚动。演示见下图。
 

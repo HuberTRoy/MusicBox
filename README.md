@@ -7,7 +7,7 @@
 > PyQt5.5+ <br />
 > requests. <br /> 
 > eyed3 0.8 (0.8.1需要额外的包。) <br />
-> crypto/cryptodome. -> pip install pycyrptodome Or pip install pycryptodomex<br />
+> crypto/cryptodome. -> pip install pycryptodome Or pip install pycryptodomex<br />
 > quamash -> pip install quamash <br />
 
 #### *nix额外依赖:
@@ -24,6 +24,7 @@
 
 ## 截图:
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/18.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
