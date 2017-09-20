@@ -10,15 +10,16 @@ import os
 import random
 
 from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, 
-                             QTableWidgetItem, QVBoxLayout, QApplication)
+                                                              QTableWidgetItem, QVBoxLayout, QApplication)
 from PyQt5.QtGui import QBrush, QColor, QCursor
 from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 import addition
 
-from base import checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, pickle, PicLabel,QTextEdit, VBoxLayout
-# ..features
+from base import (checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox, pickle, PicLabel, pyqtSignal,  
+                                     QTextEdit,  ScrollArea, VBoxLayout)
+# ../features
 from asyncBase import aAsync, toTask
 from netEaseApi import NetEaseWebApi
 
@@ -309,7 +310,7 @@ class PlayWidgets(QFrame):
     def sliderPressEvent(self):
         """按下准备拖动时。"""
         # 将进度条自动更新取消。
-        self.player.disconnect()
+        self.player.setDisconnects()
         # 添加进度条移动事件。
         self.slider.sliderMoved.connect(self.sliderMovedEvent)
 
@@ -318,8 +319,9 @@ class PlayWidgets(QFrame):
         # 进度条移动事件，会显示当前的时间。
         value = self.slider.value()
         currentSliderTime = self.player.allTime()*value/1000
-
-        self.currentTime.setText(addition.itv2time(currentSliderTime))
+        currentSliderTime = addition.itv2time(currentSliderTime)
+        self.currentTime.setText(currentSliderTime)
+        self.player.timeChanged.emit(currentSliderTime)
 
 
 # 显示用音乐列表，用于显示当前添加到播放列表里的音乐。
@@ -465,9 +467,23 @@ class CurrentMusic(QFrame):
         with open('QSS/currentMusic.qss', 'r') as f:
             self.setStyleSheet(f.read())
 
-
         # 用于标记是否切换了歌曲，防止多次获取同一个歌词。
         self.currentMusicId = 0
+            
+        # 用于切换歌词，知道当前的歌词滚到哪一个了。
+        self.order = -2
+
+        # 用于切换歌词时滚动滚动条。
+        # self.sliderValue = 0
+
+        # 每一条歌词该滚多少。
+        # self.slideValue = 0
+
+        # 有多少条歌词控件。
+        self.count = 0
+
+        # 歌词缓存。
+        self.lyricCache = ''
 
         # 将窗口提前并激活窗口。
         self.raise_()
@@ -535,7 +551,61 @@ class CurrentMusic(QFrame):
 
     def showLyric(self):
         lyric = self.getLyric()
-        lyric.add_done_callback(lambda future: self.detailInfo.detailText.setText(centerHTML(future.result)()))
+        # lyric.add_done_callback(lambda future: self.detailInfo.detailText.setText(centerHTML(future.result)()))
+        lyric.add_done_callback(self.lyricCallback)
+
+    def lyricCallback(self, future):
+        """lyric加载完成后的回调函数。"""
+        # [00:00.00] 作曲 : cyr
+        # [00:01.00] 作词 : buzz
+        # [00:17.460]
+        # [00:33.630] :)
+
+        self.detailInfo.removeAllLyricLabels()
+        # 初始化。
+        self.count = 0
+        self.order = -2
+        
+        result = future.result().split('\n')
+        
+        signal = self.parent.player.timeChanged
+        
+        for x, i in enumerate(result):
+            data = re.findall(r'\[+(.*?)\]+(.*)', i)
+            # [''] or [':)']
+            if not data:
+                if not i:
+                    continue
+                else:
+                    self.detailInfo.addLyricLabel(_LyricLabel('00:00', i,  x, signal, self))
+                    continue
+
+            # [00:17.460]
+            if not data[0][1]:
+                self.detailInfo.addLyricLabel(_LyricLabel(data[0][0], '\n',  x, signal, self))
+                continue
+
+            # [00:01.00] 作词 : buzz
+            self.detailInfo.addLyricLabel(_LyricLabel(data[0][0], data[0][1],  x, signal, self))
+        
+        self.count = x
+        # 这边并不会返回添加了控件后的Value值。
+        # self.sliderValue = self.detailInfo.maximumValue()
+        # self.slideValue = round(self.sliderValue/x)
+
+    def  slide(self):
+        # 待优化。
+        # 问题如上所说。
+        # value = self.detailInfo.verticalScrollBar().value()
+        maxValue = round(self.detailInfo.maximumValue()/self.count)*self.order
+        # for i in range(value, maxValue):
+        self.detailInfo.verticalScrollBar().setValue(maxValue)
+
+    def unLightLyric(self):
+        if self.order < 0:
+            return 
+
+        self.detailInfo.allLyrics[self.order].unLightMe()
 
     @toTask
     def getLyric(self):
@@ -545,7 +615,8 @@ class CurrentMusic(QFrame):
 
         musicId = musicInfo.get('music_id')
         if self.currentMusicId == musicId:
-            return self.detailInfo.detailText.toPlainText()
+            return self.lyricCache
+            # return self.detailInfo.detailText.toPlainText()
 
         future = aAsync(api.lyric, musicId)
         data = yield from future
@@ -555,9 +626,9 @@ class CurrentMusic(QFrame):
             return "✧请慢慢欣赏~"
 
         # 这里暂时处理下不获取时间信息，只获取歌词信息。
-        data = re.sub(r'\[.*?\]', '', data)
+        # data = re.sub(r'\[.*?\]', '', data)
         self.currentMusicId = musicId
-
+        self.lyricCache = data
         return data    
 
     def getShortInfo(self):
@@ -664,7 +735,7 @@ class CurrentMusicShort(QFrame):
 
 
 # 显示详细信息（点击后的信息，不完善。）
-class CurrentMusicDetail(QFrame):
+class CurrentMusicDetail(ScrollArea):
     """
     showPic | MusicDetails
     ---------------------
@@ -676,18 +747,23 @@ class CurrentMusicDetail(QFrame):
     """
     def __init__(self, parent):
         super(CurrentMusicDetail, self).__init__()
-        # with open('QSS/')
+        # with open('QSS/currentMusic.qss', 'r', encoding='utf-8') as f:
+        #     self.setStyleSheet(f.read())
+
         self.setObjectName('detail')
         self.hide()
 
-        self.mainLayout = VBoxLayout(self)
+        self.mainLayout = VBoxLayout(self.frame)
         self.topLayout = HBoxLayout()
         self.topMainLayout = VBoxLayout()
         self.topHeaderLayout = HBoxLayout()
 
-        self.detailText = QTextEdit()
-        self.detailText.setObjectName('detailText')
-        self.detailText.setReadOnly(True)
+        # 为歌词创建索引方便删除。
+        self.allLyrics = []
+
+        # self.detailText = QTextEdit()
+        # self.detailText.setObjectName('detailText')
+        # self.detailText.setReadOnly(True)
 
         self.titleLabel = QLabel("✧✧✧")
         self.titleLabel.setObjectName('titleLabel')
@@ -709,19 +785,35 @@ class CurrentMusicDetail(QFrame):
         self.topMainLayout.addSpacing(25)
         self.topMainLayout.addLayout(self.topHeaderLayout)
         self.topHeaderLayout.addStretch(1)
-        self.topHeaderLayout.addSpacing(80)
+        self.topHeaderLayout.addSpacing(100)
         self.topHeaderLayout.addWidget(self.titleLabel)
         self.topHeaderLayout.addStretch(1)
         self.topHeaderLayout.addSpacing(20)
         self.topHeaderLayout.addWidget(self.recoveryButton)
         self.topHeaderLayout.addSpacing(50)
         self.topMainLayout.addSpacing(30)
-        self.topMainLayout.addWidget(self.detailText)
+
+    def addLyricLabel(self, label):
+
+        HStretchBox(self.topMainLayout, label)
+        
+        self.allLyrics.append(label)
+
+    def removeAllLyricLabels(self):
+        for i in self.allLyrics:
+            i.deleteLater()
+        self.allLyrics = []
+
+        for i in range(3, self.topMainLayout.count()):
+            self.topMainLayout.takeAt(i)
 
 
 # 真 · 播放器，用于播放音频。
 class Player(QMediaPlayer):
     """播放器组件。"""
+
+    timeChanged = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(Player, self).__init__()
         self.setObjectName('player')
@@ -746,6 +838,14 @@ class Player(QMediaPlayer):
         self.playList.setInitConnection()
         # self.currentMediaChanged.connect(self.currentMediaChangedEvent)
         # self.mediaStatusChanged.connect(self.mediaStatusChangedEvent)
+
+    def setDisconnects(self):
+        self.durationChanged.disconnect()
+        self.positionChanged.disconnect()
+        self.stateChanged.disconnect()
+        self.error.disconnect()
+        self.mediaStatusChanged.disconnect()
+        # self.playList.setInitConnection()
 
     def setMusic(self, url, data):
         """设置当前的音乐，可用直接用网络链接。"""
@@ -834,7 +934,10 @@ class Player(QMediaPlayer):
     def positionChangedEvent(self):
         """音乐在Media里以毫秒的形式保存，这里是播放时的进度条。"""
         currentTime = self.position()/1000
-        self.playWidgets.currentTime.setText(self.transTime(currentTime))
+        transedTime = self.transTime(currentTime)
+        self.playWidgets.currentTime.setText(transedTime)
+        self.timeChanged.emit(transedTime)
+        # print(self.transTime(currentTime))
 
         # position先于duration变化，会出现/0的情况。
         if self.musicTime == 0:
@@ -1166,6 +1269,45 @@ class _MediaPlaylist(QObject):
 
         # window.
         self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))
+
+
+class _LyricLabel(QLabel):
+    """
+    显示歌词的Label。
+    为Label设置一个时间属性，这样方便歌词滚动。
+    """
+    __slots__ = ('myTime', 'myLyric', 'myOrder', 'parent')
+
+    def __init__(self, myTime, lyric, myOrder, signal, parent=None):
+        super(_LyricLabel, self).__init__(lyric)
+        self.setObjectName('lyric')
+        self.parent = parent
+        self.myTime = myTime[:myTime.rfind('.')]
+        self.myLyric = lyric
+        self.myOrder = myOrder
+
+        signal.connect(self.lightMe)
+        
+        self.setMinimumHeight(40)
+
+        # 设置为可复制状态。
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+    def lightMe(self, currentTime):
+        if currentTime == self.myTime:
+            if self.parent.order !=  self.myOrder:
+                self.parent.unLightLyric()
+                self.parent.order = self.myOrder
+                self.parent.slide()
+                self.setText('<font color="white">{0}</font>'.format(self.myLyric))
+
+    def unLightMe(self):
+            self.setText(self.myLyric)
+        
+            # self.isLight = True
+        # else:
+        #     if self.isLight:
+        #         self.isLight = False
 
 
 if __name__ == '__main__':

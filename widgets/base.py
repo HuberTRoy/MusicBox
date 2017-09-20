@@ -134,6 +134,8 @@ class ScrollArea(QScrollArea):
         if self.verticalScrollBar().value() == self.verticalScrollBar().maximum():
             self.scrollDown.emit()
 
+    def maximumValue(self):
+        return self.verticalScrollBar().maximum()
 
 class TableWidget(QTableWidget):
 
