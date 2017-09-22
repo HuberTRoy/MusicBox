@@ -9,9 +9,44 @@ __author__ = 'cyrbuzz'
 
 import requests
 
+from contextlib import contextmanager
+
+# 不应该在这定义。
+# 暂且放在这。
+@contextmanager
+def ignored(*exception):
+    """
+    使用上下文管理的方式忽略错误。
+    with ignored(OSError):
+        print(1)
+        raise(OSError)
+
+    print(2)
+
+    """
+    if exception:
+        try:
+            yield
+        except exception:
+            pass
+    else:
+        try:
+            yield
+        except:
+            pass
+
 
 def requestsExceptionFilter(func):
-
+    """
+    若某一函数出错(一般是网络请求), 会再次进行2次重新请求，否则会传回False
+    @requestsExceptionFilter
+    def test():
+        requests.get('http://www.thereAreNothing.com')
+    
+    test()
+    ---
+    False
+    """
     def _filter(*args, **kwargs):
         for i in range(3):
             try:
@@ -48,6 +83,7 @@ class HttpRequest(object):
 
     def __init__(self):
         self.sessions = requests.session()
+        self.headers = self.headers.copy()
 
     @requestsExceptionFilter
     def httpRequest(self, action, method="GET", add=None, data=None, headers=None, cookies='',\
@@ -75,19 +111,18 @@ class HttpRequest(object):
                 html = self.sessions.post(action, headers=headers, cookies=cookies, timeout=timeout)
             html.encoding = urlencode
 
-
         return html
 
     def __del__(self):
         # 关闭请求。
-        try:
+        with ignored():
             self.sessions.close()
-        except:
-            pass
 
 
 if __name__ == '__main__':
-    a = requests.session()
-
-    b = a.get('http://music.163.com')
-    print(b.cookies)
+    # a = requests.session()
+    help(ignored)
+    print('\n')
+    help(requestsExceptionFilter)
+    print('\n')
+    help(HttpRequest)

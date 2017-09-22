@@ -37,12 +37,14 @@ from systemTray import SystemTray
 from loginFrames import LoginBox
 from netEaseSingsFrames import DetailSings, NetEaseSingsArea
 from netEaseSingsWidgets import PlaylistButton
+from xiamiSingsFrames import XiamiSingsArea
 
 # features
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
                                 ConfigSystemTray)
 from configNativeFeatures import ConfigNative
 from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
+from configXiamiFeatures import ConfigXiami
 
 
 # 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
@@ -75,12 +77,20 @@ class Window(QWidget):
 
         # 加载tab设置。
         self.setContents()
+        # 添加各类网站的歌单。
+        self.addAllPlaylist()
         # 设置布局小细线。
         self.setLines()
         # 设置布局。
         self.setLayouts()
         # 注册功能。
         self.configFeatures()
+
+    def addAllPlaylist(self):
+        self.indexNetEaseSings = NetEaseSingsArea(self.mainContent)
+        self.indexXiamiSings = XiamiSingsArea(self.mainContent)
+        self.mainContent.addTab(self.indexNetEaseSings, "网易云歌单")
+        self.mainContent.addTab(self.indexXiamiSings, "虾米歌单")
 
     # 布局。
     def setContents(self):
@@ -139,8 +149,12 @@ class Window(QWidget):
         self.nativeMusic.config = ConfigNative(self.nativeMusic)
         self.mainContent.config = ConfigMainContent(self.mainContent)
         self.detailSings.config = ConfigDetailSings(self.detailSings)
-        self.mainContent.indexNetEaseSings.config = ConfigNetEase(self.mainContent.indexNetEaseSings)
+        self.indexNetEaseSings.config = ConfigNetEase(self.indexNetEaseSings)
+        self.indexXiamiSings.config = ConfigXiami(self.indexXiamiSings)
         self.systemTray.config = ConfigSystemTray(self.systemTray)
+
+        self.indexNetEaseSings.config.initThread()
+        self.indexXiamiSings.config.initThread()
 
     def closeEvent(self, event):
         # 主要是保存cookies.
@@ -388,8 +402,8 @@ class MainContent(ScrollArea):
 
         self.tab = QTabWidget()
         self.tab.setObjectName("contentsTab")
-        self.indexNetEaseSings = NetEaseSingsArea(self)
-        self.tab.addTab(self.indexNetEaseSings, "网易云歌单")
+        # self.indexNetEaseSings = NetEaseSingsArea(self)
+        # self.tab.addTab(self.indexNetEaseSings, "网易云歌单")
 
         self.mainLayout = QVBoxLayout()
         self.mainLayout.setSpacing(0)

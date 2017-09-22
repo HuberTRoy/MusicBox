@@ -92,6 +92,9 @@ class ConfigNetEase(QObject):
 
         self.api = netEase
 
+        # self.initThread()
+
+    def initThread(self):
         # 一个线程，初始化用于请求歌单的全部内容。
         self.netThread = RequestThread(self, self.getSings)
         self.netThread.finished.connect(self.threadSetSings)
@@ -130,7 +133,6 @@ class ConfigNetEase(QObject):
                 self.gridRow += 1
             else:
                 self.gridColumn += 1
-
 
             try:
                 cacheList = os.listdir('cache')
