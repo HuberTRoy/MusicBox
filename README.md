@@ -10,10 +10,9 @@
 > crypto/cryptodome. -> pip install pycryptodome Or pip install pycryptodomex<br />
 > quamash -> pip install quamash <br />
 
-#### *nix额外依赖:
+#### \*nix额外依赖:
 > sudo apt-get install pyqt5.qtmultimedia <br />
-> sudo apt-get install libqt5multimedia5-plugins
-
+> sudo apt-get install libqt5multimedia5-plugins <br />
 #### 存在的问题:
 > 目前没有某项音乐的详细信息。<br />
 > 大部分的网络异常没有考虑。 <br />
@@ -28,7 +27,3 @@
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
-
-
-
-
