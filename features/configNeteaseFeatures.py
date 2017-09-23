@@ -6,15 +6,13 @@ import os
 
 import network
 import addition
-import netEaseApi
 
-from base import (QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, QTableWidgetItem, QThreadPool, QueueObject)
-
+from base import (QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
+                                     QTableWidgetItem, QThreadPool, QueueObject)
+from netEaseApi import netease
 from netEaseSingsWidgets import OneSing, PlaylistButton
 
 
-# netEaseApi
-netEase = netEaseApi.NetEaseWebApi()
 transTime = addition.itv2time
 
 
@@ -92,7 +90,7 @@ class ConfigNetEase(QObject):
 
         self.myHeight = 0
 
-        self.api = netEase
+        self.api = netease
 
         # self.initThread()
 

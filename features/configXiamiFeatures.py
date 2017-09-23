@@ -1,11 +1,9 @@
 # 虾米等其他的扩展与netease几乎没有区别，只是api的区别。
 # 暂时让netease当基类。
-import xiamiApi
+from xiamiApi import xiami
 
 from configNeteaseFeatures import ConfigNetEase
 
-
-xiami = xiamiApi.XiamiApi()
 
 class ConfigXiami(ConfigNetEase):
 

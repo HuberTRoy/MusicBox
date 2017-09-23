@@ -124,6 +124,9 @@ class XiamiApi(HttpRequest):
         return False
 
 
+xiami = XiamiApi()
+
+
 if __name__ == '__main__':
     req = XiamiApi()
     # a = req.lyric('http://img.xiami.net/lyric/86/27439286_1450892540942_6569.trc')

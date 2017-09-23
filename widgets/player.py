@@ -21,11 +21,11 @@ from base import (checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayo
                                      QTextEdit,  ScrollArea, VBoxLayout)
 # ../features
 from asyncBase import aAsync, toTask
-from netEaseApi import NetEaseWebApi
-from xiamiApi import XiamiApi
+from netEaseApi import netease
+from xiamiApi import xiami
 
-api = NetEaseWebApi()
-xiami = XiamiApi()
+# api = NetEaseWebApi()
+# xiami = XiamiApi()
 
 
 # 底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。
@@ -623,7 +623,7 @@ class CurrentMusic(QFrame):
         lyricUrl = musicInfo.get('lyric')
         # 默认网易云，网易云没有返回歌词地址，所以会是None.
         if not lyricUrl:
-            future = aAsync(api.lyric, musicId)
+            future = aAsync(netease.lyric, musicId)
             data = yield from future
         else:
             if 'xiami' in lyricUrl:
@@ -911,7 +911,7 @@ class Player(QMediaPlayer):
             self.playWidgets.nextSing()
             return
 
-        future = aAsync(api.singsUrl, [musicId])
+        future = aAsync(netease.singsUrl, [musicId])
         data = yield from future
 
         if not data:

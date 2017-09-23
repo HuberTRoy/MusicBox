@@ -6,13 +6,13 @@ import pickle
 from asyncBase import aAsync, toTask
 from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
 from netEaseSingsWidgets import PlaylistButton
-
-import netEaseApi
-import xiamiApi
+from netEaseApi import netease
+from xiamiApi import xiami
+# import xiamiApi
 import addition
 
-netEase = netEaseApi.NetEaseWebApi()
-xiami = xiamiApi.XiamiApi()
+# netEase = netEaseApi.NetEaseWebApi()
+# xiami = xiamiApi.XiamiApi()
 
 
 class ConfigWindow(QObject):
@@ -113,7 +113,7 @@ class ConfigHeader(QObject):
     @toTask
     def search(self):
         text = self.header.searchLine.text()
-        future = aAsync(netEase.search, text)
+        future = aAsync(netease.search, text)
         self.result = yield from future
 
         if not self.result['songCount']:
@@ -161,7 +161,7 @@ class ConfigHeader(QObject):
         self.loginThread.start()
 
     def loadLoginInformations(self, informations:tuple):
-        result = netEase.login(*informations)
+        result = netease.login(*informations)
         # 网络不通或其他问题。
         if not result:
             self.loginThread.breakSignal.emit('请检查网络后重试~.')
@@ -189,7 +189,7 @@ class ConfigHeader(QObject):
         self.header.userPix.setSrc(avatarUrl)
         # 加载该账户创建及喜欢的歌单。
         userId = profile['userId']
-        future = aAsync(netEase.user_playlist, userId)
+        future = aAsync(netease.user_playlist, userId)
         data = yield from future
 
         nickname = profile['nickname']
@@ -246,7 +246,7 @@ class ConfigNavigation(QObject):
         self.singsUrls = None
         self.coverImgUrl = None
 
-        self.api = netEase
+        self.api = netease
 
         self.bindConnect()
 
@@ -396,7 +396,7 @@ class ConfigSearchArea(QObject):
         
         self.transTime = addition.itv2time
         
-        self.searchEngineers = {'网易云': netEase, '虾米': xiami}
+        self.searchEngineers = {'网易云': netease, '虾米': xiami}
 
         self.musicList = []
         self.noContents = "很抱歉 未能找到关于<font style='text-align: center;' color='#23518F'>“{0}”</font>的{1}。"
