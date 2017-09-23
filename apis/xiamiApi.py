@@ -2,6 +2,7 @@
 '''
 xiami music provider.
 '''
+import re
 import json
 import urllib.parse
 
@@ -36,8 +37,13 @@ class XiamiApi(HttpRequest):
 
     def __init__(self):
         super(XiamiApi, self).__init__()
+        self.lyricHeader = self.headers.copy()
+
         self.headers['Host'] = 'api.xiami.com'
         self.headers['Referer'] = 'http://m.xiami.com/'
+
+        self.lyricHeader['Host'] = 'img.xiami.net'
+        self.lyricHeader['Referer'] = 'http://img.xiami.net'
 
     def httpRequest(self, *args, **kwargs):
         html = super(XiamiApi, self).httpRequest(*args, **kwargs)
@@ -96,42 +102,37 @@ class XiamiApi(HttpRequest):
         temp = []
         for songs in response['data']['songs']:
             temp.append({'name': songs['song_name'],
-                                               'ar': [{'name': songs['artist_name']}],
-                                               'al':{'picUrl': songs['album_logo']},
-                                               # 虾米音乐搜索没有返回歌曲长度。
-                                               'dt': 131400,
-                                               'id': str(songs['song_id']),
-                                               'mp3Url':songs['listen_file']
-                                               })
+                                          'ar': [{'name': songs['artist_name']}],
+                                          'al': {'picUrl': songs['album_logo']},
+                                          # 虾米音乐搜索没有返回歌曲长度。
+                                          'dt': 131400,
+                                          'id': str(songs['song_id']),
+                                          'mp3Url': songs['listen_file'],
+                                          'lyric': songs['lyric']})
+
         response['data']['songs'] = temp
 
         return response['data']
-#     result = []
-#     for song in data['data']["songs"]:
-#         result.append(_convert_song(song))
-#     return result
-    # def  getPlaylist(self, ids):
-    #     url = 'http://www.xiami.com/song/playlist/id/{0}'.format(ids) + \
-    #     '/object_name/default/object_id/0/cat/json'
 
-    #     response = self.httpRequest(url, method='GET')
-    #     print(response)
-    #     # with ignored():
-    #     response = json.loads(response)['data']['trackList'][0]['location']
-    #     response = caesar(response) 
-            
-    #     return response
+    def lyric(self, url):
+        lyric = self.httpRequest(url, method='GET', headers=self.lyricHeader)
 
-    #     return False
+        with ignored():
+            lyric = lyric.split('[offset:0]')[1]
+            lyric = re.sub(r'<\d*?>', '', lyric)
+            return lyric
+        return False
+
 
 if __name__ == '__main__':
     req = XiamiApi()
-    # a = req.search("故梦")
+    # a = req.lyric('http://img.xiami.net/lyric/86/27439286_1450892540942_6569.trc')
+    a = req.lyric('http://img.xiami.net/lyric/86/1795766586_1491899170_2038.trc')
     # print(len(a))
     # for i in a:
     #     print(i)
 
-    a = {'artist_id': 2100026901, 'singer': '', 'song_name': '故梦', 'lyric': 'http://img.xiami.net/lyric/86/1795766586_1491899170_2038.trc', 'purview_roles': [{'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'e'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'f'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'l'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'h'}, {'operation_list': [{'upgrade_role': 1, 'purpose': 1}, {'upgrade_role': 1, 'purpose': 2}], 'quality': 's'}], 'is_play': 0, 'album_name': '笙声不息', 'artist_name': '双笙', 'album_logo': 'http://pic.xiami.net/images/album/img7/879807/92210241491879807_1.jpg', 'demo': 0, 'album_id': 2102730119, 'listen_file': 'http://m128.xiami.net/169/7169/2102730119/1795766586_1491880211009.mp3?auth_key=1506740400-0-0-522364b80280f2970854373a97039b42', 'song_id': 1795766586, 'artist_logo': 'http://pic.xiami.net/images/artistlogo/25/14882664173825_1.jpg', 'need_pay_flag': 0, 'play_counts': 0}
+    # a = {'artist_id': 2100026901, 'singer': '', 'song_name': '故梦', 'lyric': 'http://img.xiami.net/lyric/86/1795766586_1491899170_2038.trc', 'purview_roles': [{'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'e'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'f'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'l'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'h'}, {'operation_list': [{'upgrade_role': 1, 'purpose': 1}, {'upgrade_role': 1, 'purpose': 2}], 'quality': 's'}], 'is_play': 0, 'album_name': '笙声不息', 'artist_name': '双笙', 'album_logo': 'http://pic.xiami.net/images/album/img7/879807/92210241491879807_1.jpg', 'demo': 0, 'album_id': 2102730119, 'listen_file': 'http://m128.xiami.net/169/7169/2102730119/1795766586_1491880211009.mp3?auth_key=1506740400-0-0-522364b80280f2970854373a97039b42', 'song_id': 1795766586, 'artist_logo': 'http://pic.xiami.net/images/artistlogo/25/14882664173825_1.jpg', 'need_pay_flag': 0, 'play_counts': 0}
 
         # print(a[i])
     # result = req.getPlaylist(355127986)
@@ -142,9 +143,9 @@ if __name__ == '__main__':
 
     # for i in result['songs']:
     #     print(i)
-    for i in a:
-        print(i)
-        print(a[i])
+    # for i in a:
+        # print(i)
+        # print(a[i])
     # for i in result:
         # print(i)
     #     data = json.loads(response[len('jsonp92('):-len(')')])

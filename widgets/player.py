@@ -22,9 +22,10 @@ from base import (checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayo
 # ../features
 from asyncBase import aAsync, toTask
 from netEaseApi import NetEaseWebApi
-
+from xiamiApi import XiamiApi
 
 api = NetEaseWebApi()
+xiami = XiamiApi()
 
 
 # 底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。
@@ -610,6 +611,7 @@ class CurrentMusic(QFrame):
     @toTask
     def getLyric(self):
         musicInfo = self.parent.player.getCurrentMusicInfo()
+
         if not musicInfo:
             return "✧请慢慢欣赏~"
 
@@ -618,8 +620,15 @@ class CurrentMusic(QFrame):
             return self.lyricCache
             # return self.detailInfo.detailText.toPlainText()
 
-        future = aAsync(api.lyric, musicId)
-        data = yield from future
+        lyricUrl = musicInfo.get('lyric')
+        # 默认网易云，网易云没有返回歌词地址，所以会是None.
+        if not lyricUrl:
+            future = aAsync(api.lyric, musicId)
+            data = yield from future
+        else:
+            if 'xiami' in lyricUrl:
+                future = aAsync(xiami.lyric, lyricUrl)
+                data = yield from future
 
         if not data:
             self.currentMusicId = musicId
