@@ -3,8 +3,10 @@
 xiami music provider.
 '''
 import json
+import urllib.parse
 
 from apiRequestsBase import HttpRequest, ignored
+
 
 # https://github.com/Flowerowl/xiami
 def caesar(location):
@@ -80,18 +82,34 @@ class XiamiApi(HttpRequest):
             return response['data']
 
         return False
-#     response = _xm_h(url)
-#     data = json.loads(response[len('jsonp122('):-len(')')])
 
-#     info = dict(
-#         cover_img_url=_retina_url(data['data']['logo']),
-#         title=data['data']['collect_name'],
-#         id='xmplaylist_' + playlist_id)
+    def search(self, keyword):
+        keyword = urllib.parse.quote(keyword.encode("utf-8"))
+        url = 'http://api.xiami.com/web?v=2.0&app_key=1&key=' + keyword \
+        + '&page=1&limit=50&_ksTS=1459930568781_153&callback=jsonp154' + \
+        '&r=search/songs'
+        response = self.httpRequest(url, method='GET')
+        response = json.loads(response[len('jsonp154('):-len(')')])
+        # songs = response['data']['songs']
+        
+        response['data']['songCount'] = 50
+        temp = []
+        for songs in response['data']['songs']:
+            temp.append({'name': songs['song_name'],
+                                               'ar': [{'name': songs['artist_name']}],
+                                               'al':{'picUrl': songs['album_logo']},
+                                               # 虾米音乐搜索没有返回歌曲长度。
+                                               'dt': 131400,
+                                               'id': str(songs['song_id']),
+                                               'mp3Url':songs['listen_file']
+                                               })
+        response['data']['songs'] = temp
+
+        return response['data']
 #     result = []
-#     for song in data['data']['songs']:
+#     for song in data['data']["songs"]:
 #         result.append(_convert_song(song))
-#     return dict(tracks=result, info=info)
-
+#     return result
     # def  getPlaylist(self, ids):
     #     url = 'http://www.xiami.com/song/playlist/id/{0}'.format(ids) + \
     #     '/object_name/default/object_id/0/cat/json'
@@ -108,6 +126,14 @@ class XiamiApi(HttpRequest):
 
 if __name__ == '__main__':
     req = XiamiApi()
+    # a = req.search("故梦")
+    # print(len(a))
+    # for i in a:
+    #     print(i)
+
+    a = {'artist_id': 2100026901, 'singer': '', 'song_name': '故梦', 'lyric': 'http://img.xiami.net/lyric/86/1795766586_1491899170_2038.trc', 'purview_roles': [{'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'e'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'f'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'l'}, {'operation_list': [{'upgrade_role': 0, 'purpose': 1}, {'upgrade_role': 0, 'purpose': 2}], 'quality': 'h'}, {'operation_list': [{'upgrade_role': 1, 'purpose': 1}, {'upgrade_role': 1, 'purpose': 2}], 'quality': 's'}], 'is_play': 0, 'album_name': '笙声不息', 'artist_name': '双笙', 'album_logo': 'http://pic.xiami.net/images/album/img7/879807/92210241491879807_1.jpg', 'demo': 0, 'album_id': 2102730119, 'listen_file': 'http://m128.xiami.net/169/7169/2102730119/1795766586_1491880211009.mp3?auth_key=1506740400-0-0-522364b80280f2970854373a97039b42', 'song_id': 1795766586, 'artist_logo': 'http://pic.xiami.net/images/artistlogo/25/14882664173825_1.jpg', 'need_pay_flag': 0, 'play_counts': 0}
+
+        # print(a[i])
     # result = req.getPlaylist(355127986)
     # # print(result)
     # for i in result:
@@ -116,7 +142,6 @@ if __name__ == '__main__':
 
     # for i in result['songs']:
     #     print(i)
-    a = {'demo': 0, 'artist_logo': 'http://pic.xiami.net/images/artistlogo/33/14262395532333_1.jpg', 'lyric_file': '', 'album_id': 11165, 'purview_roles': [{'quality': 'e', 'operation_list': [{'purpose': 1, 'upgrade_role': 0}, {'purpose': 2, 'upgrade_role': 4}]}, {'quality': 'f', 'operation_list': [{'purpose': 1, 'upgrade_role': 0}, {'purpose': 2, 'upgrade_role': 4}]}, {'quality': 'l', 'operation_list': [{'purpose': 1, 'upgrade_role': 0}, {'purpose': 2, 'upgrade_role': 4}]}, {'quality': 'h', 'operation_list': [{'purpose': 1, 'upgrade_role': 4}, {'purpose': 2, 'upgrade_role': 4}]}, {'quality': 's', 'operation_list': [{'purpose': 1, 'upgrade_role': 4}, {'purpose': 2, 'upgrade_role': 4}]}], 'song_name': '梦田', 'play_seconds': 0, 'album_name': '回声 三毛作品第15号', 'album_logo': 'http://pic.xiami.net/images/album/img37/2037/111651383655947_1.jpg', 'singers': '齐豫;潘越云', 'need_pay_flag': 2, 'artist_name': '潘越云', 'length': 185, 'listen_file': 'http://m128.xiami.net/37/2037/11165/386404_21130_l.mp3?auth_key=1506654000-0-0-70a07b045b65c9c9e465bf1721a5e808', 'play_counts': 0, 'recommends': 0, 'song_id': 386404, 'artist_id': 2037, 'name': '', 'lyric': 'http://img.xiami.net/lyric/4/386404_1448013680_8037.trc', 'title': '', 'logo': ''}
     for i in a:
         print(i)
         print(a[i])

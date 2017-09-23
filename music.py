@@ -35,9 +35,9 @@ from native import NativeMusic
 from addition import SearchLineEdit
 from systemTray import SystemTray
 from loginFrames import LoginBox
-from netEaseSingsFrames import DetailSings, NetEaseSingsArea
+from netEaseSingsFrames import DetailSings, NetEaseSingsArea, NetEaseSearchResultFrame
 from netEaseSingsWidgets import PlaylistButton
-from xiamiSingsFrames import XiamiSingsArea
+from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
 
 # features
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
@@ -402,6 +402,7 @@ class MainContent(ScrollArea):
 
         self.tab = QTabWidget()
         self.tab.setObjectName("contentsTab")
+        # self.setWidget(self.tab)
         # self.indexNetEaseSings = NetEaseSingsArea(self)
         # self.tab.addTab(self.indexNetEaseSings, "网易云歌单")
 
@@ -442,31 +443,11 @@ class SearchArea(ScrollArea):
     # 布局。
     def setSingsFrame(self):
         # 单曲界面。
-        self.singsFrame = QFrame()
-        self.singsFrameLayout = VBoxLayout(self.singsFrame)
+        self.neteaseSearchFrame = NetEaseSearchResultFrame(self)
+        self.contentsTab.addTab(self.neteaseSearchFrame, "网易云")
 
-        self.noSingsContentsLabel = QLabel(self.singsFrame)
-        self.noSingsContentsLabel.setMaximumHeight(60)
-
-        self.noSingsContentsLabel.setObjectName("noSingsLable")
-        self.noSingsContentsLabel.hide()
-
-        self.singsResultTable = TableWidget(3, ['音乐标题', '歌手', '时长'])
-        self.singsResultTable.setObjectName('singsTable')
-        self.singsResultTable.setMinimumWidth(self.width())
-        self.singsResultTable.setColumnWidths({i:j for i,j in zip(range(3), 
-            [self.width()/3*1.25,self.width()/3*1.25,self.width()/3*0.5])})
-
-        self.singsFrameLayout.addWidget(self.singsResultTable, Qt.AlignTop|Qt.AlignCenter)
-
-        self.centerLabelLayout = HBoxLayout()
-        self.centerLabelLayout.addStretch(1)
-        self.centerLabelLayout.addWidget(self.noSingsContentsLabel)
-        self.centerLabelLayout.addStretch(1)
-
-        self.singsFrameLayout.addLayout(self.centerLabelLayout)
-
-        self.contentsTab.addTab(self.singsFrame, "单曲")
+        self.xiamiSearchFrame = XiamiSearchResultFrame(self)
+        self.contentsTab.addTab(self.xiamiSearchFrame, "虾米")
 
     # 功能。
     def setText(self, text):

@@ -8,9 +8,11 @@ from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QT
 from netEaseSingsWidgets import PlaylistButton
 
 import netEaseApi
+import xiamiApi
 import addition
 
 netEase = netEaseApi.NetEaseWebApi()
+xiami = xiamiApi.XiamiApi()
 
 
 class ConfigWindow(QObject):
@@ -120,10 +122,6 @@ class ConfigHeader(QObject):
         else: 
             songsIds = [i['id'] for i in self.result['songs']]
 
-            # future = aAsync(netEase.singsUrl, songsIds)
-
-            # self.songsDetail = yield from future
-            # self.songsDetail = {i['id']:i['url'] for i in self.songsDetail}
             self.songsDetail = {i:'http' for i in songsIds}
            
             # 进行重新编辑方便索引。
@@ -379,6 +377,16 @@ class ConfigMainContent(QObject):
         super(ConfigMainContent, self).__init__()
         self.mainContent = mainContent
 
+        # self.tab = self.mainContent.tab
+
+        # self.bindConnect()
+
+    # def bindConnect(self):
+        # self.tab.currentChanged.connect(self.tabChanged)
+
+    # def tabChanged(self):
+        # print(self.tab.currentWidget().height())
+
 
 class ConfigSearchArea(QObject):
     def __init__(self, searchArea):
@@ -387,6 +395,8 @@ class ConfigSearchArea(QObject):
         self.searchArea = searchArea
         
         self.transTime = addition.itv2time
+        
+        self.searchEngineers = {'网易云': netEase, '虾米': xiami}
 
         self.musicList = []
         self.noContents = "很抱歉 未能找到关于<font style='text-align: center;' color='#23518F'>“{0}”</font>的{1}。"
@@ -394,18 +404,60 @@ class ConfigSearchArea(QObject):
         self.bindConnect()
 
     def bindConnect(self):
-        self.searchArea.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+        self.searchArea.contentsTab.tabBarClicked.connect(self.searchBy)
+        self.searchArea.neteaseSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+        self.searchArea.xiamiSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
     
+    def searchBy(self, index):
+        currentWidgetName = self.searchArea.contentsTab.tabText(index)
+        self.search(currentWidgetName)
+
+    @toTask
+    def search(self, name):
+        """接受name信息，由这个引擎进行搜索。"""
+        searchEngineer = self.searchEngineers[name]
+        data = yield from aAsync(searchEngineer.search, self.searchArea.text)
+
+        if not data['songCount']:
+            songsIds = []
+            data['songs'] = []
+        else: 
+            songsIds = [i['id'] for i in data['songs']]
+
+            if name == '网易云':
+                songsDetail = {i:'http' for i in songsIds}
+            elif name == '虾米':
+                songsDetail = {i['id']:i['mp3Url'] for i in data['songs']}
+
+            # 进行重新编辑方便索引。
+            songs = data['songs']
+            data['songs'] = [{'name':i['name'], 
+            'artists': i['ar'], 
+            'picUrl': i['al']['picUrl'],
+            'mp3Url': songsDetail[i['id']],
+            'duration': i['dt'],
+            'music_id':i['id']} for i in songs]
+
+        songsCount = data['songCount']
+
+        # 总数是0即没有找到。
+        if not songsCount:
+            songs = []
+        else:
+            songs = data['songs'] 
+
+        self.setSingsData(songs)
+
     def setSingsData(self, data):
         # 单曲搜索结果。
-
+        searchArea = self.searchArea.contentsTab.currentWidget()
         if not len(data):
             # self.contentsTab.addTab()
-            self.searchArea.noSingsContentsLabel.setText(self.noContents.format(self.searchArea.text, '单曲'))
-            self.searchArea.singsResultTable.hide()
-            self.searchArea.noSingsContentsLabel.show()
+            searchArea.noSingsContentsLabel.setText(self.noContents.format(self.searchArea.text, '单曲'))
+            searchArea.singsResultTable.hide()
+            searchArea.noSingsContentsLabel.show()
         else:
-            self.searchArea.singsResultTable.setRowCount(len(data))
+            searchArea.singsResultTable.setRowCount(len(data))
 
             musicList = []
             for count, datas in enumerate(data):
@@ -416,9 +468,9 @@ class ConfigSearchArea(QObject):
                 duration = self.transTime(datas['duration']/1000)
                 musicId = datas['music_id']
 
-                self.searchArea.singsResultTable.setItem(count, 0, QTableWidgetItem(name))
-                self.searchArea.singsResultTable.setItem(count, 1, QTableWidgetItem(authors))
-                self.searchArea.singsResultTable.setItem(count, 2, QTableWidgetItem(duration))
+                searchArea.singsResultTable.setItem(count, 0, QTableWidgetItem(name))
+                searchArea.singsResultTable.setItem(count, 1, QTableWidgetItem(authors))
+                searchArea.singsResultTable.setItem(count, 2, QTableWidgetItem(duration))
                 musicList.append({'url': url, 
                     'name': name, 
                     'time':duration, 
@@ -426,13 +478,13 @@ class ConfigSearchArea(QObject):
                     'music_img': picUrl,
                     'music_id': musicId})
 
-            self.searchArea.noSingsContentsLabel.hide()
-            self.searchArea.singsResultTable.show()
+            searchArea.noSingsContentsLabel.hide()
+            searchArea.singsResultTable.show()
 
             self.musicList = musicList
 
     def itemDoubleClickedEvent(self):
-        currentRow = self.searchArea.singsResultTable.currentRow()
+        currentRow = self.searchArea.contentsTab.currentWidget().singsResultTable.currentRow()
         data = self.musicList[currentRow]
         self.searchArea.parent.playWidgets.setPlayerAndPlayList(data)
 

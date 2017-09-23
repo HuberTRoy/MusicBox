@@ -52,7 +52,7 @@ class ConfigNetEase(QObject):
         # 连接滑轮到底的信号槽。
         # 同时连接图片下载的线程全部完成的信号槽。
         # 若一轮图片下载完成并且滑到底部则进行下一次线程，否则将不会。
-        self.netEaseParent.scrollDown.connect(self.sliderDownEvent)
+        self.netEase.scrollDown.connect(self.sliderDownEvent)
         # self.picManager.allFinished.connect(self.picManagerFinishedEvent)
         
         # 用于存储结果。
@@ -89,6 +89,8 @@ class ConfigNetEase(QObject):
         self.gridColumn = 0
 
         self.offset = 0
+
+        self.myHeight = 0
 
         self.api = netEase
 
@@ -148,7 +150,7 @@ class ConfigNetEase(QObject):
             else:
                 task = _PicThreadTask(self.queue, frame, url)
                 self.picThreadPool.start(task)
-
+        
     def _setStyleCodesByThreadPool(self):
         # data是线程池的请求完成后的对象。
         # 0下标处是widget，1是style代码。
@@ -193,6 +195,7 @@ class ConfigNetEase(QObject):
     def sliderDownEvent(self):
         """滑轮到底的事件。"""
         if self.netEase.isHidden() == False:
+        # toDo, 多个
             self.offset += 30
             # 判断是否在工作，免得多次start。
             if self.netThread.isRunning():

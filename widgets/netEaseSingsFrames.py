@@ -1,18 +1,18 @@
 __author__ = 'cyrbuzz'
 """不要单独运行。"""
 # from configFeatures import *
-from base import (QFrame, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
+from base import (QFrame, Qt, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
                   PicLabel, ScrollArea, TableWidget, VBoxLayout, HBoxLayout)
 
 import addition
 
 
-"""一个Tab，网易云的全部歌单。"""
-class NetEaseSingsArea(QFrame):
+# 一个Tab，网易云的全部歌单。
+class NetEaseSingsArea(ScrollArea):
     """全部歌单。"""
 
     def __init__(self, parent=None):
-        super(NetEaseSingsArea, self).__init__(parent)
+        super(NetEaseSingsArea, self).__init__()
         self.parent = parent
         self.transTime = addition.itv2time
 
@@ -22,7 +22,7 @@ class NetEaseSingsArea(QFrame):
             self.setStyleSheet(f.read())
         
         # 主布局。
-        self.mainLayout = QGridLayout(self)
+        self.mainLayout = QGridLayout(self.frame)
         self.mainLayout.setSpacing(0)
         self.mainLayout.setHorizontalSpacing(10)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -31,7 +31,7 @@ class NetEaseSingsArea(QFrame):
         # self.config = ConfigNetEase(self)
 
 
-"""歌单详情页。"""
+# 歌单详情页。
 class DetailSings(ScrollArea):
 
     def __init__(self, parent=None):
@@ -192,3 +192,34 @@ class DetailSings(ScrollArea):
     #     data = self.musicList[currentRow]
 
     #     self.playList.setPlayerAndPlayList(data)
+
+
+class NetEaseSearchResultFrame(QFrame):
+
+    def __init__(self, parent):
+        super(NetEaseSearchResultFrame, self).__init__()
+        self.parent = parent
+
+        # self.singsFrame = QFrame()
+        self.singsFrameLayout = VBoxLayout(self)
+
+        self.noSingsContentsLabel = QLabel(self)
+        self.noSingsContentsLabel.setMaximumHeight(60)
+
+        self.noSingsContentsLabel.setObjectName("noSingsLable")
+        self.noSingsContentsLabel.hide()
+
+        self.singsResultTable = TableWidget(3, ['音乐标题', '歌手', '时长'])
+        self.singsResultTable.setObjectName('singsTable')
+        self.singsResultTable.setMinimumWidth(self.parent.width())
+        self.singsResultTable.setColumnWidths({i:j for i,j in zip(range(3), 
+            [self.parent.width()/3*1.25,self.parent.width()/3*1.25,self.parent.width()/3*0.5])})
+
+        self.singsFrameLayout.addWidget(self.singsResultTable, Qt.AlignTop|Qt.AlignCenter)
+
+        self.centerLabelLayout = HBoxLayout()
+        self.centerLabelLayout.addStretch(1)
+        self.centerLabelLayout.addWidget(self.noSingsContentsLabel)
+        self.centerLabelLayout.addStretch(1)
+
+        self.singsFrameLayout.addLayout(self.centerLabelLayout)
