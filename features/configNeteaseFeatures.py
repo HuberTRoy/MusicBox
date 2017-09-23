@@ -258,7 +258,16 @@ class ConfigDetailSings(QObject):
             self.detailSings.singsTable.setItem(j, 2, musicTime)
 
             music_img = i['album']['blurPicUrl']
-            self.musicList.append({'url': t, 'name': names, 'time':times, 'author':author, 'music_img': music_img, 'music_id':x})
+
+            lyric = i.get('lyric')
+
+            self.musicList.append({'url': t, 
+                                                                'name': names, 
+                                                                'time':times, 
+                                                                'author':author,
+                                                                'music_img': music_img,
+                                                                'music_id':x,
+                                                                'lyric': lyric})
 
     # 事件。
     def itemDoubleClickedEvent(self):

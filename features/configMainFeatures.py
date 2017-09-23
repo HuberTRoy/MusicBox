@@ -436,7 +436,8 @@ class ConfigSearchArea(QObject):
             'picUrl': i['al']['picUrl'],
             'mp3Url': songsDetail[i['id']],
             'duration': i['dt'],
-            'music_id':i['id']} for i in songs]
+            'music_id':i['id'],
+            'lyric': i.get('lyric')} for i in songs]
 
         songsCount = data['songCount']
 
