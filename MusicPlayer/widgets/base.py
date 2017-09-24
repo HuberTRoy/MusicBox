@@ -10,6 +10,7 @@ sys.path.append('..')
 sys.path.append('../networks')
 
 import pickle
+import hashlib
 import os.path
 
 # PEP8不允许使用通配符的原因是会混淆命名空间。
@@ -61,6 +62,13 @@ def checkOneFolder(folderName:str):
 
         return _exec
     return _check
+
+
+def makeMd5(raw):
+
+     m = hashlib.md5()  
+     m.update(raw.encode()) 
+     return  m.hexdigest()  
 
 
 # Qt的一些部件是直接支持HTML的，
@@ -175,6 +183,7 @@ class HBoxLayout(QHBoxLayout):
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
 
+
 # 默认情况下。
 # ----!!!----
 # 一个水平居中的布局。
@@ -266,7 +275,7 @@ class Timer(QThread):
 # <img src=1.jpg>相关变量。
 
 picsThreadPool = QThreadPool()
-picsThreadPool.setMaxThreadCount(5)
+picsThreadPool.setMaxThreadCount(10)
 
 picsQueue = QueueObject()
 
@@ -301,7 +310,8 @@ class PicLabel(QLabel):
         if 'http' in src or 'https' in src:
             cacheList = os.listdir(cacheFolder)
 
-            names = str(src[src.rfind('/')+1:])
+            # names = str(src[src.rfind('/')+1:])
+            names = makeMd5(src)
             if names in cacheList:
                 self.setSrc(cacheFolder+'/'+names)
                 return
@@ -330,7 +340,8 @@ class GetPicture(QRunnable):
         self.src = src
 
     def run(self):
-        names = str(self.src[self.src.rfind('/')+1:])
+        # names = str(self.src[self.src.rfind('/')+1:])
+        names = makeMd5(self.src)
         content = Requests.get(self.src).content
         picsQueue.put([self.widget, content, names])
 
@@ -349,7 +360,7 @@ def __addPic():
     pic = QPixmap()
     pic.loadFromData(data[1])
     pic = pic.scaled(width, height)
-    pic.save(cacheFolder+'/'+data[2])
+    pic.save(cacheFolder+'/'+data[2], 'png')
 
     # 上遮罩。
     if widget.pixMask:

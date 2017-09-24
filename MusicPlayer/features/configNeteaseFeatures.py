@@ -8,7 +8,7 @@ import network
 import addition
 
 from base import (QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
-                                     QTableWidgetItem, QThreadPool, QueueObject)
+                                     QTableWidgetItem, QThreadPool, QueueObject, makeMd5)
 from netEaseApi import netease
 from netEaseSingsWidgets import OneSing, PlaylistButton
 
@@ -118,7 +118,8 @@ class ConfigNetEase(QObject):
     def threadSetSings(self):
         for i in range(30):
             i += self.offset
-            picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
+            # picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
+            picName = makeMd5(self.singPicUrls[i])
             frame = OneSing(self.gridRow, self.gridColumn, self.playlistIds[i], self, picName)
             frame.clicked.connect(self.startRequest)
             frame.nameLabel.setText(self.singNames[i])
@@ -142,7 +143,8 @@ class ConfigNetEase(QObject):
             
             url = self.singPicUrls[i]
 
-            names = str(url[url.rfind('/')+1:])   
+            # names = str(url[url.rfind('/')+1:])   
+            names = makeMd5(url)
             if names in cacheList:
                 frame.setStyleSheets("QLabel#picLabel{border-image: url(cache/%s)}"%(names))
             else:
@@ -284,14 +286,13 @@ class _PicThreadTask(QRunnable):
         self.url = url
 
     def run(self):
-        names = str(self.url[self.url.rfind('/')+1:])
+        # names = str(self.url[self.url.rfind('/')+1:])
+        names = makeMd5(self.url)
         content = network.Requests.get(self.url).content
-        
         pic = QPixmap()
         pic.loadFromData(content)
         # 缩小到合适的大小会让QT合理的利用内存资源。
         pic = pic.scaled(180, 180)
-        pic.save("cache/{0}".format(names))
-
+        a = pic.save("cache/{0}".format(names), 'png')
         self.queue.put([self.widget, "QLabel#picLabel{border-image: url(cache/%s)}"%(names)])
 
