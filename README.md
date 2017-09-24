@@ -23,7 +23,7 @@
 ### 开发详情请移步至： <a href="https://github.com/HuberTRoy/MusicPlayer/blob/master/doc/updateLog.md">更新日志~</a>
 
 ## 截图:
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/20.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
 
