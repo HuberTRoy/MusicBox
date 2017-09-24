@@ -20,15 +20,6 @@ nonce = b'0CoJUm6Qyw8W8jud'
 pubKey = '010001'
 
 
-def createSecretKey(size):
-    # 2中 os.urandom返回是个字符串。3中变成bytes。
-    # 不过加密的目的是需要一个字符串。
-    # 因为密钥之后会被加密到rsa中一起发送出去。
-    # 所以即使是个固定的密钥也是可以的。
-
-    # return (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(size))))[0:16]
-    return bytes(''.join(random.sample('1234567890qwertyuipasdfghjklzxcvbnm', 16)), 'utf-8')
-
 def aesEncrypt(text, secKey):
 
     pad = 16 - len(text) % 16
@@ -54,12 +45,23 @@ def aesEncrypt(text, secKey):
     return ciphertext
 
 
+def createSecretKey(size):
+    # 2中 os.urandom返回是个字符串。3中变成bytes。
+    # 不过加密的目的是需要一个字符串。
+    # 因为密钥之后会被加密到rsa中一起发送出去。
+    # 所以即使是个固定的密钥也是可以的。
+
+    # return (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(size))))[0:16]
+    return bytes(''.join(random.sample('1234567890qwertyuipasdfghjklzxcvbnm', 16)), 'utf-8')
+
+
 def rsaEncrypt(text, pubKey, modulus):
     text = text[::-1]
     # 3中将字符串转成hex的函数变成了binascii.hexlify, 2中可以直接 str.encode('hex')
     rs = int(binascii.hexlify(text), 16) ** int(pubKey, 16) % int(modulus, 16)
 
     return format(rs, 'x').zfill(256)
+
 
 def encrypted_request(text):
 

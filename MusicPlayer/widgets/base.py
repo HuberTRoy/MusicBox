@@ -137,6 +137,7 @@ class ScrollArea(QScrollArea):
     def maximumValue(self):
         return self.verticalScrollBar().maximum()
 
+
 class TableWidget(QTableWidget):
 
     def __init__(self, count, headerLables):

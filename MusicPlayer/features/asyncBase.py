@@ -66,6 +66,24 @@ def toTask(func):
     return makeUp
 
 
+def toTaskWCb(func):
+    """
+    一个将普通函数包装成异步函数并添加回调的装饰器。
+    """
+    def makeUp(callback):
+        def makeUps(*args, **kwargs):
+            eventLoop = asyncio.get_event_loop()
+            future = eventLoop.create_task(func(*args, **kwargs))
+            
+            future.add_done_callback(callback)
+
+            return future
+        
+        return makeUps
+
+    return makeUp
+
+
 if __name__ == '__main__':
     help(aAsync)
     print('\n')

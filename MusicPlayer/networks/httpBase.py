@@ -40,7 +40,6 @@ class Requests(object):
     def get(self, url, **kwargs):
         if not kwargs.get('headers'):
             kwargs['headers'] = self.headers
-
         return requests.get(url, **kwargs)
     
     @requestsExceptionFilter

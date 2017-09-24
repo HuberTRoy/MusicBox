@@ -10,7 +10,6 @@ def deal_time(x):
 
     return x
 
-
 def itv2time(iItv):
     iItv = int(iItv)
 
@@ -59,12 +58,13 @@ class SearchLineEdit(QLineEdit):
 
 
 if __name__ == '__main__':
-    import sys
+    # import sys
 
-    app = QApplication(sys.argv)
+    # app = QApplication(sys.argv)
 
-    main = SearchLineEdit()
+    # main = SearchLineEdit()
 
-    main.show()
+    # main.show()
 
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_())
+    print(itv2time(12.34))

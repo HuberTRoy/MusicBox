@@ -120,6 +120,25 @@ class ARequests(httpBase.Requests):
 
 if __name__ == '__main__':
     pass
-    # eventLoop = asyncio.get_event_loop()
+    import sys
+    import time
+    import requests
+    eventLoop = asyncio.get_event_loop()
+    urls = ['https://www.v2ex.com/', 'http://www.baidu.com']*5
+    from concurrent.futures import ThreadPoolExecutor
 
+    # b = time.clock()
+    with ThreadPoolExecutor(max_workers=5) as f:
+        for i in urls:
+            f.submit(requests.get, i)
+    # def printData(future):
+    #     print(future.result())
+        
+    #     urls.pop()
+    #     if not urls:
+    #         sys.exit()
+    # http = ARequests(printData)
+    
+    # for i in urls:
+    #     http.get(i)
     # eventLoop.run_forever()
