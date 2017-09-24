@@ -16,8 +16,8 @@ import sys
 
 sys.path.append('widgets')
 sys.path.append('networks')
-sys.path.append('apis')
 sys.path.append('features')
+sys.path.append('apis')
 
 import asyncio
 
@@ -38,6 +38,7 @@ from loginFrames import LoginBox
 from netEaseSingsFrames import DetailSings, NetEaseSingsArea, NetEaseSearchResultFrame
 from netEaseSingsWidgets import PlaylistButton
 from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
+from qqSingsFrames import QQSingsArea, QQSearchResultFrame
 
 # features
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
@@ -45,6 +46,7 @@ from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, Co
 from configNativeFeatures import ConfigNative
 from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 from configXiamiFeatures import ConfigXiami
+from configQQFeatures import ConfigQQ
 
 
 # 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
@@ -89,8 +91,10 @@ class Window(QWidget):
     def addAllPlaylist(self):
         self.indexNetEaseSings = NetEaseSingsArea(self.mainContent)
         self.indexXiamiSings = XiamiSingsArea(self.mainContent)
+        self.indexQQSings = QQSingsArea(self.mainContent)
         self.mainContent.addTab(self.indexNetEaseSings, "网易云歌单")
         self.mainContent.addTab(self.indexXiamiSings, "虾米歌单")
+        self.mainContent.addTab(self.indexQQSings, "QQ歌单")
 
     # 布局。
     def setContents(self):
@@ -151,10 +155,12 @@ class Window(QWidget):
         self.detailSings.config = ConfigDetailSings(self.detailSings)
         self.indexNetEaseSings.config = ConfigNetEase(self.indexNetEaseSings)
         self.indexXiamiSings.config = ConfigXiami(self.indexXiamiSings)
+        self.indexQQSings.config = ConfigQQ(self.indexQQSings)
         self.systemTray.config = ConfigSystemTray(self.systemTray)
 
         self.indexNetEaseSings.config.initThread()
         self.indexXiamiSings.config.initThread()
+        self.indexQQSings.config.initThread()
 
     def closeEvent(self, event):
         # 主要是保存cookies.

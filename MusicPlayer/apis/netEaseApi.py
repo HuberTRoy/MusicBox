@@ -103,11 +103,11 @@ class NetEaseWebApi(HttpRequest):
         except:
             return {}
 
-    def details_playlist(self, id):
+    def details_playlist(self, ids):
         """
             歌单详情。
         """
-        url = 'http://music.163.com/api/playlist/detail?id=%d' % (id)
+        url = 'http://music.163.com/api/playlist/detail?id={0}' .format(ids)
         html = self.httpRequest(url, method="GET", cookies=self.cookies)
         return html['result']
 

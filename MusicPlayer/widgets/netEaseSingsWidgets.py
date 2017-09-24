@@ -11,7 +11,7 @@ class OneSing(QFrame):
      'result','catch',
      'singsIds', 'singsUrls')
 
-    clicked = pyqtSignal(int, str)
+    clicked = pyqtSignal(str, str)
 
     def __init__(self, row, column, ids=None, parent=None, picName=None):
         super(OneSing, self).__init__()
@@ -21,7 +21,7 @@ class OneSing(QFrame):
         self.row = row
         self.column = column
         # 歌单号。
-        self.ids = ids
+        self.ids = str(ids)
         # 大图的缓存名。
         self.picName = picName
 

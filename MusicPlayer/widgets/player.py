@@ -190,6 +190,10 @@ class PlayWidgets(QFrame):
                 return
 
         # 添加资源当前项到播放列表。
+        if 'qq.com' in data['url']:
+            print(data['url'])
+            return
+            
         sureSetUp = self.player.setMusic(data['url'], data)
         if not sureSetUp:
             self.currentMusic.setShortInfo('音乐不可播放', data['author'], data['music_img'])
@@ -896,7 +900,6 @@ class Player(QMediaPlayer):
     def dealError(self, error):
         # 具体内容看文档:
         # http://doc.qt.io/qt-5/qmediaplayer.html
-
         if error:
             musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
             self.loadRealMusicUrl(musicInfo)
