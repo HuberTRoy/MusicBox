@@ -190,9 +190,9 @@ class PlayWidgets(QFrame):
                 return
 
         # 添加资源当前项到播放列表。
-        if 'qq.com' in data['url']:
-            print(data['url'])
-            return
+        # if 'qq.com' in data['url']:
+            # print(data['url'])
+            # return
             
         sureSetUp = self.player.setMusic(data['url'], data)
         if not sureSetUp:
@@ -633,6 +633,11 @@ class CurrentMusic(QFrame):
             if 'xiami' in lyricUrl:
                 future = aAsync(xiami.lyric, lyricUrl)
                 data = yield from future
+            elif lyricUrl == 'qq':
+                # TODO
+                # get qq music lyric.
+                return "✧请慢慢欣赏~"
+
 
         if not data:
             self.currentMusicId = musicId

@@ -96,6 +96,7 @@ class QQApi(HttpRequest):
             i['duration'] = int(i['interval']) * 1000
             i['album'] = {'blurPicUrl': imgUrl + 'T002R300x300M000' + i['albummid'] + '.jpg'}
             i['mp3Url'] = '{0}C400{1}.m4a?vkey={2}&guid={3}'.format(self.sip, i['songmid'], self.key, self.guid)
+            i['lyric'] = 'qq'
 
         newDatas['tracks'] = songs
 
