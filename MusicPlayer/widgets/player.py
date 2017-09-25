@@ -23,9 +23,7 @@ from base import (checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayo
 from asyncBase import aAsync, toTask
 from netEaseApi import netease
 from xiamiApi import xiami
-
-# api = NetEaseWebApi()
-# xiami = XiamiApi()
+from qqApi import qqApi
 
 
 # 底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。
@@ -1245,7 +1243,8 @@ class _MediaPlaylist(QObject):
         with open(self.musicsCookiesFolder, 'wb') as f:
             for row, data in enumerate(self.musics):
                 if type(data) == QMediaContent:
-                    self.musics[row] = data.canonicalUrl().toString()
+                    url = data.canonicalUrl().toString()
+                    self.musics[row] = url
 
             pickle.dump(self.musics, f)
 
@@ -1254,11 +1253,22 @@ class _MediaPlaylist(QObject):
 
     @checkFolder(allCookiesFolder)
     def loadCookies(self):
-        with open(self.musicsCookiesFolder, 'rb') as f:
-            self.musics = pickle.load(f)
-
         with open(self.mediaListCookiesFolder, 'rb') as f:
             self.mediaList = pickle.load(f)
+
+        with open(self.musicsCookiesFolder, 'rb') as f:
+            self.musics = pickle.load(f)
+            for index, url in enumerate(self.musics):
+                if '?vkey=' in url:
+                    musicInfo = self.mediaList.pop(url)
+                    url = url.split('qq.com/')
+                    url2 = url[1].split('?vkey=')[0]
+
+                    url = '{0}'.format(qqApi.sip) + url2 + '?vkey={0}'.format(qqApi.key) +\
+                               '&guid={0}'.format(qqApi.guid)
+
+                    self.musics[index] = url.format(qqApi.sip, qqApi.key)
+                    self.mediaList[url] = musicInfo
 
     # 事件。
     def mediaStatusChangedEvent(self, status):
