@@ -5,14 +5,19 @@
 #### 有用到异步库，需更新到py3.5.
 > Python3.5+ <br />
 > PyQt5.5+ <br />
-> requests. <br /> 
-> eyed3 0.8 (0.8.1需要额外的包。) <br />
-> crypto/cryptodome. -> pip install pycryptodome Or pip install pycryptodomex<br />
-> quamash -> pip install quamash <br />
+> requests. -> `pip install requests`<br /> 
+> eyed3 0.8 (0.8.1需要额外的包。) -> `pip install eyed3==0.8` <br />
+> crypto/cryptodome. -> `pip install pycryptodome` Or `pip install pycryptodomex`<br />
+> quamash -> `pip install quamash` <br />
 
 #### \*nix额外依赖:
-> sudo apt-get install pyqt5.qtmultimedia <br />
-> sudo apt-get install libqt5multimedia5-plugins
+> `sudo apt-get install pyqt5.qtmultimedia` <br />
+> `sudo apt-get install libqt5multimedia5-plugins`
+
+### QQ音乐播放依赖:
+> Windows下如果缺少m4a的解码器需要下载 <a href="https://github.com/Nevcairiel/LAVFilters/releases">LAV Filters</a>
+> Linux 需要下载 <a href="https://gstreamer.freedesktop.org/">GStreamer</a>
+
 
 #### 存在的问题:
 > 目前没有某项音乐的详细信息。<br />

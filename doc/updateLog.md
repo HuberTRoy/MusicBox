@@ -1,3 +1,10 @@
+## 2017/9/25 更新: <br />
+    0. 添加对QQ音乐搜索的支持。
+    1. 正确安装解码器现在可播放QQ音乐。
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
+
+
 ## 2017/9/24 更新: <br />
     0. 添加对QQ音乐歌单的支持。
     1. QQ音乐的歌曲是m4a格式，需要能解m4a格式的解码器才能正常播放。
