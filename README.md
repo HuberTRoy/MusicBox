@@ -15,7 +15,7 @@
 > `sudo apt-get install libqt5multimedia5-plugins`
 
 ### QQ音乐播放依赖:
-> Windows下如果缺少m4a的解码器需要下载 <a href="https://github.com/Nevcairiel/LAVFilters/releases">LAV Filters</a>
+> Windows下如果缺少m4a的解码器需要下载 <a href="https://github.com/Nevcairiel/LAVFilters/releases">LAV Filters</a> <br>
 > Linux 需要下载 <a href="https://gstreamer.freedesktop.org/">GStreamer</a>
 
 
@@ -34,7 +34,7 @@
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
 
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/8.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/23.jpg"/>
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
 

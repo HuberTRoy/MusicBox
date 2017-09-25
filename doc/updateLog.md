@@ -2,7 +2,7 @@
     0. 添加对QQ音乐搜索的支持。
     1. 正确安装解码器现在可播放QQ音乐。
 
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/23.jpg"/>
 
 
 ## 2017/9/24 更新: <br />
