@@ -8,6 +8,7 @@ from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QT
 from netEaseSingsWidgets import PlaylistButton
 from netEaseApi import netease
 from xiamiApi import xiami
+from qqApi import qqApi
 # import xiamiApi
 import addition
 
@@ -396,7 +397,7 @@ class ConfigSearchArea(QObject):
         
         self.transTime = addition.itv2time
         
-        self.searchEngineers = {'网易云': netease, '虾米': xiami}
+        self.searchEngineers = {'网易云': netease, '虾米': xiami, 'QQ': qqApi}
 
         self.musicList = []
         self.noContents = "很抱歉 未能找到关于<font style='text-align: center;' color='#23518F'>“{0}”</font>的{1}。"
@@ -407,6 +408,7 @@ class ConfigSearchArea(QObject):
         self.searchArea.contentsTab.tabBarClicked.connect(self.searchBy)
         self.searchArea.neteaseSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
         self.searchArea.xiamiSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+        self.searchArea.qqSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
     
     def searchBy(self, index):
         currentWidgetName = self.searchArea.contentsTab.tabText(index)
@@ -426,7 +428,7 @@ class ConfigSearchArea(QObject):
 
             if name == '网易云':
                 songsDetail = {i:'http' for i in songsIds}
-            elif name == '虾米':
+            elif name == '虾米' or name == 'QQ':
                 songsDetail = {i['id']:i['mp3Url'] for i in data['songs']}
 
             # 进行重新编辑方便索引。

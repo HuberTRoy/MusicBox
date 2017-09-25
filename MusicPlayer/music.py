@@ -455,6 +455,9 @@ class SearchArea(ScrollArea):
         self.xiamiSearchFrame = XiamiSearchResultFrame(self)
         self.contentsTab.addTab(self.xiamiSearchFrame, "虾米")
 
+        self.qqSearchFrame = QQSearchResultFrame(self)
+        self.contentsTab.addTab(self.qqSearchFrame, 'QQ')
+
     # 功能。
     def setText(self, text):
         self.text = text

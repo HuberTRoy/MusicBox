@@ -1,7 +1,7 @@
 # coding = utf-8
 
 import json
-
+import urllib.parse
 
 from apiRequestsBase import HttpRequest, ignored
 
@@ -36,6 +36,8 @@ class QQApi(HttpRequest):
 
         return html.text
 
+    # copy from listen1.
+    # https://github.com/listen1/listen1/blob/master/listen1/replay/qq.py
     def _get_qqtoken(self):
         token_url = 'http://base.music.qq.com/fcgi-bin/fcg_musicexpress.fcg?' + \
             'json=3&guid=3768717388&g_tk=938407465&loginUin=0&hostUin=0&' + \
@@ -50,6 +52,13 @@ class QQApi(HttpRequest):
             return json.loads(data)
         return {'key': '1', 'sip': [False]}
 
+    def _getImgUrl(self, mid):
+        imgUrl = 'https://y.gtimg.cn/music/photo_new/'
+        return imgUrl + 'T002R300x300M000' + mid + '.jpg'
+
+    def _getSongUrl(self, mid):
+        return '{0}C400{1}.m4a?vkey={2}&guid={3}'.format(self.sip, mid, self.key, self.guid)
+
     def playList(self, ein=29):
         """
         ein控制返回的歌单。
@@ -61,7 +70,7 @@ class QQApi(HttpRequest):
         '&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0&categoryId=10000000&'+\
         'sortId=5&sin=30&ein={0}'.format(ein)
 
-        response = self.httpRequest(url, method='GET')
+        response = self.httpRequest(url, method='GET', headers=self.headers)
 
         with ignored():
             data = json.loads(response[len('getPlaylist('):-len(')')])
@@ -77,38 +86,75 @@ class QQApi(HttpRequest):
         
         response = self.httpRequest(url, method='GET', headers=self.playlistHeaders)
         
-        # with ignored():
-        data = json.loads(response[len('playlistinfoCallback('):-len(')')])
-        data = data['cdlist'][0]
+        with ignored():
+            data = json.loads(response[len('playlistinfoCallback('):-len(')')])
+            data = data['cdlist'][0]
 
-        newDatas = {}
-        newDatas['trackCount'] = data['total_song_num']
-        newDatas['name'] = data['dissname']
-        newDatas['creator'] = {'nickname': data['nick']}
-        newDatas['description'] = data['desc']
-        songs = data['songlist']
+            newDatas = {}
+            newDatas['trackCount'] = data['total_song_num']
+            newDatas['name'] = data['dissname']
+            newDatas['creator'] = {'nickname': data['nick']}
+            newDatas['description'] = data['desc']
+            songs = data['songlist']
 
-        imgUrl = 'https://y.gtimg.cn/music/photo_new/'
+            # imgUrl = 'https://y.gtimg.cn/music/photo_new/'
 
-        for i in songs:
-            i['name'] = i['songname']
-            i['artists'] = [{'name': ';'.join([x['name'] for x in i['singer']])}]
-            i['duration'] = int(i['interval']) * 1000
-            i['album'] = {'blurPicUrl': imgUrl + 'T002R300x300M000' + i['albummid'] + '.jpg'}
-            i['mp3Url'] = '{0}C400{1}.m4a?vkey={2}&guid={3}'.format(self.sip, i['songmid'], self.key, self.guid)
-            i['lyric'] = 'qq'
+            for i in songs:
+                i['name'] = i['songname']
+                i['artists'] = [{'name': ';'.join([x['name'] for x in i['singer']])}]
+                i['duration'] = int(i['interval']) * 1000
+                # i['album'] = {'blurPicUrl': imgUrl + 'T002R300x300M000' + i['albummid'] + '.jpg'}
+                i['album'] = {'blurPicUrl': self._getImgUrl(i['albummid'])}
+                # i['mp3Url'] = '{0}C400{1}.m4a?vkey={2}&guid={3}'.format(self.sip, i['songmid'], self.key, self.guid)
+                i['mp3Url'] = self._getSongUrl(i['songmid'])
+                i['lyric'] = 'qq'
 
-        newDatas['tracks'] = songs
+            newDatas['tracks'] = songs
 
-        return newDatas
+            return newDatas
 
         return False
 
+    def search(self, key):
+        url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?ct=24&qqmusic_ver=1298&'+\
+                   'new_json=1&remoteplace=txt.yqq.center&searchid=43541888870417375&t=0&aggr=1'+\
+                   '&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=50&'+\
+                   'w={0}'.format(urllib.parse.quote(key))+\
+                   '&g_tk=5381&jsonpCallback=searchCallbacksong6064&loginUin=0&hostUin=0&'+\
+                   'format=jsonp&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0'
+
+        response = self.httpRequest(url, method='GET')
+
+        with ignored():
+            data = json.loads(response[len('searchCallbacksong6064('):-len(')')])
+            
+            data = data['data']['song']
+
+            newDatas = {}
+            newDatas['songCount'] = data['curnum'] - 1
+            songs = []
+            for i in data['list']:
+                songs.append({ 'name': i['name'],
+                                                  'ar': [{'name': ';'.join([x['name'] for x in i['singer']])}],
+                                                  'al': {'picUrl': self._getImgUrl(i['album']['mid'])},
+                                                  'dt': i['interval'] * 1000,
+                                                  'id': i['id'],
+                                                  # 当然这里不是mp3，为了统一接口这样写。
+                                                  'mp3Url': self._getSongUrl(i['mid']),
+                                                  'lyric': 'qq'
+                    })
+
+            newDatas['songs'] = songs
+            
+            return newDatas 
+
+        return False
 
 qqApi = QQApi()
 
 
 if __name__ == '__main__':
+    pass
     # a = qqApi.playList(29)
     # http://dl.stream.qqmusic.qq.com/
     # C400 0000HZ4N01bJ8a.m4a
@@ -117,10 +163,14 @@ if __name__ == '__main__':
     # ?vkey=1B6C73D1685155EBB75D36995A81FD2DEFEA2BA30389B99675EDDB367BF4FFCFC075B63FBFFA9F4642A411C02A248FEF24E91379DBDEBA7D&guid=780782017&uin=0&fromtag=66
     # a = qqApi._get_qqtoken()
     # print(qqApi.key, qqApi.sip)    
-    a = qqApi.getPlaylist(3581667044)
-    for i in a['tracks']:
+    a = qqApi.search("故梦")
+    print(a)
+    for i in a:
         print(i)
-        # print(i['dissname'])
+    #     print(a[i])
+    # print(len(a['list']))
+        # print(i['d
+        # issname'])
         # print(i['dissid'])
 
     # for i in a:
