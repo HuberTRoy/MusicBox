@@ -1,14 +1,11 @@
 # MusicPlayer
-## 界面以网易云音乐为模板，资源整合多家音乐网站(目前网易云/虾米/QQ音乐)，( • ̀ω•́ )✧~。
+## 界面以网易云音乐为模板，资源整合多家音乐网站(目前网易云/虾米/QQ音乐)， ( • ̀ω•́ )✧~。
 
 ### 安装依赖:
 #### 有用到异步库，需更新到py3.5.
 > Python3.5+ <br />
 > PyQt5.5+ <br />
-> requests. -> `pip install requests`<br /> 
-> eyed3 0.8 (0.8.1需要额外的包。) -> `pip install eyed3==0.8` <br />
-> crypto/cryptodome. -> `pip install pycryptodome` Or `pip install pycryptodomex`<br />
-> quamash -> `pip install quamash` <br />
+> pip install -r requirements.txt
 
 #### \*nix额外依赖:
 > `sudo apt-get install pyqt5.qtmultimedia` <br />
