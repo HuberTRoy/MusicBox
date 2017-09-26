@@ -12,7 +12,11 @@
 
 __author__ = 'cyrbuzz'
 
+import os
 import sys
+import os.path
+
+os.chdir(os.path.split(os.path.realpath(__file__))[0])
 
 sys.path.append('widgets')
 sys.path.append('networks')
