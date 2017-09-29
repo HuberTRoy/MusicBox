@@ -17,10 +17,11 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMed
 
 import addition
 
-from base import (checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox, pickle, PicLabel, pyqtSignal,  
-                                     QTextEdit,  ScrollArea, VBoxLayout)
+from base import (blur, checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox, 
+                                     pickle, PicLabel, pyqtSignal,  QTextEdit,  ScrollArea, VBoxLayout)
 # ../features
 from asyncBase import aAsync, toTask
+# ../apis
 from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
@@ -526,8 +527,20 @@ class CurrentMusic(QFrame):
 
     def setDetailInfo(self):
         title = self.shortInfo.musicName.text()
-        self.detailInfo.titleLabel.setText(title)
         
+        picSrc = self.shortInfo.musicPic.getSrc()
+        
+        blurSrc = blur(picSrc)
+
+        self.detailInfo.titleLabel.setText(title)
+        if blurSrc:
+            self.detailInfo.lyricFrames.setStyleSheet('''
+            QFrame#lyricFrame {{
+                background-color: rgba(25, 27, 31, 100%);
+                border-image: url({0});
+            }}
+                '''.format(blurSrc))
+
         self.showLyric()
 
     def getDetailInfo(self):
@@ -542,7 +555,7 @@ class CurrentMusic(QFrame):
 
         self.showDetail.setStartValue(QRect(x, y, self.width(), self.height()))
         # 获取顶层父窗口的长度。
-        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height()+2, self.grandparent.width(), self.grandparent.mainContent.height()))
+        self.showDetail.setEndValue(QRect(0, self.grandparent.header.height()+3, self.grandparent.width(), self.grandparent.mainContent.height()))
         self.showDetail.setDuration(300)
         self.showDetail.setEasingCurve(QEasingCurve.InBack)
 
@@ -600,9 +613,9 @@ class CurrentMusic(QFrame):
         # 待优化。
         # 问题如上所说。
         # value = self.detailInfo.verticalScrollBar().value()
-        maxValue = round(self.detailInfo.maximumValue()/self.count)*self.order
+        maxValue = round(self.detailInfo.lyricFrames.maximumValue()/self.count)*self.order
         # for i in range(value, maxValue):
-        self.detailInfo.verticalScrollBar().setValue(maxValue)
+        self.detailInfo.lyricFrames.verticalScrollBar().setValue(maxValue)
 
     def unLightLyric(self):
         if self.order < 0:
@@ -763,8 +776,6 @@ class CurrentMusicDetail(ScrollArea):
     """
     def __init__(self, parent):
         super(CurrentMusicDetail, self).__init__()
-        # with open('QSS/currentMusic.qss', 'r', encoding='utf-8') as f:
-        #     self.setStyleSheet(f.read())
 
         self.setObjectName('detail')
         self.hide()
@@ -773,6 +784,10 @@ class CurrentMusicDetail(ScrollArea):
         self.topLayout = HBoxLayout()
         self.topMainLayout = VBoxLayout()
         self.topHeaderLayout = HBoxLayout()
+
+        self.lyricFrames = ScrollArea()
+        self.lyricFrames.frame.setObjectName('lyricFrame')
+        self.lyricFramesLayout = VBoxLayout(self.lyricFrames.frame)
 
         # 为歌词创建索引方便删除。
         self.allLyrics = []
@@ -808,10 +823,11 @@ class CurrentMusicDetail(ScrollArea):
         self.topHeaderLayout.addWidget(self.recoveryButton)
         self.topHeaderLayout.addSpacing(50)
         self.topMainLayout.addSpacing(30)
+        self.topMainLayout.addWidget(self.lyricFrames)
 
     def addLyricLabel(self, label):
 
-        HStretchBox(self.topMainLayout, label)
+        HStretchBox(self.lyricFramesLayout, label)
         
         self.allLyrics.append(label)
 
@@ -820,8 +836,8 @@ class CurrentMusicDetail(ScrollArea):
             i.deleteLater()
         self.allLyrics = []
 
-        for i in range(3, self.topMainLayout.count()):
-            self.topMainLayout.takeAt(i)
+        for i in range(self.lyricFramesLayout.count()):
+            self.lyricFramesLayout.takeAt(i)
 
 
 # 真 · 播放器，用于播放音频。

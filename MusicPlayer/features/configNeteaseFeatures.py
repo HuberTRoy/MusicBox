@@ -293,6 +293,6 @@ class _PicThreadTask(QRunnable):
         pic.loadFromData(content)
         # 缩小到合适的大小会让QT合理的利用内存资源。
         pic = pic.scaled(180, 180)
-        a = pic.save("cache/{0}".format(names), 'png')
+        a = pic.save("cache/{0}".format(names), 'jpg')
         self.queue.put([self.widget, "QLabel#picLabel{border-image: url(cache/%s)}"%(names)])
 

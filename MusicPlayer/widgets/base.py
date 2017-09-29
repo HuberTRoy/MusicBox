@@ -290,13 +290,14 @@ class PicLabel(QLabel):
         super(PicLabel, self).__init__()
         global picsThreadPool
 
+        self.src = None
+
         self.width = width
         self.height = height
 
         self.pixMask = None
         if pixMask:
             self.pixMask = pixMask
-        
         if src:
             self.setSrc(src)
 
@@ -312,13 +313,16 @@ class PicLabel(QLabel):
 
             # names = str(src[src.rfind('/')+1:])
             names = makeMd5(src)
+            localSrc = cacheFolder+'/'+names
             if names in cacheList:
-                self.setSrc(cacheFolder+'/'+names)
+                self.setSrc(localSrc)
+                self.src = localSrc
                 return
 
             task = GetPicture(self, src)
             picsThreadPool.start(task)
         else:
+            self.src = src
             pix = QPixmap(src)
             pix.load(src)
             pix = pix.scaled(self.width, self.height)
@@ -330,6 +334,9 @@ class PicLabel(QLabel):
 
             self.setPixmap(pix)
 
+    def getSrc(self):
+        """返回该图片的地址。"""
+        return self.src
 
 class GetPicture(QRunnable):
 
@@ -359,8 +366,11 @@ def __addPic():
 
     pic = QPixmap()
     pic.loadFromData(data[1])
+    localSrc = cacheFolder+'/'+data[2]
+    pic.save(localSrc, 'jpg')
     pic = pic.scaled(width, height)
-    pic.save(cacheFolder+'/'+data[2], 'png')
+
+    widget.src = localSrc
 
     # 上遮罩。
     if widget.pixMask:
@@ -374,6 +384,32 @@ def __addPic():
 
 
 picsQueue.add.connect(__addPic)
+
+
+# 图片模糊化处理函数。
+try:
+    # from PIL import Image, ImageFilter
+    noPIL = False
+except ImportError:
+    noPIL = True
+
+
+# 本来想做图片虚化然后显示的效果，
+# 发现显示出来比较丑。
+def blur(source):
+    return False
+
+# def blur(source:str):
+#     """接受图片路径，返回处理后的图片路径。"""
+#     if noPIL:
+#         return False
+
+#     image = Image.open(source)
+#     image = image.filter(ImageFilter.GaussianBlur(radius=30))
+#     saveName = source + '_blur.jpg'
+#     image.save(saveName)
+
+#     return saveName
 
 
 if __name__ == '__main__':
