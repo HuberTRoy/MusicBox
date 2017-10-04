@@ -7,6 +7,11 @@ $ git clone https://github.com/HuberTRoy/MusicPlayer
 $ (sudo) python(3) setup.py install
 ```
 
+### 运行:
+```
+$ (sudo) musicplayer
+```
+
 ### 安装依赖:
 > Python3.5+ <br />
 > PyQt5.5+ <br />
