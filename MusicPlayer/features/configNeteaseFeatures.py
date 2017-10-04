@@ -176,7 +176,7 @@ class ConfigNetEase(QObject):
         # 由于是两次url请求，稍微变得有点慢。
         # self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(self.singsIds)}
         # self.singsUrls = [self.singsUrls[i] for i in self.singsIds]   
-        self.singsUrls = ['http' for i in self.singsIds]
+        self.singsUrls = ['http{0}'.format(i) for i in enumerate(self.singsIds)]
 
     def setRequestsDetail(self):
         result = self.reqResult

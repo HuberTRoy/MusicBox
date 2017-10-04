@@ -123,7 +123,7 @@ class ConfigHeader(QObject):
         else: 
             songsIds = [i['id'] for i in self.result['songs']]
 
-            self.songsDetail = {i:'http' for i in songsIds}
+            self.songsDetail = {j:'http{0}'.format(i) for i, j in enumerate(songsIds)}
            
             # 进行重新编辑方便索引。
             songs = self.result['songs']
@@ -330,7 +330,7 @@ class ConfigNavigation(QObject):
         # data = yield from future
         # self.singsUrls = {i['id']:i['url'] for i in data}
         # self.singsUrls = [self.singsUrls[i] for i in singsIds]
-        self.singsUrls = ['http' for i in singsIds]
+        self.singsUrls = ['http{0}'.format(i) for i, j in enumerate(singsIds)]
 
         self.detailFrame.config.setupDetailFrames(self.result, self.singsUrls, singsIds)
         self.detailFrame.picLabel.setSrc(self.coverImgUrl)
