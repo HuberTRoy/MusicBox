@@ -1,8 +1,13 @@
 # MusicPlayer
 ## 界面以网易云音乐为模板，资源整合多家音乐网站(目前网易云/虾米/QQ音乐)， ( • ̀ω•́ )✧~。
 
+### 安装:
+```
+$ git clone https://github.com/HuberTRoy/MusicPlayer
+$ (sudo) python(3) setup.py install
+```
+
 ### 安装依赖:
-#### 有用到异步库，需更新到py3.5.
 > Python3.5+ <br />
 > PyQt5.5+ <br />
 > pip install -r requirements.txt

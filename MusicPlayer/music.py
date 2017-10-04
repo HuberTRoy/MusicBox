@@ -16,12 +16,12 @@ import os
 import sys
 import os.path
 
-os.chdir(os.path.split(os.path.realpath(__file__))[0])
-
-sys.path.append('widgets')
-sys.path.append('networks')
-sys.path.append('features')
-sys.path.append('apis')
+myFolder = os.path.split(os.path.realpath(__file__))[0]
+sys.path = [os.path.join(myFolder, 'widgets'),
+os.path.join(myFolder, 'networks'),
+os.path.join(myFolder, 'features'),
+os.path.join(myFolder, 'apis')
+] + sys.path
 
 import asyncio
 
@@ -51,6 +51,9 @@ from configNativeFeatures import ConfigNative
 from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
 from configXiamiFeatures import ConfigXiami
 from configQQFeatures import ConfigQQ
+
+
+os.chdir(myFolder)
 
 
 # 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
@@ -468,7 +471,7 @@ class SearchArea(ScrollArea):
         self.titleLabel.setText("搜索<font color='#23518F'>“{0}”</font><br>".format(self.text))
 
 
-if __name__ == '__main__':
+def start():
     app = QApplication(sys.argv)
 
     # 将Qt事件循环写到asyncio事件循环里。
@@ -489,4 +492,28 @@ if __name__ == '__main__':
     eventLoop.run_forever()
 
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    start()
+    # app = QApplication(sys.argv)
+
+    # # 将Qt事件循环写到asyncio事件循环里。
+    # # QEventLoop不是Qt原生事件循环，
+    # # 是被asyncio重写的事件循环。
+    # eventLoop = QEventLoop(app)
+    # asyncio.set_event_loop(eventLoop)
+    # main = Window()
+
+    # main.show()
+    # # 当前音乐的显示信息。
+    # # 因为需要布局之后重新绘制的宽高。
+    # # 这个宽高会在show之后才会改变。
+    # # 需要获取宽，高并嵌入到父窗口里。
+    # main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
+    # main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
+    
+    # eventLoop.run_forever()
+
+    # sys.exit(0)
     
