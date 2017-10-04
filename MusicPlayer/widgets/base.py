@@ -6,8 +6,8 @@ from queue import Queue
 # 这是一个次级目录。
 import os
 import sys
-sys.path.append('..')
-sys.path.append('../networks')
+# sys.path.append('..')
+# sys.path.append('../networks')
 
 import pickle
 import hashlib
@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
-from networks.network import Requests
+from network import Requests
 
 
 # 保存cookies的基础装饰器用于检测是否存在这个文件。
