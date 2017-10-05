@@ -7,8 +7,8 @@ import os
 import network
 import addition
 
-from base import (QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
-                                     QTableWidgetItem, QThreadPool, QueueObject, makeMd5)
+from base import (QAction, QCursor, QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
+                                     QMenu, QTableWidgetItem, QThreadPool, QueueObject, makeMd5)
 from netEaseApi import netease
 from netEaseSingsWidgets import OneSing, PlaylistButton
 
@@ -211,17 +211,32 @@ class ConfigDetailSings(QObject):
         self.detailSings = parent
         self.musicList = []
 
+        self.currentIndex = 0
+
         self.grandparent = self.detailSings.parent
         self.player = self.grandparent.playWidgets.player
         self.playList = self.grandparent.playWidgets
         self.currentMusic = self.grandparent.playWidgets.currentMusic
         self.transTime = transTime
 
+        self.detailSings.singsTable.contextMenuEvent = self.singsFrameContextMenuEvent
+
         self.bindClicked()
+        self.setContextMenu()
 
     def bindClicked(self):
         self.detailSings.playAllButton.clicked.connect(self.addAllMusicToPlayer)
         self.detailSings.singsTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+
+    def setContextMenu(self):
+        self.actionNextPlay = QAction('下一首播放', self)
+        self.actionNextPlay.triggered.connect(self.addToNextPlay)
+
+    def addToNextPlay(self):
+        data = self.musicList[self.currentIndex]
+        self.player.setAllMusics([data])
+        self.playList.playList.addMusic(data)
+        self.playList.playList.addPlayList(data['name'], data['author'], data['time'])
 
     def addAllMusicToPlayer(self):
         self.playList.setPlayerAndPlaylists(self.musicList)
@@ -276,7 +291,21 @@ class ConfigDetailSings(QObject):
 
         self.playList.setPlayerAndPlayList(data)
 
+    def singsFrameContextMenuEvent(self, event):
+        item = self.detailSings.singsTable.itemAt(self.detailSings.singsTable.mapFromGlobal(QCursor.pos()))
+        self.menu = QMenu(self.detailSings.singsTable)
+
+        self.menu.addAction(self.actionNextPlay)
         
+        try:
+            self.currentIndex = item.row() - 1
+        # 在索引是最后一行时会获取不到。
+        except:
+            self.currentIndex = -1
+
+        self.menu.exec_(QCursor.pos())
+    
+
 class _PicThreadTask(QRunnable):
     # finished = pyqtSignal(QFrame, str)
     def __init__(self, queue, widget=None, url=None):
