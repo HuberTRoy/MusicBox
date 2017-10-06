@@ -39,7 +39,8 @@ from native import NativeMusic
 from addition import SearchLineEdit
 from systemTray import SystemTray
 from loginFrames import LoginBox
-from netEaseSingsFrames import DetailSings, NetEaseSingsArea, NetEaseSearchResultFrame
+from singsFrameBase import DetailSings
+from netEaseSingsFrames import  NetEaseSingsArea, NetEaseSearchResultFrame
 from netEaseSingsWidgets import PlaylistButton
 from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
 from qqSingsFrames import QQSingsArea, QQSearchResultFrame
@@ -306,19 +307,16 @@ class Navigation(QScrollArea):
         super(Navigation, self).__init__(parent)
         self.parent = parent
         self.frame = QFrame()
-        # self.setMaximumHeight(576)
         self.setMaximumWidth(200)
 
         self.setWidget(self.frame)
         self.setWidgetResizable(True)
-        # self.frame.setMaximumWidth(200)
         self.frame.setMinimumWidth(200)
 
         # 定义3个事件函数，方便扩展。
         self.navigationListFunction = self.none
         self.nativeListFunction = self.none
         self.singsFunction = self.none
-
 
         with open('QSS/navigation.qss', 'r') as f:
             style = f.read()
@@ -350,7 +348,6 @@ class Navigation(QScrollArea):
     def setListViews(self):
         """定义承载功能的ListView"""
         self.navigationList = QListWidget()
-        # self.navigationList.setMinimumHeight(110)
         self.navigationList.setMaximumHeight(110)
         self.navigationList.setObjectName("navigationList")
         self.navigationList.addItem(QListWidgetItem(QIcon('resource/music.png'), " 发现音乐"))
@@ -360,7 +357,6 @@ class Navigation(QScrollArea):
 
         self.nativeList = QListWidget()
         self.nativeList.setObjectName("nativeList")
-        # self.nativeList.setMinimumHeight(50)
         self.nativeList.setMaximumHeight(50)
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/notes.png')," 本地音乐"))
 
@@ -415,9 +411,6 @@ class MainContent(ScrollArea):
 
         self.tab = QTabWidget()
         self.tab.setObjectName("contentsTab")
-        # self.setWidget(self.tab)
-        # self.indexNetEaseSings = NetEaseSingsArea(self)
-        # self.tab.addTab(self.indexNetEaseSings, "网易云歌单")
 
         self.mainLayout = QVBoxLayout()
         self.mainLayout.setSpacing(0)
@@ -489,7 +482,8 @@ def start():
     main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
     main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
     
-    eventLoop.run_forever()
+    with eventLoop:
+        eventLoop.run_forever()
 
     sys.exit(0)
 
