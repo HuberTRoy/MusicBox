@@ -3,10 +3,17 @@
 这是一个独立的播放器组件，只需要调用playWidgets里的setPlayerAndPlayList(s)即可播放音乐。
 需要的data类型是{'name': str, 'time': str, 'author': str, music_img: None/url}
 """
+"""
+写法上这个模块比较难懂，界面与功能混合在一块。
+只要在需要播放音乐时调用
+setPlayerAndPlayList(s)设置音乐即可。
+必要时会进行重写。
+"""
 __author__ = 'cyrbuzz'
 
 import re
 import os
+import sys
 import random
 
 from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, 
@@ -16,7 +23,6 @@ from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCu
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 import addition
-
 from base import (blur, checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox, 
                                      pickle, PicLabel, pyqtSignal,  QTextEdit,  ScrollArea, VBoxLayout)
 # ../features
@@ -535,9 +541,8 @@ class CurrentMusic(QFrame):
         self.detailInfo.titleLabel.setText(title)
         if blurSrc:
             self.detailInfo.lyricFrames.setStyleSheet('''
-            QFrame#lyricFrame {{
-                background-color: rgba(25, 27, 31, 100%);
-                border-image: url({0});
+            QScrollArea#lyricScroll {{
+                background-image: url({0});
             }}
                 '''.format(blurSrc))
 
@@ -786,9 +791,10 @@ class CurrentMusicDetail(ScrollArea):
         self.topHeaderLayout = HBoxLayout()
 
         self.lyricFrames = ScrollArea()
+        self.lyricFrames.setObjectName('lyricScroll')
         self.lyricFrames.frame.setObjectName('lyricFrame')
         self.lyricFramesLayout = VBoxLayout(self.lyricFrames.frame)
-
+        # self.lyricFrames.setMaximumHeight(500)
         # 为歌词创建索引方便删除。
         self.allLyrics = []
 
@@ -887,17 +893,13 @@ class Player(QMediaPlayer):
             else:
                 self.playList.addMedias(QMediaContent(QUrl.fromLocalFile(url)), data)
             return True
-        else:
-            return False
-            # self.playMusic()
+        return False
     
     def setAllMusics(self, datas):
-        pass
         self.playList.addAllMedias(datas)
 
     def setIndex(self, index):
         self.playList.setCurrentIndex(index)
-        # self.playMusic()
 
     def allTime(self):
         """返回当前音乐的总时间。（秒）"""
@@ -968,7 +970,6 @@ class Player(QMediaPlayer):
         transedTime = self.transTime(currentTime)
         self.playWidgets.currentTime.setText(transedTime)
         self.timeChanged.emit(transedTime)
-        # print(self.transTime(currentTime))
 
         # position先于duration变化，会出现/0的情况。
         if self.musicTime == 0:
@@ -1202,6 +1203,11 @@ class _MediaPlaylist(QObject):
         self.musics.pop(row)
 
     def next(self):
+        if self.myModel == 4:
+                index = random.randint(0, len(self.musics)-1)
+                self.setCurrentIndex(index)
+                return 
+
         if self.currentIndex + 1 >= len(self.musics):
             self.currentIndex = 0
         else:
@@ -1210,6 +1216,11 @@ class _MediaPlaylist(QObject):
         self.play()
 
     def previous(self):
+        if self.myModel == 4:
+                index = random.randint(0, len(self.musics)-1)
+                self.setCurrentIndex(index)
+                return 
+                
         if self.currentIndex - 1 <= -1:
             self.currentIndex = 0
         else:
@@ -1347,11 +1358,6 @@ class _LyricLabel(QLabel):
     def unLightMe(self):
             self.setText(self.myLyric)
         
-            # self.isLight = True
-        # else:
-        #     if self.isLight:
-        #         self.isLight = False
-
 
 if __name__ == '__main__':
     import sys
