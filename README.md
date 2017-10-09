@@ -17,6 +17,9 @@ $ (sudo) musicplayer
 > PyQt5.5+ <br />
 > pip install -r requirements.txt
 
+### 可能会出现的依赖错误:
+> pycryptodome 若出现安装不上可以用 pip install pycryptodomex安装。
+
 #### \*nix额外依赖:
 > `sudo apt-get install pyqt5.qtmultimedia` <br />
 > `sudo apt-get install libqt5multimedia5-plugins`
