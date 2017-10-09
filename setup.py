@@ -5,10 +5,10 @@ setup(
     version='1.0.0',
     packages=['MusicPlayer'],
     install_requires=[
-        'requests',
-        'quamash',
-        'pycrypto',
+        'pycryptodome',
         'eyed3==0.8.0',
+        'quamash',
+        'requests',
     ],
     package_data={
         '': ['apis/*.py',
