@@ -4,7 +4,10 @@ import os
 import glob
 import os.path
 
-import eyed3
+try:
+    import eyed3
+except ImportError:
+    print('eyed3没有成功加载或安装，请不要使用本地音乐功能！')
 
 from base import QFileDialog, QObject, QTableWidgetItem
 from addition import itv2time
@@ -62,18 +65,16 @@ class ConfigNative(QObject):
             for i in enumerate(mediaFiles):
                 
                 music = eyed3.load(i[1])
-                if not music.tag:
+                if not music:
                     self.singsTable.removeRow(i[0])
                     continue
 
                 name = music.tag.title
                 if not name:
                     name = i[1].split('\\')[-1][:-4]
-
                 author = music.tag.artist
                 if not author:
                     author = '未知歌手'
-
                 time = itv2time(music.info.time_secs)
 
                 self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
