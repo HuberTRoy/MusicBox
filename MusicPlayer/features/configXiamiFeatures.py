@@ -15,7 +15,11 @@ class ConfigXiami(ConfigNetEase):
         self.page = 1
     
     def getSings(self):
-        for i in self.api.playList(page=self.page):
+        result = self.api.playList(page=self.page)
+        if not result:
+            return False
+            
+        for i in result:
             self.result.append(i)
             self.singNames.append(i['collect_name'])
             self.singPicUrls.append(i['logo'])

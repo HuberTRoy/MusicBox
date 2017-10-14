@@ -34,7 +34,10 @@ class QQApi(HttpRequest):
     def httpRequest(self, *args, **kwargs):
         html = super(QQApi, self).httpRequest(*args, **kwargs)
 
-        return html.text
+        with ignored():
+            return html.text
+
+        return ''
 
     # copy from listen1.
     # https://github.com/listen1/listen1/blob/master/listen1/replay/qq.py
@@ -85,7 +88,6 @@ class QQApi(HttpRequest):
         'format=jsonp&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0'
         
         response = self.httpRequest(url, method='GET', headers=self.playlistHeaders)
-        
         with ignored():
             data = json.loads(response[len('playlistinfoCallback('):-len(')')])
             data = data['cdlist'][0]

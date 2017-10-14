@@ -13,7 +13,11 @@ class ConfigQQ(ConfigNetEase):
         self.ein = 29
     
     def getSings(self):
-        for i in self.api.playList(ein=self.ein):
+        result = self.api.playList(ein=self.ein)
+        if not result:
+            return 
+            
+        for i in result:
             self.result.append(i)
             self.singNames.append(i['dissname'])
             self.singPicUrls.append(i['imgurl'])

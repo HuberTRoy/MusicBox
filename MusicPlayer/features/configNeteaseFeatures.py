@@ -108,7 +108,11 @@ class ConfigNetEase(QObject):
 
     def getSings(self):
         """请求一波歌单，一次30个。设置offset会设置请求量。"""
-        for i in self.api.all_playlist(offset=self.offset):
+        result = self.api.all_playlist(offset=self.offset)
+        if not result:
+            return 
+
+        for i in result:
             self.result.append(i)
             self.singNames.append(i['name'])
             self.singPicUrls.append(i['coverImgUrl'])
@@ -116,9 +120,11 @@ class ConfigNetEase(QObject):
   
     """测试线程池方法。"""
     def threadSetSings(self):
+        if not self.result:
+            return 
+            
         for i in range(30):
             i += self.offset
-            # picName = self.singPicUrls[i][self.singPicUrls[i].rfind('/')+1:]
             picName = makeMd5(self.singPicUrls[i])
             frame = OneSing(self.gridRow, self.gridColumn, self.playlistIds[i], self, picName)
             frame.clicked.connect(self.startRequest)
@@ -169,27 +175,20 @@ class ConfigNetEase(QObject):
         reqResult = self.api.details_playlist(ids)
         self.reqResult = reqResult
 
-        # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
+        # 网易云此处不再返回歌曲地址，由之后播放时单独获取。
         self.singsIds = [i['id'] for i in reqResult['tracks']]
 
-        # 此处还有些问题。
-        # 由于是两次url请求，稍微变得有点慢。
-        # self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(self.singsIds)}
-        # self.singsUrls = [self.singsUrls[i] for i in self.singsIds]   
         self.singsUrls = ['http{0}'.format(i) for i in enumerate(self.singsIds)]
 
     def setRequestsDetail(self):
         result = self.reqResult
 
         self.detailFrame.config.setupDetailFrames(result, self.singsUrls, self.singsIds)
-        # self.detailFrame.picLabel.setStyleSheet('''QLabel {border-image: url(cache/%s); padding: 10px;}'''%(self.picName))
         self.detailFrame.picLabel.setSrc('cache/{0}'.format(self.picName))
         self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
         
         # 隐藏原来的区域，显示现在的区域。
         self.mainContents.mainContents.setCurrentIndex(1)
-
-        # self.reqResult = self.cache
 
     # 事件。
     def sliderDownEvent(self):
@@ -315,7 +314,6 @@ class _PicThreadTask(QRunnable):
         self.url = url
 
     def run(self):
-        # names = str(self.url[self.url.rfind('/')+1:])
         names = makeMd5(self.url)
         content = network.Requests.get(self.url).content
         pic = QPixmap()

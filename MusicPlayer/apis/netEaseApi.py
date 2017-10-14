@@ -6,7 +6,7 @@ __author__ = 'cyrbuzz'
 import json
 import urllib.parse
 
-from apiRequestsBase import HttpRequest
+from apiRequestsBase import HttpRequest, ignored
 from netEaseEncode import encrypted_request, hashlib
 
 
@@ -15,8 +15,9 @@ class NetEaseWebApi(HttpRequest):
         2015年写的，函数名略混乱，不影响使用，暂时不修改。
     """
     cookies = {
-            'appver': '2.0.3.131777',
+            'appver': '2.1.2.184499',
             'os': 'pc',
+            'channel': 'netease',
         }
     
     default_timeout = 10
@@ -28,6 +29,15 @@ class NetEaseWebApi(HttpRequest):
         self.headers['Referer'] = 'http://music.163.com'
         self.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
+        self.vertifyHeaders = self.headers.copy()
+        self.vertifyHeaders['Host'] = 'ac.dun.163yun.com'
+        self.vertifyHeaders['Accept'] = 'image/png,image/*;q=0.8,*/*;q=0.5'
+        self.vertifyHeaders['Content-Type'] = ''
+
+        self.urlEamilHeaders = self.headers.copy()
+        self.urlEamilHeaders['Referer'] = ''
+        self.urlEamilHeaders['Origin'] = 'orpheus://orpheus' 
+
     def httpRequest(self, *args, **kwargs):
         data = kwargs.get('data')
         if data:
@@ -35,10 +45,10 @@ class NetEaseWebApi(HttpRequest):
 
         html = super(NetEaseWebApi, self).httpRequest(*args, **kwargs)
 
-        try:
+        with ignored():
             return json.loads(html.text)
-        except:
-            return {'code':0}
+        
+        return False
 
     def login(self, username, password):
         """默认记住登陆。"""
@@ -59,6 +69,10 @@ class NetEaseWebApi(HttpRequest):
         email = True if '@' in username else False
         if email:
             data['username'] = username
+            # https://ac.dun.163yun.com/v1/d?d=nsHeOgdOdpeTDoF4zMLze4xEBfrKIZ2fQzMlHTn2VTgJt%2BkQAVDZ%2B9L5X1DQ%2BkjffAzVQgCLt0EE60l6qm4OGM%2F7FnsP7OO%2B3eZNebXpl6qZt7Q36oeUCUM%2BQcfaX1lsYvHM9vsVpXIJAok6el%2F9uwfX%2BtvF056U%5C8XllLj62g0K22jv2ZYZ8DNU7ws5YSYo%5CRGMRrcJisIyYtP8pbAqiGqi3ZnV%5CLM9568YMdDomJJZc77BTD%5CVwUsj%2Fgv76g%2FCT885OtsSfkOhMVmIESXztxyrLyxt52Vs1wOG%5CyIeR6x%2BaJsYmbjTJXQ2M2DlOv5jqe3PyqHBp0Ar%2FG1ueK5xJve3A0QAS9s4qMXG%2FIpiXvjUT6jA28GNxw3ZFzwNY1IinR%2FH4CooLpNP0bokXAq8Z%2FooRZRZg4uvPa9jHR7l2LlRaTO0oIYvAPvQshOyTq%5CAfUVuLtjyhmkPjgdJNpguxGOKVGqghlYwcrmKuTU8ytT2qxb5x0opJneyEbvGor1LcRC5m9%5CdKlhJ7KbLjdKQGX7l4nHdMe9OS2ViwGXaqHIVKS1Zrck2UsYu1AAjaVOXSOO0Y%2FqhTFHEdrT11vxAf6hRjEdZS8nJxHxv5zsvpx2XXUBUikMum81uF2cdwc0PF1YoITmlGA1IbwXGE3mUfV3Ggvk0%5C1djVd8o3C3F%2BOvQ89V0pq4mBbJ1OSiT4%2FV56qPjLYuIX7leuZGkNYlJIhFypeQDa7CvCh%2BBhVCh%2BO3pt%2FVwbFkrZlmoRM%2BdB22H3z%2F%2Bn%2FWW&cb=_jsonp_ssd1507090923068&x.js
+            # https://ac.dun.163yun.com/v1/d?d=FvHNjq2CwM%2FgqdENT6g0AUjuRaNfeeO%5CkX64uXxNGYraS6AVKH0jrEFbxq1y%2BveQPiOClFtY0OqQ8G6OCQuK%2F4zKrVAsaT9XPiPS1%2BhrPj6TT1mX%2BBFFq%2FZafGazTvU13DluLC2Khhid80cbwi95%2BzO4CjubRjNlhJ9VYuoTGErCi8LlSkjUAYplAkfkATJOBQK%2FFg4RAysIEsUpbACTUFqlhQqVL5aBbR8XhN4HooPPOC9L0IY9TFMfI14hhgLc9AiXSq7S5wkjje5fc3tXrfVZqptla8s%2BhFPJNNyKw8IdNJ6Ik9p9aTC8tXkU1yk%2FZeicCMU48zgDvmTjBYVi1xeQ0xxzLZmvA%5C61rJOJNjqC%2Bh0M%2BCy5HtoceoppxfyC4o80YP%5CR3LP5yb03jL89sbqC48mf6a1aTu6d5MnCGnDl17o%2Frk8onMOYLN8YX0Qf3EORGP547CcNlp6ZA83VcwrYGzR%5CYoKbrlLR7dfMb%5CoMusuXm1cGakS6rInXZNQdE%2FFN2OUhlw%5CstCL0UIbw4IsvuwMXl2O5sZhGCejE%2F2%2F1lZ7u57FCHp9BQ4tG5QjJb%2FLQi6V%5CraQLMJxq%5CBuiKbJr7uZrUj4LIq4jsw7jMqmA7o4uM5JMHbzEdg7k%5CsFyM8x9hdeG7owXIDmFuCpfTqiH9wMCZa0DV%2F8m%2BCOuG8q%2F87cGDyvaFlRVoRgnuqQHVE5%2BV5Z6iAMYGtOFQH%2BBLvjPI1cF0yT1twyTR1e0FTnMI3tNjoHH%2Fy%2Fyb1hZCuuIJoJJP%2FWW&cb=_jsonp_ssd1507090962239&x.js
+            # a = '1_ZfeoJYpgEKaPdueAuHxAz56XkZ28JiOG_hUOMgOEgFt1H0Azl4sFFeKjDBIbrhKWD'
+            data['clientToken'] = "1_ZfeoJYpgEKaPdueAuHxAz56XkZ28JiOG_SrSyeuuSjQrobJdGvXFN2Jo4fzHb+oRQ"
         else:
             data['phone'] = username
 
@@ -179,34 +193,4 @@ netease = NetEaseWebApi()
 
 
 if __name__ == '__main__':
-    pass
-
-    main = NetEaseWebApi()
-    req = main.lyric(29401164)
-    # print(req.split('\n'))
-    print(req)
-    # req = {'bindings': [{'userId': 426586128, 'expiresIn': 2147483647, 'type': 1, 'refreshTime': 1502328860, 'url': '', 'id': 3193514993, 'expired': False, 'tokenJsonStr': '{"cellphone":"13792133179","hasPassword":true}'}], 'account': {'whitelistAuthority': 0, 'anonimousUser': False, 'vipType': 0, 'createTime': 1502328860867, 'userName': '1_13792133179', 'tokenVersion': 0, 'status': 0, 'donateVersion': 0, 'salt': '[B@11e3b4cd', 'id': 426586128, 'type': 1, 'ban': 0, 'baoyueVersion': 0, 'viptypeVersion': 0}, 'code': 200, 'profile': {'avatarImgIdStr': '18686200114669622', 'detailDescription': '', 'avatarImgId': 18686200114669622, 'vipType': 0, 'description': '', 'defaultAvatar': True, 'authority': 0, 'backgroundImgIdStr': '109951162868128395', 'birthday': -2209017600000, 'signature': '', 'avatarUrl': 'http://p1.music.126.net/VnZiScyynLG7atLIZ2YPkw==/18686200114669622.jpg', 'followed': False, 'province': 370000, 'remarkName': None, 'city': 370900, 'accountStatus': 0, 'userId': 426586128, 'nickname': 'cyrbuzzi', 'mutual': False, 'expertTags': None, 'djStatus': 0, 'gender': 0, 'backgroundUrl': 'http://p1.music.126.net/2zSNIqTcpHL2jIvU6hG0EA==/109951162868128395.jpg', 'authStatus': 0, 'userType': 0, 'backgroundImgId': 109951162868128395, 'avatarImgId_str': '18686200114669622'}, 'loginType': 1}
-    # req = main.user_playlist(426586128)
-    # req = main.login()
-    # print(req)
-    # print(req)
-    # for i in req:
-        # print(i)
-    # req = main.details_search([139357])
-    # print(req)
-    # req = main.all_playlist()
-    # print(req)
-    # req = main.details_playlist(566527372)
-    # print(req)
-    # req = main.all_playlist(offset=30)
-    # req = main.search("理想三旬")
-
-    # for i in req['songs']:
-    #     print(i)
-    #     print('\n')
-    # print(req['result']['songCount'])
-    # print(req[0])
-    # for i in req:
-        # print(i)
-        # print(req[i])
-    # print(req['creator'])
+    help(netease)
