@@ -1,9 +1,7 @@
 __author__ = 'cyrbuzz'
-# 不要单独运行。
 # 方便扩展，抽象成基类。
-
-from base import (QFrame, Qt, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QTableWidgetItem, 
-                  PicLabel, ScrollArea, TableWidget, VBoxLayout, HBoxLayout)
+from base import (QCursor, QFrame, Qt, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, 
+                                     QGridLayout, QTableWidgetItem, PicLabel, ScrollArea, TableWidget, VBoxLayout, HBoxLayout, pyqtSignal)
 
 import addition
 
@@ -159,3 +157,99 @@ class DetailSings(ScrollArea):
         
         self.frame.setLayout(self.mainLayout)
         
+
+
+class OneSing(QFrame):
+    # 大量创建，这样可以省内存。
+    __solts__ = ('parent', 'ggparent', 'detailFrame', 'row', 'column', 'ids',
+     'picName', 'picLabel', 'nameLabel',
+     'mainLayout',
+     'mousePos',
+     'result','catch',
+     'singsIds', 'singsUrls')
+
+    clicked = pyqtSignal(str, str)
+
+    def __init__(self, row, column, ids=None, parent=None, picName=None):
+        super(OneSing, self).__init__()
+
+        self.setObjectName('oneSing')
+        # 自己的位置信息。
+        self.row = row
+        self.column = column
+        # 歌单号。
+        self.ids = str(ids)
+        # 大图的缓存名。
+        self.picName = picName
+
+        self.setMinimumSize(180, 235)
+
+        self.picLabel = QLabel()
+        self.picLabel.setObjectName('picLabel')
+        self.picLabel.setMinimumSize(180, 180)
+        self.picLabel.setMaximumSize(180, 180)
+
+        self.nameLabel = QLabel()
+        self.nameLabel.setMaximumWidth(180)
+        self.nameLabel.setWordWrap(True)
+
+        self.mainLayout = QVBoxLayout(self)
+
+        self.mainLayout.addWidget(self.picLabel)
+        self.mainLayout.addWidget(self.nameLabel)
+
+    # 功能。
+    def setStyleSheets(self, styleSheet=None):
+        if styleSheet:
+            self.setStyleSheet(styleSheet)
+
+    # 事件。
+    def mousePressEvent(self, event):
+        # 记录下当前鼠标的位置。
+        self.mousePos = QCursor.pos()
+
+    def mouseReleaseEvent(self, event):
+        # 先进行判断，防止误点将鼠标移开后还是会判断为已经点击的尴尬。
+        if QCursor.pos() != self.mousePos:
+            return
+        else:
+            self.clicked.emit(self.ids, self.picName)
+
+
+class PlaylistButton(QPushButton):
+    """
+        提供一个简单点击的歌单自动切换点击状态，点击时会发出hasClicked信号。
+        Args:
+        parent 父类。
+        ids 歌单的ids。
+        coverImgUrl 这个歌单应该包含的图片地址 -> None, url.
+        *args其他作用于原生Button的参数。
+        singsIds 与 singsUrls暂时无用，不提供接受接口。
+
+    """
+    __solts__ = ('parent', 'grandparent', 'ids', 'coverImgUrl', 
+        'catch', 'detailFrame', 'result', 'singsIds', 'singsUrls'
+        )
+
+    hasClicked = pyqtSignal(int, str)
+
+    def __init__(self, parent, ids, coverImgUrl, *args):
+        super(PlaylistButton, self).__init__(*args)
+        self.parent = parent
+        self.grandparent = self.parent.parent
+        
+        self.setCheckable(True)
+        self.setAutoExclusive(True)
+
+        self.ids = ids
+        self.coverImgUrl = coverImgUrl
+
+        self.catch = None
+        self.result = None
+        self.singsIds = None
+        self.singsUrls = None
+
+        self.clicked.connect(self.clickedEvent)
+
+    def clickedEvent(self):
+        self.hasClicked.emit(self.ids, self.coverImgUrl)

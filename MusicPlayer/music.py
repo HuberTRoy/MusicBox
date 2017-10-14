@@ -41,7 +41,6 @@ from systemTray import SystemTray
 from loginFrames import LoginBox
 from singsFrameBase import DetailSings
 from netEaseSingsFrames import  NetEaseSingsArea, NetEaseSearchResultFrame
-from netEaseSingsWidgets import PlaylistButton
 from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
 from qqSingsFrames import QQSingsArea, QQSearchResultFrame
 

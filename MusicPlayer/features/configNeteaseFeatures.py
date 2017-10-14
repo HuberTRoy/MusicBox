@@ -10,7 +10,7 @@ import addition
 from base import (QAction, QCursor, QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
                                      QMenu, QTableWidgetItem, QThreadPool, QueueObject, makeMd5)
 from netEaseApi import netease
-from netEaseSingsWidgets import OneSing, PlaylistButton
+from singsFrameBase import OneSing, PlaylistButton
 
 
 transTime = addition.itv2time

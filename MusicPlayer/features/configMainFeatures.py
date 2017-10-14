@@ -5,7 +5,7 @@ import pickle
 
 from asyncBase import aAsync, toTask
 from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
-from netEaseSingsWidgets import PlaylistButton
+from singsFrameBase import PlaylistButton
 from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
