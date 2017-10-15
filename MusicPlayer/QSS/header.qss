@@ -13,11 +13,11 @@ QPushButton#loginButton:hover {
     color: #DCDDE4;
 }
 
-QPushButton#closeButton, QPushButton#minButton {
+QPushButton#closeButton, QPushButton#minButton, QPushButton#maxButton {
     color: #828487;
 }
 
-QPushButton#closeButton::hover, QPushButton#minButton::hover {
+QPushButton#closeButton::hover, QPushButton#minButton::hover, QPushButton#maxButton::hover {
     color: #DCDDE4;
 }
 

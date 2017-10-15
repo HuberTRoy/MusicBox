@@ -85,13 +85,10 @@ class ConfigHeader(QObject):
         super(ConfigHeader, self).__init__()
         self.header = header
 
-        # self.searchThread = RequestThread(self, self.search, self.searchFinished)
 
         self.loginThread = RequestThread(self, None, self.loginFinished)
         self.loginThread.breakSignal.connect(self.emitWarning)
 
-        # self.loadUserPlaylistThread = RequestThread(self, None, self.loadUserPlaylistFinished)
-        
         self.header.loginBox.connectLogin(self.login)
         
         self.loginInfor = {}
@@ -99,17 +96,28 @@ class ConfigHeader(QObject):
         self.songsDetail = None
         # 用于确定登陆状态。
         self.code = 200
-        
+        # 用于确定是否最大化.   
+        self.isMax = False
+
         self.bindConnect()
         self.loadCookies()
 
     def bindConnect(self):
         self.header.closeButton.clicked.connect(self.header.parent.close)
         self.header.showminButton.clicked.connect(self.header.parent.showMinimized)
+        self.header.showmaxButton.clicked.connect(self.showMaxiOrRevert)
         self.header.loginButton.clicked.connect(self.showLoginBox)
         self.header.prevButton.clicked.connect(self.header.parent.config.prevTab)
         self.header.nextButton.clicked.connect(self.header.parent.config.nextTab)
         self.header.searchLine.setButtonSlot(lambda: self.search())
+
+    def showMaxiOrRevert(self):
+        if self.isMax:
+            self.header.parent.showNormal()
+            self.isMax = False
+        else:
+            self.header.parent.showMaximized()
+            self.isMax = True
 
     @toTask
     def search(self):
@@ -239,9 +247,6 @@ class ConfigNavigation(QObject):
         self.singsFunction = self.none
         
         self.playlists = []
-        # self.playlistThread = RequestThread(self)
-        # self.playlistThread.setTarget(self.requestsDetail)
-        # self.playlistThread.finished.connect(self.setDetail)
 
         self.result = None
         self.singsUrls = None
@@ -377,16 +382,6 @@ class ConfigMainContent(QObject):
     def __init__(self, mainContent):
         super(ConfigMainContent, self).__init__()
         self.mainContent = mainContent
-
-        # self.tab = self.mainContent.tab
-
-        # self.bindConnect()
-
-    # def bindConnect(self):
-        # self.tab.currentChanged.connect(self.tabChanged)
-
-    # def tabChanged(self):
-        # print(self.tab.currentWidget().height())
 
 
 class ConfigSearchArea(QObject):

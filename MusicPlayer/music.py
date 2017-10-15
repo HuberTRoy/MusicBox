@@ -66,9 +66,6 @@ class Window(QWidget):
         self.setWindowIcon(QIcon('resource/format.ico'))
         self.setWindowTitle("Music")
 
-        with open('QSS/window.qss', 'r') as f:
-            self.setStyleSheet(f.read())
-
         self.resize(1022, 670)
 
         self.header = Header(self)
@@ -94,6 +91,9 @@ class Window(QWidget):
         self.setLayouts()
         # 注册功能。
         self.configFeatures()
+
+        with open('QSS/window.qss', 'r') as f:
+            self.setStyleSheet(f.read())
 
     def addAllPlaylist(self):
         self.indexNetEaseSings = NetEaseSingsArea(self.mainContent)
@@ -217,6 +217,10 @@ class Header(QFrame):
         self.showminButton.setObjectName("minButton")
         self.showminButton.setMinimumSize(21, 17)
 
+        self.showmaxButton = QPushButton('□')
+        self.showmaxButton.setObjectName("maxButton")
+        self.showmaxButton.setMaximumSize(16, 16)
+
         self.loginButton = QPushButton("未登录 ▼", self)
         self.loginButton.setObjectName("loginButton")
 
@@ -273,6 +277,7 @@ class Header(QFrame):
         self.mainLayout.addWidget(self.line1)
         self.mainLayout.addSpacing(30)
         self.mainLayout.addWidget(self.showminButton)
+        self.mainLayout.addWidget(self.showmaxButton)
         self.mainLayout.addSpacing(3)
         self.mainLayout.addWidget(self.closeButton)
 

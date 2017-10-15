@@ -39,7 +39,7 @@ class PlayWidgets(QFrame):
 
     def __init__(self, parent=None):
         super(PlayWidgets, self).__init__()
-
+        self.setObjectName('playwidget')
         self.parent = parent
         # 0模式是列表循环。1模式是单曲循环，2模式是随机播放。
         self.module = 0
@@ -922,14 +922,16 @@ class Player(QMediaPlayer):
         # 具体内容看文档:
         # http://doc.qt.io/qt-5/qmediaplayer.html
         if error:
-            musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
-            self.loadRealMusicUrl(musicInfo)
+            try:
+                musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
+                self.loadRealMusicUrl(musicInfo)
+            except:
+                print('尝试重新获取音乐地址出错，请清空或删除无效的音乐信息后重试。')
 
     @toTask
     def loadRealMusicUrl(self, musicInfo):
         # 如果有个Url出错，比如音乐地址403重新获取下地址。
         musicId = musicInfo.get('music_id')
-        # invalidUrl = musicInfo.get('url')
 
         if not musicId:
             self.playWidgets.nextSing()
