@@ -177,6 +177,9 @@ class Window(QWidget):
         # 系统托盘需要先隐藏，否则退出后会残留在任务栏。
         self.systemTray.hide()
 
+    def resizeEvent(self, event):
+       self. playWidgets.currentMusic.move(0, self.height()-64-self.playWidgets.height())
+
 
 # 标题栏，包括logo，搜索，登陆，最小化/关闭。
 class Header(QFrame):
@@ -484,7 +487,7 @@ def start():
     # 这个宽高会在show之后才会改变。
     # 需要获取宽，高并嵌入到父窗口里。
     main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
-    main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
+    # main.playWidgets.currentMusic.move(0, main.height()-64-main.playWidgets.height())
     
     with eventLoop:
         eventLoop.run_forever()
