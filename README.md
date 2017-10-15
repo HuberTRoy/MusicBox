@@ -46,10 +46,14 @@ $ sudo apt-get install libqt5multimedia5-plugins
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
 
-#### TODO:
+#### 功能TODO:
 - [ ] 支持私人FM.
 - [ ] 创建个人歌单.
 - [ ] 支持下载歌曲.
 - [ ] 打包下载方便食用.
 - [ ] 多平台账号同步歌单.
 - [ ] 方便的界面皮肤更换.
+
+#### 开发TODO:
+- [ ] 加入日志方便调试.
+- [ ] 尝试使用其他方式播放音乐.
