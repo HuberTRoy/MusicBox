@@ -1,6 +1,22 @@
 # MusicPlayer
 ## 界面以网易云音乐为模板，资源整合多家音乐网站(目前网易云/虾米/QQ音乐)，   ( • ̀ω•́ )✧~。
 
+### 功能:
+1. 支持网易云，虾米，QQ音乐的歌单/搜索，播放音乐，查看音乐信息(歌词)。
+2. 支持网易云手机号登陆同步歌单。
+3. 尽可能还原网易云音乐体验。
+4. 跨平台。
+5. QSS设置样式，类似CSS易于自定义扩展。
+
+## 截图:
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
+
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/23.jpg"/>
+
 ### 安装:
 ```
 $ git clone https://github.com/HuberTRoy/MusicPlayer
@@ -33,18 +49,6 @@ $ sudo apt-get install libqt5multimedia5-plugins
 
 ### 开发详情请移步至： <a href="https://github.com/HuberTRoy/MusicPlayer/blob/master/doc/updateLog.md">更新日志~</a>
 
-## 截图:
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
-
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
-
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/19.jpg"/>
-
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/23.jpg"/>
-
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/10.jpg"/>
-
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/14.jpg"/>
 
 #### 功能TODO:
 - [ ] 支持私人FM.
