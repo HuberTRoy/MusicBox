@@ -4,9 +4,13 @@ xiami music provider.
 '''
 import re
 import json
+import logging
 import urllib.parse
 
 from apiRequestsBase import HttpRequest, ignored
+
+
+logger = logging.getLogger(__name__)
 
 
 # https://github.com/Flowerowl/xiami
@@ -48,8 +52,13 @@ class XiamiApi(HttpRequest):
     def httpRequest(self, *args, **kwargs):
         html = super(XiamiApi, self).httpRequest(*args, **kwargs)
 
+        logger.info("进行xiami Url请求, args: {0}, kwargs: {1}".format(args, kwargs))
+       
         with ignored():
             return html.text
+        
+        logger.info("url: {0} 请求失败. Header: {1}".format(args[0], kwargs.get('headers')))
+        return ''
 
     def playList(self, page=1):
         url = 'http://api.xiami.com/web?v=2.0&app_key=1&_ksTS=1459927525542_91' + \
@@ -120,6 +129,7 @@ class XiamiApi(HttpRequest):
             lyric = lyric.split('[offset:0]')[1]
             lyric = re.sub(r'<\d*?>', '', lyric)
             return lyric
+            
         return False
 
 

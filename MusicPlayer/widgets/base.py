@@ -8,10 +8,10 @@ import os
 import sys
 # sys.path.append('..')
 # sys.path.append('../networks')
-
 import pickle
 import hashlib
 import os.path
+import logging
 
 # PEP8不允许使用通配符的原因是会混淆命名空间。
 # PyQt5的所有命名都是QXXX, 这边暂时不改了。
@@ -20,6 +20,9 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 from network import Requests
+
+
+logger = logging.getLogger(__name__)
 
 
 # 保存cookies的基础装饰器用于检测是否存在这个文件。
@@ -43,6 +46,7 @@ def checkFolder(filenames:iter):
             try:
                 func(*args)
             except:
+                logger.warning('读取或保存cookies出错 文件名: {0}'.format(filenames))
                 print('读取或保存cookies出错', filenames)
 
         return _exec
@@ -58,6 +62,7 @@ def checkOneFolder(folderName:str):
             try:
                 func(*args)
             except:
+                logger.warning('读取或保存cookies出错 文件夹名: {0}'.format(folderName))
                 print('读取或保存cookies出错', folderName)
 
         return _exec
@@ -282,6 +287,8 @@ picsQueue = QueueObject()
 # 缓存目录。
 cacheFolder = 'cache'
 
+logger.info("当前缓存目录: {0}".format(os.getcwd()+cacheFolder))
+
 ## 对<img src=1.jpg>的初步探索。
 # 暂只接受http(s)和本地目录。
 class PicLabel(QLabel):
@@ -337,6 +344,7 @@ class PicLabel(QLabel):
     def getSrc(self):
         """返回该图片的地址。"""
         return self.src
+
 
 class GetPicture(QRunnable):
 

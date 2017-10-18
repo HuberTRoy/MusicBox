@@ -1,9 +1,13 @@
 # coding = utf-8
 
 import json
+import logging
 import urllib.parse
 
 from apiRequestsBase import HttpRequest, ignored
+
+
+logger = logging.getLogger(__name__)
 
 
 class QQApi(HttpRequest):
@@ -29,14 +33,17 @@ class QQApi(HttpRequest):
         # 随便写一个就可以，原本是根据cookies里一个根据时间变化的参数确定的。
         self.guid = 3768717388
         if not self.sip:
+            logger.info("获取QQToken失败。当前key: {0}, 当前sip: {1}".format(self.key, self.sip))
             print('QQ 播放地址获取失败，请勿播放QQ音乐。')
 
     def httpRequest(self, *args, **kwargs):
         html = super(QQApi, self).httpRequest(*args, **kwargs)
 
+        logger.info("进行QQ Url请求, args: {0}, kwargs: {1}".format(args, kwargs))
         with ignored():
             return html.text
 
+        logger.info("url: {0} 请求失败. Header: {1}".format(args[0], kwargs.get('headers')))
         return ''
 
     # copy from listen1.
@@ -53,7 +60,7 @@ class QQApi(HttpRequest):
             data = data[len("jsonCallback("):-len(");")]
 
             return json.loads(data)
-        return {'key': '1', 'sip': [False]}
+        return {'key': '1', 'sip': ['']}
 
     def _getImgUrl(self, mid):
         imgUrl = 'https://y.gtimg.cn/music/photo_new/'

@@ -15,6 +15,7 @@ import re
 import os
 import sys
 import random
+import logging
 
 from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, 
                                                               QTableWidgetItem, QVBoxLayout, QApplication)
@@ -31,6 +32,9 @@ from asyncBase import aAsync, toTask
 from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
+
+
+logger = logging.getLogger(__name__)
 
 
 # 底部的播放组件。主要是用于交互，包括播放/前进/后退/进度条/音量控制/播放模式/打开or关闭音乐列表。
@@ -181,6 +185,7 @@ class PlayWidgets(QFrame):
     def setPlayerAndPlayList(self, data:dict, index=0):
         """方便外部调用。一键添加歌曲。"""
         """防止重复。"""
+        logger.info("尝试添加歌曲到播放列表，歌曲信息: {0} \n".format(data))
         authorAndName = data['author'] + data['name']
         for i, mediaInfo in enumerate(self.playList.musicList):
             checkAuthorAndName = mediaInfo['author'] + mediaInfo['name']
@@ -415,6 +420,9 @@ class PlayList(QFrame):
         else:
             # 以MediaContent为索引，是一个字典，包括url，name, author。
             currentRow = self.playList.currentRow()
+            
+            logger.info("尝试播放已在播放列表的歌曲，歌曲位置索引{0}.".format(currentRow))
+
             currentMusic = self.musicList[currentRow]
 
             self.parent.player.setIndex(currentRow)
@@ -631,7 +639,7 @@ class CurrentMusic(QFrame):
     @toTask
     def getLyric(self):
         musicInfo = self.parent.player.getCurrentMusicInfo()
-
+        logger.info("尝试获取歌曲歌词地址。 当前歌曲信息: {0}".format(musicInfo))
         if not musicInfo:
             return "✧请慢慢欣赏~"
 
@@ -886,7 +894,7 @@ class Player(QMediaPlayer):
         # self.playList.setInitConnection()
 
     def setMusic(self, url, data):
-        """设置当前的音乐，可用直接用网络链接。"""
+        """设置当前的音乐，可以直接用网络链接。"""
         if url:
             if 'http' in url or 'file' in url:
                 self.playList.addMedias(QMediaContent(QUrl(url)), data)
@@ -926,12 +934,15 @@ class Player(QMediaPlayer):
                 musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
                 self.loadRealMusicUrl(musicInfo)
             except:
+                logger.error("尝试重新获取音乐地址出错，音乐信息: {0}".format(musicInfo), exc_info=True)
                 print('尝试重新获取音乐地址出错，请清空或删除无效的音乐信息后重试。')
 
     @toTask
     def loadRealMusicUrl(self, musicInfo):
         # 如果有个Url出错，比如音乐地址403重新获取下地址。
         musicId = musicInfo.get('music_id')
+        
+        logger.info("网易云歌曲地址失效，尝试重新获取，id号: {0}".format(musicId))
 
         if not musicId:
             self.playWidgets.nextSing()
@@ -943,6 +954,12 @@ class Player(QMediaPlayer):
         if not data:
             self.playWidgets.nextSing()
             return 
+
+        logger.info("id {0}'s response: {1}".format(musicId, data))
+        
+        if not data:
+            print("获取音乐地址失败，请检查网络后重试。")
+            return
 
         url = data[0]['url']
         musicInfo['url'] = url
@@ -1231,7 +1248,12 @@ class _MediaPlaylist(QObject):
         self.play()
 
     def play(self):
-        media = self.musics[self.currentIndex]
+        try:
+            media = self.musics[self.currentIndex]
+        except:
+            logger.error("unknow error. musics info: {0}".format(self.musics))
+            return
+
         if type(media) == str:
             if 'http' in media or 'file' in media:
                 content = QMediaContent(QUrl(media))
@@ -1247,7 +1269,12 @@ class _MediaPlaylist(QObject):
         self.tabMusicEvent()
 
     def setCurrentIndex(self, index):
-        media = self.musics[index]
+        try:
+            media = self.musics[index]
+        except:
+            logger.error("unknow error. musics info: {0}".format(self.musics))
+            return
+
         if type(media) == str:
             if 'http' in media or 'file' in media:
                 content = QMediaContent(QUrl(media))
@@ -1314,17 +1341,20 @@ class _MediaPlaylist(QObject):
                 self.parent.play()
 
     def tabMusicEvent(self):
-        indexUrl = self.parent.currentMedia().canonicalUrl().toString()
-        name = self.mediaList[indexUrl]['name']
-        author = self.mediaList[indexUrl]['author']
-        pic = self.mediaList[indexUrl]['music_img']
-        self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+        try:
+            indexUrl = self.parent.currentMedia().canonicalUrl().toString()
+            name = self.mediaList[indexUrl]['name']
+            author = self.mediaList[indexUrl]['author']
+            pic = self.mediaList[indexUrl]['music_img']
+            self.playWidgets.currentMusic.setShortInfo(name, author, pic)
 
-        if self.playWidgets.currentMusic.detailInfo.isVisible():
-            self.playWidgets.currentMusic.setDetailInfo()
+            if self.playWidgets.currentMusic.detailInfo.isVisible():
+                self.playWidgets.currentMusic.setDetailInfo()
 
-        # window.
-        self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))
+            # window.
+            self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))
+        except:
+            logger.error("tabbing music error has ignored. index{0} mediaList{1}".format(indexUrl, self.mediaList), exc_info=True)
 
 
 class _LyricLabel(QLabel):

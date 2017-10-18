@@ -343,29 +343,6 @@ class ConfigNavigation(QObject):
 
         # 隐藏原来的区域，显示现在的区域。
         self.mainContents.mainContents.setCurrentIndex(1)
-        
-    # def requestsDetail(self, ids):
-    #     result = self.api.details_playlist(ids)
-    #     self.result = result
-
-    #     # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
-    #     singsIds = [i['id'] for i in result['tracks']]
-
-    #     # 此处还有些问题。
-    #     # 由于是两次url请求，稍微变得有点慢。
-    #     self.singsUrls = {i['id']:i['url'] for i in self.api.singsUrl(singsIds)}
-    #     self.singsUrls = [self.singsUrls[i] for i in singsIds]
-
-    # def setDetail(self):
-    #     # 方便书写。 
-    #     result = self.result
-
-    #     self.detailFrame.config.setupDetailFrames(result, self.singsUrls)
-    #     self.detailFrame.picLabel.setSrc(self.coverImgUrl)
-    #     self.detailFrame.picLabel.setStyleSheet('''QLabel {padding: 10px;}''')
-
-    #     # 隐藏原来的区域，显示现在的区域。
-    #     self.mainContents.mainContents.setCurrentIndex(1)
 
     def navigationListFunction(self):
         isVisible = self.navigation.parent.mainContent.tab.isVisible()

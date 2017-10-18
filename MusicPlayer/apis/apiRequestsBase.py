@@ -7,9 +7,14 @@
 
 __author__ = 'cyrbuzz'
 
+import logging
 import requests
 
 from contextlib import contextmanager
+
+
+logger = logging.getLogger(__name__)
+
 
 # 不应该在这定义。
 # 暂且放在这。
@@ -28,12 +33,13 @@ def ignored(*exception):
         try:
             yield
         except exception:
-            pass
+            logger.error("error has ignored.", exc_info=True)
     else:
         try:
-            yield
+            yield 
         except:
-            pass
+            logger.error("error has ignored.", exc_info=True)
+            
 
 
 def requestsExceptionFilter(func):
@@ -52,8 +58,10 @@ def requestsExceptionFilter(func):
             try:
                 return func(*args, **kwargs)
             except:
+                logger.error("retry function {0} args {1}, kwargs {2} times:{3}".format(func, args, kwargs, i))
                 continue
         else:
+            logger.error("function {0} is wrong. args {1}, kwargs {2}".format(func, args, kwargs))
             return False
     
     return _filter

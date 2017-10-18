@@ -4,10 +4,14 @@
 __author__ = 'cyrbuzz'
 
 import json
+import logging
 import urllib.parse
 
 from apiRequestsBase import HttpRequest, ignored
 from netEaseEncode import encrypted_request, hashlib
+
+
+logger = logging.getLogger(__name__)
 
 
 class NetEaseWebApi(HttpRequest):
@@ -43,11 +47,13 @@ class NetEaseWebApi(HttpRequest):
         if data:
             kwargs['data'] = encrypted_request(data)
 
+        logger.info("进行网易云Url请求, args: {0}, kwargs: {1}".format(args, kwargs))
         html = super(NetEaseWebApi, self).httpRequest(*args, **kwargs)
 
         with ignored():
             return json.loads(html.text)
         
+        logger.info("url: {0} 请求失败. Header: {1}".format(args[0], kwargs.get('headers')))
         return False
 
     def login(self, username, password):
@@ -155,8 +161,12 @@ class NetEaseWebApi(HttpRequest):
         data = {'csrf_token': '', 'ids': ids, 'br': 999000}
         url = "http://music.163.com/weapi/song/enhance/player/url"
         html = self.httpRequest(url, method='POST', data=data)
-
-        return html['data']
+        with ignored():
+            return html['data']
+        
+        logger.info('歌曲请求失败: ids {0}'.format(ids))
+        
+        return False
 
     def newsong(self, areaID=0, offset=0, total='true', limit=100):
         """
@@ -166,6 +176,7 @@ class NetEaseWebApi(HttpRequest):
         url = 'http://music.163.com/api/discovery/new/songs?areaId=%d&offset=%d&total=%s&limit=%d' %\
               (areaID, offset, total, limit)
         html = self.httpRequest(url, method='GET', cookies=self.cookies)
+
         return html['data']
 
     def fnewsong(self, year=2015, month=4, area='ALL'):
@@ -176,6 +187,7 @@ class NetEaseWebApi(HttpRequest):
         url = 'http://music.163.com/api/discovery/new/albums/area?year=%d&month=%d&area=%s&type=hot&offset=0&total=true&limit=20&rcmd=true' \
               % (year, month, area)
         html = self.httpRequest(url, method="GET", cookies=self.cookies)
+
         return html['monthData']
 
     def lyric(self, ids):
