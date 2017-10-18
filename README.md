@@ -59,5 +59,5 @@ $ sudo apt-get install libqt5multimedia5-plugins
 - [ ] 方便的界面皮肤更换.
 
 #### 开发TODO:
-- [ ] 加入日志方便调试.
+- [x] 加入日志方便调试.
 - [ ] 尝试使用其他方式播放音乐.
