@@ -18,7 +18,8 @@ setup(
         'QSS/*.qss',
         'resource/*.png',
         'resource/*.ico',
-        'widgets/*.py'],
+        'widgets/*.py',
+        'logger/*.py'],
         },
     entry_points={
         'console_scripts': [
