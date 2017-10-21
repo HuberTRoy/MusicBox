@@ -24,6 +24,8 @@ os.path.join(myFolder, 'apis'),
 os.path.join(myFolder, 'logger')
 ] + sys.path
 
+os.chdir(myFolder)
+
 import asyncio
 import logging
 
@@ -57,7 +59,6 @@ from configQQFeatures import ConfigQQ
 # logger
 import logger
 
-os.chdir(myFolder)
 
 logger.loggerConfig('logger/running_log.log')
 
