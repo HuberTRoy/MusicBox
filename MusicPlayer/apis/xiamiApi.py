@@ -105,7 +105,6 @@ class XiamiApi(HttpRequest):
         response = self.httpRequest(url, method='GET')
         response = json.loads(response[len('jsonp154('):-len(')')])
         # songs = response['data']['songs']
-        
         response['data']['songCount'] = 50
         temp = []
         for songs in response['data']['songs']:
@@ -129,7 +128,23 @@ class XiamiApi(HttpRequest):
             lyric = lyric.split('[offset:0]')[1]
             lyric = re.sub(r'<\d*?>', '', lyric)
             return lyric
-            
+
+        with ignored():
+            loadingLyric = {}
+            lyricTimes = []
+            for i in lyric.split('\n'):
+                oneLyric = re.findall(r'[0-9:\.]+', i)
+                if not oneLyric or oneLyric == [':']:
+                    continue
+                else:
+                    for x in oneLyric:
+                        i = i.replace('[{}]'.format(x), '')
+                    for x in oneLyric:
+                        loadingLyric[x] = i
+                    lyricTimes.extend(oneLyric)
+
+            return '\n'.join(['[{time}]{content}'.format(time=x, content=loadingLyric.get(x)) for x in sorted(lyricTimes)])
+
         return False
 
 

@@ -69,7 +69,13 @@ class ConfigNative(QObject):
                     self.singsTable.removeRow(i[0])
                     continue
 
-                name = music.tag.title
+                try:
+                    name = music.tag.title
+                except:
+                    print('获取该歌曲信息出错: {}，已跳过。'.format(i))
+                    self.singsTable.removeRow(i[0])
+                    continue
+
                 if not name:
                     name = i[1].split('\\')[-1][:-4]
                 author = music.tag.artist

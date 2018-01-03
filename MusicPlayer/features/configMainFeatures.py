@@ -124,7 +124,6 @@ class ConfigHeader(QObject):
         text = self.header.searchLine.text()
         future = aAsync(netease.search, text)
         self.result = yield from future
-
         if not self.result['songCount']:
             songsIds = []
             self.result['songs'] = []
@@ -326,7 +325,6 @@ class ConfigNavigation(QObject):
 
         future = aAsync(self.api.details_playlist, ids)
         self.result = yield from future
-
         # 由于旧API不在直接返回歌曲地址，需要获取歌曲号后再次进行请求。
         singsIds = [i['id'] for i in self.result['tracks']]
         # 此处还有些问题。
@@ -391,7 +389,6 @@ class ConfigSearchArea(QObject):
         """接受name信息，由这个引擎进行搜索。"""
         searchEngineer = self.searchEngineers[name]
         data = yield from aAsync(searchEngineer.search, self.searchArea.text)
-
         if not data['songCount']:
             songsIds = []
             data['songs'] = []

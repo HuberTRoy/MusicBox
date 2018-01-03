@@ -643,6 +643,15 @@ class CurrentMusic(QFrame):
         if not musicInfo:
             return "✧请慢慢欣赏~"
 
+        if 'http' not in musicInfo.get('url'):
+            future = aAsync(xiami.search, musicInfo.get('name') + ' ' + musicInfo.get('author'))
+            data = yield from future
+            # 最好做下判断以免搜不到获取时导致报错退出。
+            lyricUrl = data['songs'][0].get('lyric')
+            future = aAsync(xiami.lyric, lyricUrl)
+            data = yield from future
+            return data
+
         musicId = musicInfo.get('music_id')
         if self.currentMusicId == musicId:
             return self.lyricCache
