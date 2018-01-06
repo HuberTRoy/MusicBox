@@ -1,19 +1,23 @@
 __author__ = 'cyrbuzz'
 
+import re
+import os
+
 import asyncio
 import pickle
 
+from apiRequestsBase import HttpRequest
 from asyncBase import aAsync, toTask
-from base import QAction, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem
+from base import QAction, QMenu, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem, QCursor
 from singsFrameBase import PlaylistButton
 from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
-# import xiamiApi
+
 import addition
 
-# netEase = netEaseApi.NetEaseWebApi()
-# xiami = xiamiApi.XiamiApi()
+
+myRequests = HttpRequest()
 
 
 class ConfigWindow(QObject):
@@ -363,25 +367,81 @@ class ConfigSearchArea(QObject):
     def __init__(self, searchArea):
         super(ConfigSearchArea, self).__init__()
 
+        # current show-table's index.
+        self.currentIndex = 0
+        # current widgets name。
+        self.currentName = '网易云'
+
+        # parent.
         self.searchArea = searchArea
         
         self.transTime = addition.itv2time
         
         self.searchEngineers = {'网易云': netease, '虾米': xiami, 'QQ': qqApi}
+        # TODO 
+        # to config singsFrameBase instead of configing them respective.
+        self.searchResultTableIndexs = {'网易云':self.searchArea.neteaseSearchFrame.singsResultTable, 
+            '虾米':self.searchArea.xiamiSearchFrame.singsResultTable , 
+            'QQ':self.searchArea.qqSearchFrame.singsResultTable}
 
         self.musicList = []
         self.noContents = "很抱歉 未能找到关于<font style='text-align: center;' color='#23518F'>“{0}”</font>的{1}。"
 
         self.bindConnect()
+        self.setContextMenu()
 
     def bindConnect(self):
         self.searchArea.contentsTab.tabBarClicked.connect(self.searchBy)
         self.searchArea.neteaseSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
         self.searchArea.xiamiSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
         self.searchArea.qqSearchFrame.singsResultTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
-    
+        
+        self.searchArea.neteaseSearchFrame.singsResultTable.contextMenuEvent = self.contextEvent
+        self.searchArea.xiamiSearchFrame.singsResultTable.contextMenuEvent = self.contextEvent
+        self.searchArea.qqSearchFrame.singsResultTable.contextMenuEvent = self.contextEvent
+
+    def setContextMenu(self):
+        self.actionDownloadSong = QAction('下载', self)
+        self.actionDownloadSong.triggered.connect(self.downloadSong)
+
+    @toTask
+    def downloadSong(self, x):
+        # x is not to use, but must be.
+        musicInfo = self.musicList[self.currentIndex]
+        url = musicInfo.get('url')
+        if 'http:' not in url and 'https:' not in url:
+                songId = musicInfo.get('music_id')
+                future = aAsync(netease.singsUrl, [songId])
+                url = yield from future
+                url = url[0].get('url')
+                musicInfo['url'] = url
+        else:
+            url = musicInfo.get('url')
+
+        
+        future = aAsync(myRequests.httpRequest, url, 'GET')
+        data = yield from future
+
+        if 'downloads' not in os.listdir('.'):
+            os.mkdir('downloads')
+        
+        allMusicName = re.search(r'.*\.[a-zA-Z0-9]+', url[url.rfind('/')+1:]).group(0)
+        if allMusicName:
+
+            musicSuffix = allMusicName[allMusicName.rfind('.')+1:]
+            musicName = '{name}.{suf}'.format(name=musicInfo.get('name') + ' - ' + musicInfo.get('author'), suf=musicSuffix)
+        else:
+            # TODO MD5。
+            musicName = "random_name.mp3"
+
+        with open('downloads/{musicName}'.format(musicName=musicName), 'wb') as f:
+            f.write(data.content)
+
+        self.searchArea.parent.systemTray.showMessage("~~~", '{musicName} 下载完成'.format(musicName=musicName))
+
     def searchBy(self, index):
         currentWidgetName = self.searchArea.contentsTab.tabText(index)
+        self.currentName = currentWidgetName
         self.search(currentWidgetName)
 
     @toTask
@@ -459,6 +519,24 @@ class ConfigSearchArea(QObject):
         currentRow = self.searchArea.contentsTab.currentWidget().singsResultTable.currentRow()
         data = self.musicList[currentRow]
         self.searchArea.parent.playWidgets.setPlayerAndPlayList(data)
+
+    def contextEvent(self, event):
+        currentWidget = self.searchResultTableIndexs.get(self.currentName)
+        if not currentWidget:
+            return
+
+        item = currentWidget.itemAt(currentWidget.mapFromGlobal(QCursor.pos()))
+        self.menu = QMenu(currentWidget)
+
+        self.menu.addAction(self.actionDownloadSong)
+        
+        try:
+            self.currentIndex = item.row() - 1
+        # 在索引是最后一行时会获取不到。
+        except:
+            self.currentIndex = -1
+
+        self.menu.exec_(QCursor.pos())
 
 
 class ConfigSystemTray(QObject):

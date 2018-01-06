@@ -63,24 +63,31 @@ class ConfigNative(QObject):
             self.native.singsTable.setRowCount(self.native.singsTable.rowCount()+length)
             self.musicList = []
             for i in enumerate(mediaFiles):
-                
                 music = eyed3.load(i[1])
+
                 if not music:
                     self.singsTable.removeRow(i[0])
                     continue
 
                 try:
                     name = music.tag.title
-                except:
-                    print('获取该歌曲信息出错: {}，已跳过。'.format(i))
-                    self.singsTable.removeRow(i[0])
-                    continue
+                    author = music.tag.artist
 
-                if not name:
-                    name = i[1].split('\\')[-1][:-4]
-                author = music.tag.artist
-                if not author:
-                    author = '未知歌手'
+                    if not name:
+                        filePath = i[1].replace(selectFolder, '')
+                        name = filePath[1:][:-4]
+                    if not author:
+                        author = ''  
+                except:
+                    try:
+                        # TODO
+                        # if more folders exist.
+                        filePath = i[1].replace(selectFolder, '')
+                        name = filePath[1:][:-4]
+                    except Exception as e:
+                        name = i[1]
+                        author = ''
+                
                 time = itv2time(music.info.time_secs)
 
                 self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})

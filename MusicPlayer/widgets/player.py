@@ -17,10 +17,10 @@ import sys
 import random
 import logging
 
-from PyQt5.QtWidgets import (QAction, QAbstractItemView, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, QTableWidget, 
-                                                              QTableWidgetItem, QVBoxLayout, QApplication)
-from PyQt5.QtGui import QBrush, QColor, QCursor
-from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QRect, QEasingCurve, QAbstractAnimation
+from PyQt5.QtWidgets import (QAction, QAbstractItemView, QDialog, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSlider, 
+                                                              QTableWidget, QTableWidgetItem, QVBoxLayout, QApplication)
+from PyQt5.QtGui import QBrush, QColor, QCursor, QPixmap, QFont, QPainter, QPen, QLinearGradient
+from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QPoint, QRect, QEasingCurve, QAbstractAnimation, QTime, QTimer, QRegExp, QRectF
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
 import addition
@@ -33,6 +33,14 @@ from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
 
+# support desktop lyric.
+from desktopLyricButtons import *
+
+def _fromUtf8(s):
+    return s
+
+QString = str
+# for desktop lyric too.
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +62,9 @@ class PlayWidgets(QFrame):
         self.playList = PlayList(self)
         self.currentMusic = CurrentMusic(self)
         self.player = Player(self)
+
+        # test desktopLyric
+        self.desktopLyric = DesktopLyric(self)
 
         self.setButtons()
         self.setLabels()
@@ -597,6 +608,9 @@ class CurrentMusic(QFrame):
         
         result = future.result().split('\n')
         
+        # set desktop lyric list.
+        self.parent.player.lrc_lst = getLyric(result)
+
         signal = self.parent.player.timeChanged
         
         for x, i in enumerate(result):
@@ -618,6 +632,7 @@ class CurrentMusic(QFrame):
             self.detailInfo.addLyricLabel(_LyricLabel(data[0][0], data[0][1],  x, signal, self))
         
         self.count = x
+
         # 这边并不会返回添加了控件后的Value值。
         # self.sliderValue = self.detailInfo.maximumValue()
         # self.slideValue = round(self.sliderValue/x)
@@ -650,6 +665,9 @@ class CurrentMusic(QFrame):
             lyricUrl = data['songs'][0].get('lyric')
             future = aAsync(xiami.lyric, lyricUrl)
             data = yield from future
+
+            self.lyricCache = data
+
             return data
 
         musicId = musicInfo.get('music_id')
@@ -881,6 +899,9 @@ class Player(QMediaPlayer):
         # 默认列表循环。
         self.playList.setPlaybackMode(self.playList.Loop)
 
+        # lyric from CurrentMusic setting.
+        self.lrc_lst = []
+
         self.setConnects()
 
     # 功能。
@@ -992,7 +1013,7 @@ class Player(QMediaPlayer):
         self.playWidgets.countTime.setText(self.transTime(self.musicTime))
         self.playList.duration = duration
 
-    def positionChangedEvent(self):
+    def positionChangedEvent(self, position):
         """音乐在Media里以毫秒的形式保存，这里是播放时的进度条。"""
         currentTime = self.position()/1000
         transedTime = self.transTime(currentTime)
@@ -1004,11 +1025,50 @@ class Player(QMediaPlayer):
             return
         # *1000是为了与进度条的范围相匹配。
         self.playWidgets.slider.setValue(currentTime/self.musicTime*1000)
+        self.setLyricEvent(position)
 
     def stateChangedEvent(self):
         """"""
         if self.state() == 0 and self.playList.mediaCount() == 0 and self.playWidgets.pauseButton.isVisible():
             self.playWidgets.stopEvent(self)
+
+    def setLyricEvent(self, position):
+        # copy from https://github.com/wn0112/PPlayer
+        t = QTime(0, 0, 0)
+        t = t.addMSecs(int(position))
+        lycF = ''
+        lycL = ''
+        lycM = ''
+        if self.lrc_lst:
+            lenOfLrc = len(self.lrc_lst)
+            for i in range(lenOfLrc):
+                if t.toString("mm:ss") in self.lrc_lst[i][0]:                    
+                    t1 = t
+                    if i < lenOfLrc - 1:
+                        x = self.lrc_lst[i+1][0].replace('[', '')
+                        x = x.replace(']', '')
+                        t1 = QTime().fromString(x, 'mm:ss.z')
+                        intervel = t.msecsTo(t1)
+                    else:
+                        t1 = QTime().fromString('00:10.99')
+                        intervel = 3000
+                    self.parent.desktopLyric.stopMask()
+                    self.parent.desktopLyric.setText(self.lrc_lst[i][1], intervel)                
+                    self.parent.desktopLyric.startMask()
+                    if i > 0:
+                        lycM = self.lrc_lst[i-1][1]
+                    j = 0
+                    while(j < i-1):
+                        lycF += self.lrc_lst[j][1]+'\n'
+                        j += 1
+                    j = i
+                    while(j < lenOfLrc - 1):
+                        lycL += self.lrc_lst[j+1][1]+'\n'
+                        j += 1
+                    # self.parent.desktopLyric.setText(lycF, lycM, self.lrc_lst[i][1], lycL, intervel)
+                    # self.parent.desktopLyric.setText(lycF, lycM, self.lrc_lst[i][1], lycL, intervel)
+
+                    break
 
     # def mediaStatusChangedEvent(self, status):
         """"""
@@ -1399,6 +1459,226 @@ class _LyricLabel(QLabel):
     def unLightMe(self):
             self.setText(self.myLyric)
         
+
+class DesktopLyric(QDialog):
+    def __init__(self, parent=None):
+        super(DesktopLyric, self).__init__()
+        self.lyric = QString('Lyric Show.')
+        self.intervel = 0
+        self.maskRect = QRectF(0, 0, 0, 0)
+        self.maskWidth = 0
+        self.widthBlock = 0
+        self.t = QTimer()
+        self.screen = QApplication.desktop().availableGeometry()
+        self.setObjectName(_fromUtf8("Dialog"))
+        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setMinimumHeight(65)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.handle = lyric_handle(self)
+        self.verticalLayout = QVBoxLayout(self)
+        self.verticalLayout.setSpacing(0)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.font = QFont(_fromUtf8('微软雅黑, verdana'), 50)
+        self.font.setPixelSize(50)
+        # QMetaObject.connectSlotsByName(self)
+        self.handle.lyricmoved.connect(self.newPos)
+        self.t.timeout.connect(self.changeMask)
+        
+    def changeMask(self):
+        self.maskWidth += self.widthBlock
+        self.update()
+    
+    def setText(self, s, intervel=0):
+        self.lyric = s
+        self.intervel = intervel
+        self.maskWidth = 0
+        self.update()
+        
+    def hideLyric(self):
+        self.hide()
+        # self.emit(SIGNAL('lyrichide()'))
+
+                    
+    def leaveEvent(self, event):
+        self.handle.leaveEvent(event)
+    
+    def show(self):
+
+        super(DesktopLyric, self).show()
+    
+    def hide(self):
+        super(DesktopLyric, self).hide()
+        self.handle.hide()
+        
+    def enterEvent(self, event):
+        pass
+        # self.handle.handler.setFocus()
+        # self.handle.show()
+    
+    def newPos(self, p):
+        self.move(self.pos().x() + p.x(), self.pos().y() + p.y())
+        # self.move(500, 600)
+
+
+    def startMask(self):
+        self.t.start(100)
+            
+    def stopMask(self):
+        self.t.stop()
+        self.update()
+        
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setFont(self.font)
+        
+        linear = QLinearGradient(QPoint(self.rect().topLeft()), QPoint(self.rect().bottomLeft()))
+        linear.setStart(0, 10)
+        linear.setFinalStop(0, 50)
+        linear.setColorAt(0.1, QColor(14, 179, 255));
+        linear.setColorAt(0.5, QColor(154, 232, 255));
+        linear.setColorAt(0.9, QColor(14, 179, 255));
+        
+        linear2 = QLinearGradient(QPoint(self.rect().topLeft()), QPoint(self.rect().bottomLeft()))
+        linear2.setStart(0, 10)
+        linear2.setFinalStop(0, 50)
+        linear2.setColorAt(0.1, QColor(222, 54, 4));
+        linear2.setColorAt(0.5, QColor(255, 172, 116));
+        linear2.setColorAt(0.9, QColor(222, 54, 4));
+        
+        painter.setPen(QColor(0, 0, 0, 200));
+        painter.drawText(QRect(1, 1, self.screen.width(), 60), Qt.AlignHCenter | Qt.AlignVCenter, self.lyric)
+        
+        painter.setPen(QColor('transparent'));
+        self.textRect = painter.drawText(QRect(0, 0, self.screen.width(), 60), Qt.AlignHCenter | Qt.AlignVCenter, self.lyric)
+
+        painter.setPen(QPen(linear, 0))
+        painter.drawText(self.textRect, Qt.AlignLeft | Qt.AlignVCenter, self.lyric)
+        if self.intervel != 0:
+            self.widthBlock = self.textRect.width()/(self.intervel/150.0)
+        else:
+            self.widthBlock = 0
+        self.maskRect = QRectF(self.textRect.x(), self.textRect.y(), self.textRect.width(), self.textRect.height())
+        self.maskRect.setWidth(self.maskWidth)
+        painter.setPen(QPen(linear2, 0));
+        painter.drawText(self.maskRect, Qt.AlignLeft | Qt.AlignVCenter, self.lyric)
+
+    def mousePressEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.m_drag = True
+            self.m_DragPosition = event.globalPos()-self.pos()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        try:
+            if event.buttons() and Qt.LeftButton:
+                self.move(event.globalPos()-self.m_DragPosition)
+                event.accept()
+        except AttributeError:
+            pass
+
+    def mouseReleaseEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.m_drag = False
+
+
+class lyric_handle(QDialog):
+    # copy from https://github.com/wn0112/PPlayer
+    lyricmoved = pyqtSignal(QPoint)
+    def __init__(self, parent=None):
+        super(lyric_handle, self).__init__(parent)
+        self.timer = QTimer()
+        self.setObjectName(_fromUtf8("Dialog"))
+        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setStyleSheet('QDialog { background: #2c7ec8; border: 0px solid black;}')
+        self.horiLayout = QHBoxLayout(self)
+        self.horiLayout.setSpacing(5)
+        self.horiLayout.setContentsMargins(0, 0, 0, 0)
+        self.horiLayout.setObjectName(_fromUtf8("horiLayout"))
+        self.handler = QLabel(self)
+        self.handler.setToolTip('Move Lyric')
+        self.handler.setPixmap(QPixmap(':/icons/handler.png'))
+        self.handler.setMouseTracking(True)
+        self.lockBt = PushButton2(self)
+        self.lockBt.setToolTip('Unlocked')
+        self.lockBt.loadPixmap(QPixmap(':/icons/unlock.png'))
+        self.hideBt = PushButton2(self)
+        self.hideBt.setToolTip('Hide Lyric')
+        self.hideBt.loadPixmap(QPixmap(':/icons/close.png').copy(48, 0, 16, 16))
+        self.lockBt.setCheckable(True)
+        
+        self.horiLayout.addWidget(self.handler)
+        self.horiLayout.addWidget(self.lockBt)
+        self.horiLayout.addWidget(self.hideBt)
+    
+        self.lockBt.clicked.connect(self.lockLyric)
+        self.hideBt.clicked.connect(self.hideLyric)
+        self.timer.timeout.connect(self.hide)
+        
+    def lockLyric(self):
+        if self.lockBt.isChecked():
+            self.lockBt.loadPixmap(QPixmap(':/icons/lock.png'))
+            self.lockBt.setToolTip('Locked')
+            self.lockBt.update()
+        else:
+            self.lockBt.loadPixmap(QPixmap(':/icons/unlock.png'))
+            self.lockBt.setToolTip('Unlocked')
+            self.lockBt.update()
+    
+    def hideLyric(self):
+        # self.parent().emit(SIGNAL('lyrichide()'))
+        self.parent().lyrichide.emit()
+        self.parent().hide()
+        self.hide()
+                
+    def isInTitle(self, xPos, yPos):
+        if self.lockBt.isChecked():
+            return False
+        else:
+            return yPos <= self.height() and 0 <= xPos <= self.handler.width()
+
+    def moveEvent(self, event):
+        # self.emit(SIGNAL("lyricmoved(QPoint)"), event.pos() - event.oldPos())
+        self.lyricmoved.emit(QPoint(event.pos() - event.oldPos()))
+
+    def enterEvent(self, event):
+        # print(1)
+        self.setFocus()
+        self.timer.stop()
+
+    def leaveEvent(self, event):
+        self.timer.stop()
+        self.timer.start(3000)
+
+
+def getLyric(rawLyric):
+    # copu from https://github.com/wn0112/PPlayer
+    lrc = rawLyric
+
+    r1 = re.compile("\[(\d{2}:\d{2}(.\d+)?)\]")
+    r2 = re.compile("\[\d+:+.+\](.*)")
+    r3 = re.compile("\[offset:(-?\d+)\]")
+    item = []
+    lrc_lst = []
+    offset = 0
+    for line in lrc:
+        times = r1.findall(line)
+        lrc_words = r2.findall(line)
+        if lrc_words:
+            lrc_words = lrc_words[0]
+        else:
+            lrc_words = []
+
+        if len(lrc_words) and lrc_words[0].rstrip():
+            for i in times:
+                item.append(i[0])
+                item.append(lrc_words)
+                lrc_lst.append(item)
+                item = []
+    lrc_lst.sort()
+
+    return lrc_lst
+
 
 if __name__ == '__main__':
     import sys

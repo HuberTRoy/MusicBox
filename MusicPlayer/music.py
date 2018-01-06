@@ -35,7 +35,7 @@ import logging
 from quamash import QEventLoop
 
 # widgets
-from base import (QApplication, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
+from base import (QApplication, cacheFolder, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
                   QPushButton, PicLabel, QScrollArea, ScrollArea, Qt, QTabWidget, TableWidget, QVBoxLayout, VBoxLayout,
                   QWidget)
 from player import PlayWidgets
@@ -64,6 +64,8 @@ logger.loggerConfig('logger/running_log.log')
 
 # 覆盖原logger变量。
 logger = logging.getLogger(__name__)
+
+logger.info("当前图片缓存目录: {0}".format(os.path.join(os.getcwd(), cacheFolder)))
 
 
 # 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
@@ -178,6 +180,12 @@ class Window(QWidget):
         self.indexNetEaseSings.config.initThread()
         self.indexXiamiSings.config.initThread()
         self.indexQQSings.config.initThread()
+        
+        # test desktop lyric。
+        screen = QApplication.desktop().availableGeometry()
+        self.playWidgets.desktopLyric.resize(screen.width(), 50)
+        self.playWidgets.desktopLyric.move(0, screen.height() - 100)
+        self.playWidgets.desktopLyric.show()
 
     def closeEvent(self, event):
         # 主要是保存cookies.
@@ -252,7 +260,7 @@ class Header(QFrame):
         self.logoLabel = PicLabel(r'resource/format.png', 32, 32)
 
         self.descriptionLabel = QLabel(self)
-        self.descriptionLabel.setText("<b>Music<b>")
+        self.descriptionLabel.setText("<b>Music</b>")
 
         self.userPix = PicLabel(r'resource/no_music.png', 32, 32, r'resource/user_pic_mask.png')
         self.userPix.setMinimumSize(22, 22)
@@ -489,20 +497,23 @@ def start():
     # 是被asyncio重写的事件循环。
     eventLoop = QEventLoop(app)
     asyncio.set_event_loop(eventLoop)
-    main = Window()
 
-    main.show()
-    # 当前音乐的显示信息。
-    # 因为需要布局之后重新绘制的宽高。
-    # 这个宽高会在show之后才会改变。
-    # 需要获取宽，高并嵌入到父窗口里。
-    main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
-    
-    with eventLoop:
-        eventLoop.run_forever()
+    try:
+        main = Window()
 
-    sys.exit(0)
+        main.show()
+        # 当前音乐的显示信息。
+        # 因为需要布局之后重新绘制的宽高。
+        # 这个宽高会在show之后才会改变。
+        # 需要获取宽，高并嵌入到父窗口里。
+        main.playWidgets.currentMusic.resize(main.navigation.width(), 64)
+        
+        with eventLoop:
+            eventLoop.run_forever()
 
+        sys.exit(0)
+    except:
+        logger.error("got some error", exc_info=True)
 
 if __name__ == '__main__':
     start()    

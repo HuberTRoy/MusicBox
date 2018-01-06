@@ -287,7 +287,6 @@ picsQueue = QueueObject()
 # 缓存目录。
 cacheFolder = 'cache'
 
-logger.info("当前缓存目录: {0}".format(os.getcwd()+cacheFolder))
 
 ## 对<img src=1.jpg>的初步探索。
 # 暂只接受http(s)和本地目录。

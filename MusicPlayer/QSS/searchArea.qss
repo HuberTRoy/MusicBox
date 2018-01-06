@@ -83,3 +83,12 @@ QHeaderView::section {
 QHeaderView::section:hover {
     background-color: #232529;
 }
+
+QMenu {
+    background: #302F33;
+    color: #D1D1D7;
+}
+
+QMenu::item:selected {
+    background: #3B3A3D;
+}

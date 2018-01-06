@@ -3,6 +3,7 @@
 """
 __author__ = 'cyrbuzz'
 import os
+import re
 
 import network
 import addition
@@ -11,6 +12,15 @@ from base import (QAction, QCursor, QFrame, QLabel, QObject, QPixmap, QRunnable,
                                      QMenu, QTableWidgetItem, QThreadPool, QueueObject, makeMd5)
 from netEaseApi import netease
 from singsFrameBase import OneSing, PlaylistButton
+
+# ../features
+from asyncBase import aAsync, toTask
+
+# ../apis
+from netEaseApi import netease
+from apiRequestsBase import HttpRequest
+
+myRequests = HttpRequest()
 
 
 transTime = addition.itv2time
@@ -231,11 +241,47 @@ class ConfigDetailSings(QObject):
         self.actionNextPlay = QAction('下一首播放', self)
         self.actionNextPlay.triggered.connect(self.addToNextPlay)
 
+        self.actionDownloadSong = QAction('下载', self)
+        self.actionDownloadSong.triggered.connect(self.downloadSong)
+
     def addToNextPlay(self):
         data = self.musicList[self.currentIndex]
         self.player.setAllMusics([data])
         self.playList.playList.addMusic(data)
         self.playList.playList.addPlayList(data['name'], data['author'], data['time'])
+
+    @toTask
+    def downloadSong(self, x):
+        musicInfo = self.musicList[self.currentIndex]
+        url = musicInfo.get('url')
+        if 'http:' not in url and 'https:' not in url:
+                songId = musicInfo.get('music_id')
+                future = aAsync(netease.singsUrl, [songId])
+                url = yield from future
+                url = url[0].get('url')
+                musicInfo['url'] = url
+        else:
+            url = musicInfo.get('url')
+
+        future = aAsync(myRequests.httpRequest, url, 'GET')
+        data = yield from future
+
+        if 'downloads' not in os.listdir('.'):
+            os.mkdir('downloads')
+        
+        allMusicName = re.search(r'.*\.[a-zA-Z0-9]+', url[url.rfind('/')+1:]).group(0)
+        if allMusicName:
+
+            musicSuffix = allMusicName[allMusicName.rfind('.')+1:]
+            musicName = '{name}.{suf}'.format(name=musicInfo.get('name') + ' - ' + musicInfo.get('author'), suf=musicSuffix)
+        else:
+            # TODO MD5。
+            musicName = "random_name.mp3"
+
+        with open('downloads/{musicName}'.format(musicName=musicName), 'wb') as f:
+            f.write(data.content)
+
+        self.grandparent.systemTray.showMessage("~~~", '{musicName} 下载完成'.format(musicName=musicName))
 
     def addAllMusicToPlayer(self):
         self.playList.setPlayerAndPlaylists(self.musicList)
@@ -295,6 +341,7 @@ class ConfigDetailSings(QObject):
         self.menu = QMenu(self.detailSings.singsTable)
 
         self.menu.addAction(self.actionNextPlay)
+        self.menu.addAction(self.actionDownloadSong)
         
         try:
             self.currentIndex = item.row() - 1
