@@ -56,7 +56,7 @@ class PlayWidgets(QFrame):
         # 0模式是列表循环。1模式是单曲循环，2模式是随机播放。
         self.module = 0
 
-        with open('QSS/playWidgets.qss', 'r') as f:
+        with open('QSS/playWidgets.qss', 'r', encoding='utf-8') as f:
             self.setStyleSheet(f.read())
 
         self.playList = PlayList(self)
@@ -122,6 +122,12 @@ class PlayWidgets(QFrame):
         self.shuffle.setToolTip("随机播放")
         self.shuffle.clicked.connect(self.shuffleEvent)
 
+        self.lyricButton = QPushButton(self)
+        self.lyricButton.setText("词")
+        self.lyricButton.setToolTip("打开歌词")
+        self.lyricButton.setObjectName("lyricButton")
+        self.lyricButton.clicked.connect(self.lyricEvent)
+
         self.playlist = QPushButton(self)
         self.playlist.setObjectName("playlist")
         self.playlist.clicked.connect(self.playlistEvent)
@@ -177,6 +183,8 @@ class PlayWidgets(QFrame):
         self.mainLayout.addWidget(self.repeat)
         self.mainLayout.addWidget(self.shuffle)
 
+        self.mainLayout.addSpacing(10)
+        self.mainLayout.addWidget(self.lyricButton)
         self.mainLayout.addSpacing(10)
 
         self.mainLayout.addWidget(self.playlist)
@@ -312,6 +320,33 @@ class PlayWidgets(QFrame):
         self.repeat.show()
         self.player.playList.setPlaybackMode(3) 
         self.module = 0
+
+    def lyricEvent(self):
+        """return None"""
+        lyricStyle = """
+                QPushButton#lyricButton {{
+                    width: 10px;
+                    height: 10px;
+                    margin: 0px;
+                    padding: 3px;
+                    background: {};
+                    color: {};
+                    border: 1px solid #919192;
+                }}
+            QPushButton#lyricButton:hover {{
+                background: none;
+                color: #DCDCDC;
+                border-color: #DCDCDC;
+            }}
+                """
+        if self.desktopLyric.isVisible():
+            self.desktopLyric.setToolTip("打开歌词")
+            self.lyricButton.setStyleSheet(lyricStyle.format("none", "#79797B"))
+            return self.desktopLyric.hide()
+
+        self.desktopLyric.setToolTip("关闭歌词")
+        self.lyricButton.setStyleSheet(lyricStyle.format("#828282", "#FFFFFF"))
+        self.desktopLyric.show()
 
     def playlistEvent(self):
         """用于显示播放列表或隐藏播放列表。"""

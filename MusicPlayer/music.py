@@ -4,9 +4,6 @@
 
 以网易云音乐为模板。
 # 基本没考虑网络的出错问题。
-# 不过也考虑了一些。
-# 对于放在线程QThread里的错误捕获如果要显示警示框: QDialog exec_
-# 需要使用信号槽，捕获后发出信号，然后在主线程中创建并显示，否则会导致程序错误。
 # 
 """
 
@@ -50,9 +47,9 @@ from qqSingsFrames import QQSingsArea, QQSearchResultFrame
 
 # features
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
-                                ConfigSystemTray)
+                                ConfigSystemTray, ConfigDetailSings)
 from configNativeFeatures import ConfigNative
-from configNeteaseFeatures import ConfigNetEase, ConfigDetailSings
+from configNeteaseFeatures import ConfigNetEase
 from configXiamiFeatures import ConfigXiami
 from configQQFeatures import ConfigQQ
 
@@ -181,11 +178,10 @@ class Window(QWidget):
         self.indexXiamiSings.config.initThread()
         self.indexQQSings.config.initThread()
         
-        # test desktop lyric。
+        # move to center.
         screen = QApplication.desktop().availableGeometry()
         self.playWidgets.desktopLyric.resize(screen.width(), 50)
         self.playWidgets.desktopLyric.move(0, screen.height() - 100)
-        self.playWidgets.desktopLyric.show()
 
     def closeEvent(self, event):
         # 主要是保存cookies.

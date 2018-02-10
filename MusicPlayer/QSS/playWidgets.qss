@@ -108,6 +108,21 @@ QPushButton#playlist:hover {
     border-image: url('resource/playlist_hover.png');
 }
 
+QPushButton#lyricButton {
+    width: 10px;
+    height: 10px;
+    margin: 0px;
+    padding: 3px;
+    color: #79797B;
+    border: 1px solid #919192;
+}
+
+QPushButton#lyricButton:hover {
+    background: none;
+    color: #DCDCDC;
+    border-color: #DCDCDC;
+}
+
 QLabel {
     font: bold;
     color: #D8D9E0;
