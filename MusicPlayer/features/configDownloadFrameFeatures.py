@@ -129,52 +129,54 @@ class ConfigDownloadFrame(QObject):
             self.showTable.setItem(rowCount, i, QTableWidgetItem(showInfo[i]))
 
     def fromPathLoadSong(self, selectFolder):
-            mediaFiles = glob.glob(selectFolder+'/*.mp3')
-            allFolder = getAllFolder(selectFolder)
-            for i in allFolder:
-                mediaFiles.extend(glob.glob(i+'/*.mp3'))
+        if not os.path.isdir(selectFolder):
+            os.mkdir(selectFolder)
+            return 
+        mediaFiles = glob.glob(selectFolder+'/*.mp3')
+        allFolder = getAllFolder(selectFolder)
+        for i in allFolder:
+            mediaFiles.extend(glob.glob(i+'/*.mp3'))
 
-            length = len(mediaFiles)
-            
+        length = len(mediaFiles)
+        
+        self.downloadFrame.singsTable.clearContents()
+        self.downloadFrame.singsTable.setRowCount(length)
+        self.musicList = []
+        
+        for i in enumerate(mediaFiles):
+            music = eyed3.load(i[1])
 
-            self.downloadFrame.singsTable.clearContents()
-            self.downloadFrame.singsTable.setRowCount(length)
-            self.musicList = []
-            
-            for i in enumerate(mediaFiles):
-                music = eyed3.load(i[1])
+            if not music:
+                self.singsTable.removeRow(i[0])
+                continue
 
-                if not music:
-                    self.singsTable.removeRow(i[0])
-                    continue
+            try:
+                name = music.tag.title
+                author = music.tag.artist
 
+                if not name:
+                    filePath = i[1].replace(selectFolder, '')
+                    name = filePath[1:][:-4]
+                if not author:
+                    author = ''  
+            except:
                 try:
-                    name = music.tag.title
-                    author = music.tag.artist
+                    # TODO
+                    # if more folders exist.
+                    filePath = i[1].replace(selectFolder, '')
+                    name = filePath[1:][:-4]
+                except Exception as e:
+                    name = i[1]
+                    author = ''
+            try:
+                time = itv2time(music.info.time_secs)
+            except:
+                time = '00:00'
 
-                    if not name:
-                        filePath = i[1].replace(selectFolder, '')
-                        name = filePath[1:][:-4]
-                    if not author:
-                        author = ''  
-                except:
-                    try:
-                        # TODO
-                        # if more folders exist.
-                        filePath = i[1].replace(selectFolder, '')
-                        name = filePath[1:][:-4]
-                    except Exception as e:
-                        name = i[1]
-                        author = ''
-                try:
-                    time = itv2time(music.info.time_secs)
-                except:
-                    time = '00:00'
-
-                self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
-                self.downloadFrame.singsTable.setItem(i[0], 0, QTableWidgetItem(name))
-                self.downloadFrame.singsTable.setItem(i[0], 1, QTableWidgetItem(author))
-                self.downloadFrame.singsTable.setItem(i[0], 2, QTableWidgetItem(time))
+            self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
+            self.downloadFrame.singsTable.setItem(i[0], 0, QTableWidgetItem(name))
+            self.downloadFrame.singsTable.setItem(i[0], 1, QTableWidgetItem(author))
+            self.downloadFrame.singsTable.setItem(i[0], 2, QTableWidgetItem(time))
 
     def selectFolder(self):
         folder = QFileDialog()
