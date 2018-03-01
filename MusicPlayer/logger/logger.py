@@ -8,7 +8,7 @@ dictConfig = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': "%(name)s %(levelname)s %(module)s  %(lineno)d %(message)s",
+            'format': "%(levelname)s %(module)s  %(lineno)d %(message)s",
         },
     },
     'handlers': {
@@ -24,6 +24,7 @@ dictConfig = {
             'class': 'logging.FileHandler',
             'filename': logName,
             'mode': 'w',
+            'encoding': 'utf-8'
         }
     },
     'root': {

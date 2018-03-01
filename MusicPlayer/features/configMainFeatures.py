@@ -8,7 +8,7 @@ import pickle
 
 from apiRequestsBase import HttpRequest
 from asyncBase import aAsync, toTask
-from base import QAction, QMenu, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem, QCursor
+from base import QAction, QMenu, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem, QCursor, pyqtSignal
 from singsFrameBase import PlaylistButton
 from netEaseApi import netease
 from xiamiApi import xiami
@@ -16,6 +16,7 @@ from qqApi import qqApi
 
 import addition
 
+transTime = addition.itv2time
 
 myRequests = HttpRequest()
 
@@ -79,6 +80,9 @@ class ConfigWindow(QObject):
 
     def setTabIndex(self, index):
         self.window.mainContents.setCurrentIndex(index)
+
+    def getDownloadFolder(self):
+        return self.window.downloadFrame.config.myDownloadFolder
 
 
 class ConfigHeader(QObject):
@@ -246,7 +250,7 @@ class ConfigNavigation(QObject):
         # window
         self.mainContents = self.navigation.parent
 
-        self.nativeListFunction = lambda: self.mainContents.mainContents.setCurrentIndex(2)
+        self.nativeListFunction = self.tabNativeFrame
         self.singsFunction = self.none
         
         self.playlists = []
@@ -277,7 +281,7 @@ class ConfigNavigation(QObject):
         """处理事件。"""
         self.navigationListFunction()
 
-    def nativeListItemClickEvent(self):
+    def nativeListItemClickEvent(self, item):
         """本地功能的点击事件。"""
         for i in self.playlists:
             if i.isChecked():
@@ -288,7 +292,7 @@ class ConfigNavigation(QObject):
         self.navigation.navigationList.setCurrentRow(-1)
 
         """处理事件。"""
-        self.nativeListFunction()
+        self.nativeListFunction(item)
 
     def singsButtonClickEvent(self):
         """歌单的点击事件。"""
@@ -303,7 +307,7 @@ class ConfigNavigation(QObject):
         # 所以这边先将最后一个stretch删去，将所有的内容添加完成后在加上。
         self.navigation.mainLayout.takeAt(self.navigation.mainLayout.count()-1)
         for i in datas:
-            button = PlaylistButton(self, i['id'], i['coverImgUrl'], QIcon('resource/notes.png'), i['name'])
+            button = PlaylistButton(self, i['id'], i['coverImgUrl'], QIcon('resource/notes2.png'), i['name'])
             button.hasClicked.connect(self.startRequest)
 
             self.playlists.append(button)
@@ -352,6 +356,12 @@ class ConfigNavigation(QObject):
             # 发现音乐。
             self.navigation.parent.mainContents.setCurrentIndex(0)
 
+    def tabNativeFrame(self, item):
+        if item .text() == ' 本地音乐':
+            self.mainContents.mainContents.setCurrentIndex(2)
+        elif item.text() == ' 我的下载':
+            self.mainContents.mainContents.setCurrentIndex(3)
+
     def none(self):
         pass
 
@@ -364,6 +374,8 @@ class ConfigMainContent(QObject):
 
 
 class ConfigSearchArea(QObject):
+
+    download = pyqtSignal(dict)
     def __init__(self, searchArea):
         super(ConfigSearchArea, self).__init__()
 
@@ -375,6 +387,9 @@ class ConfigSearchArea(QObject):
         # parent.
         self.searchArea = searchArea
         
+        # get storage folder
+        self.downloadFolder = self.searchArea.parent.config.getDownloadFolder()
+
         self.transTime = addition.itv2time
         
         self.searchEngineers = {'网易云': netease, '虾米': xiami, 'QQ': qqApi}
@@ -406,7 +421,8 @@ class ConfigSearchArea(QObject):
 
     @toTask
     def downloadSong(self, x):
-        # x is not to use, but must be.
+        # x is useless, but must be.
+        # 
         musicInfo = self.musicList[self.currentIndex]
         url = musicInfo.get('url')
         if 'http:' not in url and 'https:' not in url:
@@ -415,29 +431,8 @@ class ConfigSearchArea(QObject):
                 url = yield from future
                 url = url[0].get('url')
                 musicInfo['url'] = url
-        else:
-            url = musicInfo.get('url')
 
-        
-        future = aAsync(myRequests.httpRequest, url, 'GET')
-        data = yield from future
-
-        if 'downloads' not in os.listdir('.'):
-            os.mkdir('downloads')
-        
-        allMusicName = re.search(r'.*\.[a-zA-Z0-9]+', url[url.rfind('/')+1:]).group(0)
-        if allMusicName:
-
-            musicSuffix = allMusicName[allMusicName.rfind('.')+1:]
-            musicName = '{name}.{suf}'.format(name=musicInfo.get('name') + ' - ' + musicInfo.get('author'), suf=musicSuffix)
-        else:
-            # TODO MD5。
-            musicName = "random_name.mp3"
-
-        with open('downloads/{musicName}'.format(musicName=musicName), 'wb') as f:
-            f.write(data.content)
-
-        self.searchArea.parent.systemTray.showMessage("~~~", '{musicName} 下载完成'.format(musicName=musicName))
+        self.download.emit(musicInfo)
 
     def searchBy(self, index):
         currentWidgetName = self.searchArea.contentsTab.tabText(index)
@@ -528,6 +523,126 @@ class ConfigSearchArea(QObject):
         item = currentWidget.itemAt(currentWidget.mapFromGlobal(QCursor.pos()))
         self.menu = QMenu(currentWidget)
 
+        self.menu.addAction(self.actionDownloadSong)
+        
+        try:
+            self.currentIndex = item.row() - 1
+        # 在索引是最后一行时会获取不到。
+        except:
+            self.currentIndex = -1
+
+        self.menu.exec_(QCursor.pos())
+
+
+class ConfigDetailSings(QObject):
+    download = pyqtSignal(dict)
+
+    def __init__(self, parent=None):
+        super(ConfigDetailSings, self).__init__()
+        self.detailSings = parent
+        self.musicList = []
+
+        self.currentIndex = 0
+
+        self.grandparent = self.detailSings.parent
+        self.player = self.grandparent.playWidgets.player
+        self.playList = self.grandparent.playWidgets
+        self.currentMusic = self.grandparent.playWidgets.currentMusic
+        self.transTime = transTime
+
+        self.detailSings.singsTable.contextMenuEvent = self.singsFrameContextMenuEvent
+
+        self.bindConnect()
+        self.setContextMenu()
+
+    def bindConnect(self):
+        self.detailSings.playAllButton.clicked.connect(self.addAllMusicToPlayer)
+        self.detailSings.singsTable.itemDoubleClicked.connect(self.itemDoubleClickedEvent)
+
+    def setContextMenu(self):
+        self.actionNextPlay = QAction('下一首播放', self)
+        self.actionNextPlay.triggered.connect(self.addToNextPlay)
+
+        self.actionDownloadSong = QAction('下载', self)
+        self.actionDownloadSong.triggered.connect(self.downloadSong)
+
+    def addToNextPlay(self):
+        data = self.musicList[self.currentIndex]
+        self.player.setAllMusics([data])
+        self.playList.playList.addMusic(data)
+        self.playList.playList.addPlayList(data['name'], data['author'], data['time'])
+
+    @toTask
+    def downloadSong(self, x):
+        musicInfo = self.musicList[self.currentIndex]
+        url = musicInfo.get('url')
+        if 'http:' not in url and 'https:' not in url:
+                songId = musicInfo.get('music_id')
+                future = aAsync(netease.singsUrl, [songId])
+                url = yield from future
+                url = url[0].get('url')
+                musicInfo['url'] = url
+
+        self.download.emit(musicInfo)
+
+    def addAllMusicToPlayer(self):
+        self.playList.setPlayerAndPlaylists(self.musicList)
+
+    def setupDetailFrames(self, datas, singsUrls, singsIds):
+        result = datas
+        self.musicList = []
+        
+        self.detailSings.singsTable.clearContents()
+
+        self.detailSings.titleLabel.setText(result['name'])
+        self.detailSings.authorName.setText(result['creator']['nickname'])
+        # 简介有些太长了，暂时只截取前107个字符。
+        description = result['description']
+        # 有些没有简介会报错的。
+        if not description:
+            description = ''
+
+        self.detailSings.descriptionText.setText(description)
+        # 这边添加歌曲的信息到table。
+        self.detailSings.singsTable.setRowCount(result['trackCount'])
+
+        for i, j, t, x in zip(result['tracks'], range(result['trackCount']), singsUrls, singsIds):
+            names = i['name']
+            musicName = QTableWidgetItem(names)
+            self.detailSings.singsTable.setItem(j, 0, musicName)
+
+            author = i['artists'][0]['name']
+            musicAuthor = QTableWidgetItem(author)
+            self.detailSings.singsTable.setItem(j, 1, musicAuthor)
+
+            times = self.transTime(i['duration']/1000)
+            musicTime = QTableWidgetItem(times)
+            self.detailSings.singsTable.setItem(j, 2, musicTime)
+
+            music_img = i['album']['blurPicUrl']
+
+            lyric = i.get('lyric')
+
+            self.musicList.append({'url': t, 
+                                                                'name': names, 
+                                                                'time':times, 
+                                                                'author':author,
+                                                                'music_img': music_img,
+                                                                'music_id':x,
+                                                                'lyric': lyric})
+
+    # 事件。
+    def itemDoubleClickedEvent(self):
+        currentRow = self.detailSings.singsTable.currentRow()
+        data = self.musicList[currentRow]
+
+        self.playList.setPlayerAndPlayList(data)
+
+    def singsFrameContextMenuEvent(self, event):
+        item = self.detailSings.singsTable.itemAt(self.detailSings.singsTable.mapFromGlobal(QCursor.pos()))
+        self.menu = QMenu(self.detailSings.singsTable)
+
+        self.menu.addAction(self.actionNextPlay)
         self.menu.addAction(self.actionDownloadSong)
         
         try:

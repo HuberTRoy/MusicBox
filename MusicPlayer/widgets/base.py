@@ -46,7 +46,7 @@ def checkFolder(filenames:iter):
             try:
                 func(*args)
             except:
-                logger.warning('读取或保存cookies出错 文件名: {0}'.format(filenames))
+                logger.warning('读取或保存cookies出错 文件名: {0}'.format(filenames), exc_info=True)
                 print('读取或保存cookies出错', filenames)
 
         return _exec
@@ -62,7 +62,7 @@ def checkOneFolder(folderName:str):
             try:
                 func(*args)
             except:
-                logger.warning('读取或保存cookies出错 文件夹名: {0}'.format(folderName))
+                logger.warning('读取或保存cookies出错 文件夹名: {0}'.format(folderName), exc_info=True)
                 print('读取或保存cookies出错', folderName)
 
         return _exec

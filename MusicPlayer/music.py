@@ -37,6 +37,7 @@ from base import (QApplication, cacheFolder, QDialog, QFrame, QHBoxLayout, HBoxL
                   QWidget)
 from player import PlayWidgets
 from native import NativeMusic
+from downloadFrame import DownloadFrame
 from addition import SearchLineEdit
 from systemTray import SystemTray
 from loginFrames import LoginBox
@@ -49,6 +50,7 @@ from qqSingsFrames import QQSingsArea, QQSearchResultFrame
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
                                 ConfigSystemTray, ConfigDetailSings)
 from configNativeFeatures import ConfigNative
+from configDownloadFrameFeatures import ConfigDownloadFrame
 from configNeteaseFeatures import ConfigNetEase
 from configXiamiFeatures import ConfigXiami
 from configQQFeatures import ConfigQQ
@@ -83,6 +85,7 @@ class Window(QWidget):
         self.detailSings = DetailSings(self)
         self.mainContent = MainContent(self)
         self.nativeMusic = NativeMusic(self)
+        self.downloadFrame = DownloadFrame(self)
         self.searchArea = SearchArea(self)
 
         self.mainContents = QTabWidget()
@@ -120,6 +123,7 @@ class Window(QWidget):
         self.mainContents.addTab(self.mainContent, '')
         self.mainContents.addTab(self.detailSings, '')
         self.mainContents.addTab(self.nativeMusic, '')
+        self.mainContents.addTab(self.downloadFrame, '')
         self.mainContents.addTab(self.searchArea, '')
 
         self.mainContents.setCurrentIndex(0)
@@ -164,6 +168,7 @@ class Window(QWidget):
     def configFeatures(self):
         self.config = ConfigWindow(self)
         self.header.config = ConfigHeader(self.header)
+        self.downloadFrame.config = ConfigDownloadFrame(self.downloadFrame)
         self.searchArea.config = ConfigSearchArea(self.searchArea)
         self.navigation.config = ConfigNavigation(self.navigation)
         self.nativeMusic.config = ConfigNative(self.nativeMusic)
@@ -177,6 +182,9 @@ class Window(QWidget):
         self.indexNetEaseSings.config.initThread()
         self.indexXiamiSings.config.initThread()
         self.indexQQSings.config.initThread()
+
+        # 当前耦合度过高。
+        self.downloadFrame.config.getDownloadSignal()
         
         # move to center.
         screen = QApplication.desktop().availableGeometry()
@@ -187,6 +195,7 @@ class Window(QWidget):
         # 主要是保存cookies.
         self.header.config.saveCookies()
         self.playWidgets.saveCookies()
+        self.downloadFrame.config.saveCookies()
 
         # 系统托盘需要先隐藏，否则退出后会残留在任务栏。
         self.systemTray.hide()
@@ -361,6 +370,7 @@ class Navigation(QScrollArea):
         self.myMusic = QLabel(" 我的音乐")
         self.myMusic.setObjectName("myMusic")
         self.myMusic.setMaximumHeight(27)
+        # self.myMusic.setMaximumHeight(54)
 
         self.singsListLabel = QLabel(" 收藏与创建的歌单")
         self.singsListLabel.setObjectName("singsListLabel")
@@ -378,8 +388,9 @@ class Navigation(QScrollArea):
 
         self.nativeList = QListWidget()
         self.nativeList.setObjectName("nativeList")
-        self.nativeList.setMaximumHeight(50)
+        self.nativeList.setMaximumHeight(80)
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/notes.png')," 本地音乐"))
+        self.nativeList.addItem(QListWidgetItem(QIcon('resource/download_icon.png'), " 我的下载"))
 
     def setLayouts(self):
         """定义布局。"""

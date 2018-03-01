@@ -59,8 +59,8 @@ class ConfigNative(QObject):
                 mediaFiles.extend(glob.glob(i+'/*.mp3'))
 
             length = len(mediaFiles)
-
-            self.native.singsTable.setRowCount(self.native.singsTable.rowCount()+length)
+            self.native.singsTable.clearContents()
+            self.native.singsTable.setRowCount(length)
             self.musicList = []
             for i in enumerate(mediaFiles):
                 music = eyed3.load(i[1])
@@ -87,8 +87,10 @@ class ConfigNative(QObject):
                     except Exception as e:
                         name = i[1]
                         author = ''
-                
-                time = itv2time(music.info.time_secs)
+                try:
+                    time = itv2time(music.info.time_secs)
+                except:
+                    time = '00:00'
 
                 self.musicList.append({'name': name, 'author': author, 'time': time, 'url': i[1], 'music_img': 'None'})
                 self.native.singsTable.setItem(i[0], 0, QTableWidgetItem(name))
