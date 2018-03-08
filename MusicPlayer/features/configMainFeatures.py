@@ -161,7 +161,7 @@ class ConfigHeader(QObject):
 
         self.header.parent.searchArea.config.setSingsData(songs)
 
-        self.header.parent.config.setTabIndex(3)
+        self.header.parent.config.setTabIndex(4)
 
     def showLoginBox(self):
         self.header.loginBox.open()
@@ -596,7 +596,6 @@ class ConfigDetailSings(QObject):
 
         self.detailSings.titleLabel.setText(result['name'])
         self.detailSings.authorName.setText(result['creator']['nickname'])
-        # 简介有些太长了，暂时只截取前107个字符。
         description = result['description']
         # 有些没有简介会报错的。
         if not description:
