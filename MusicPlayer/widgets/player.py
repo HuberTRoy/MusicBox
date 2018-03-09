@@ -339,14 +339,17 @@ class PlayWidgets(QFrame):
                 border-color: #DCDCDC;
             }}
                 """
+        # 如果桌面歌词处于可见状态则隐藏桌面歌词。
         if self.desktopLyric.isVisible():
-            self.desktopLyric.setToolTip("打开歌词")
+            self.lyricButton.setToolTip("打开歌词")
             self.lyricButton.setStyleSheet(lyricStyle.format("none", "#79797B"))
             return self.desktopLyric.hide()
 
-        self.desktopLyric.setToolTip("关闭歌词")
+        # 防止先打开的音乐后显示的歌词，所以在点击时获取一次歌词。
+        self.lyricButton.setToolTip("关闭歌词")
         self.lyricButton.setStyleSheet(lyricStyle.format("#828282", "#FFFFFF"))
         self.desktopLyric.show()
+        self.currentMusic.setDetailInfo()
 
     def playlistEvent(self):
         """用于显示播放列表或隐藏播放列表。"""
@@ -1452,7 +1455,8 @@ class _MediaPlaylist(QObject):
             pic = self.mediaList[indexUrl]['music_img']
             self.playWidgets.currentMusic.setShortInfo(name, author, pic)
 
-            if self.playWidgets.currentMusic.detailInfo.isVisible():
+            if self.playWidgets.currentMusic.detailInfo.isVisible() or self.playWidgets.desktopLyric.isVisible():
+                self.playWidgets.desktopLyric.setText("{}-{}".format(name, author), 0)
                 self.playWidgets.currentMusic.setDetailInfo()
 
             # window.
