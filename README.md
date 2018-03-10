@@ -11,7 +11,7 @@
 7. QSS设置样式，类似CSS易于自定义扩展。
 
 ## 截图:
-<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/22.jpg"/>
+<img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/24.jpg"/>
 
 <img src="https://github.com/HuberTRoy/MusicPlayer/blob/master/testpic/16.jpg"/>
 
