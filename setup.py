@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Music-Player',
-    version='1.0.0',
+    version='1.0.1',
     packages=['MusicPlayer'],
     install_requires=[
         'PyQt5',

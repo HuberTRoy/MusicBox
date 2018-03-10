@@ -21,8 +21,8 @@
 
 ### 安装:
 ```
-$ git clone https://github.com/HuberTRoy/MusicPlayer
-$ (sudo) python(3) setup.py install
+$ (sudo) pip install Music-Player
+✨🍰✨
 ```
 
 ### 运行:
@@ -30,13 +30,8 @@ $ (sudo) python(3) setup.py install
 $ (sudo) musicplayer
 ```
 
-### 手动安装依赖:
-> Python3.5+ <br />
-> PyQt5.5+ <br />
-> pip install -r requirements.txt
-
 ### 可能会出现的依赖错误:
-> Windows 下如果 pycryptodome 安装不上可以安装pycryptodomex -> pip install pycryptodomex.
+Windows 下如果 `pycryptodome` 安装不上可以安装 `pycryptodomex` ->`pip install pycryptodomex`.
 
 #### \*nix额外依赖:
 ```
@@ -48,9 +43,7 @@ $ sudo apt-get install libqt5multimedia5-plugins
 > Windows下如果缺少m4a的解码器需要下载 <a href="https://github.com/Nevcairiel/LAVFilters/releases">LAV Filters</a> <br>
 > Linux 需要下载 <a href="https://gstreamer.freedesktop.org/">GStreamer</a>
 
-
 ### 开发详情请移步至： <a href="https://github.com/HuberTRoy/MusicPlayer/blob/master/doc/updateLog.md">更新日志~</a>
-
 
 #### 功能TODO:
 - [ ] 支持私人FM.
