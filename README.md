@@ -1,5 +1,11 @@
 # MusicPlayer
-## 界面以网易云音乐为模板，资源整合多家音乐网站(目前网易云/虾米/QQ音乐)，   ( • ̀ω•́ )✧~。
+[![Build Status](https://travis-ci.org/HuberTRoy/MusicBox.svg?branch=master)](https://travis-ci.org/HuberTRoy/MusicBox)
+[![Python](https://img.shields.io/badge/Python-3.5%203.6-green.svg)](https://pypi.python.org/pypi/Music-Player)
+[![Enjoy](https://img.shields.io/badge/EnjoyYourself-yes-orange.svg)](https://github.com/HuberTRoy/MusicBox/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://pypi.python.org/pypi/Music-Player)
+
+
+## 整合多家音乐网站(目前网易云/虾米/QQ音乐)的播放器~， ( • ̀ω•́ )✧~。
 
 ### 功能:
 1. 支持网易云，虾米，QQ音乐的歌单/搜索，播放音乐，查看音乐信息(歌词)。
