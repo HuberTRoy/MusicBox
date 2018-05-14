@@ -18,7 +18,8 @@ sys.path = [os.path.join(myFolder, 'widgets'),
 os.path.join(myFolder, 'networks'),
 os.path.join(myFolder, 'features'),
 os.path.join(myFolder, 'apis'),
-os.path.join(myFolder, 'logger')
+os.path.join(myFolder, 'logger'),
+os.path.join(myFolder, 'dbManager')
 ] + sys.path
 
 os.chdir(myFolder)
@@ -45,6 +46,7 @@ from singsFrameBase import DetailSings
 from netEaseSingsFrames import  NetEaseSingsArea, NetEaseSearchResultFrame
 from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
 from qqSingsFrames import QQSingsArea, QQSearchResultFrame
+from recommendFrames import RecommendFrame
 
 # features
 from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
@@ -54,6 +56,7 @@ from configDownloadFrameFeatures import ConfigDownloadFrame
 from configNeteaseFeatures import ConfigNetEase
 from configXiamiFeatures import ConfigXiami
 from configQQFeatures import ConfigQQ
+from configRecommendFrameFeatures import ConfigRecommendFrame
 
 # logger
 import logger
@@ -68,6 +71,10 @@ logger.info("当前图片缓存目录: {0}".format(os.path.join(os.getcwd(), cac
 
 
 # 用于承载整个界面。所有窗口的父窗口，所有窗口都可以在父窗口里找到索引。
+# 2018/03/18
+# 这种嵌套虽然不会出错但有点麻烦，但又不知如何设计得更好。
+# 最近在学vue，发现其与Qt有些相似，貌似有个叫vuex的可以很好得管理这些问题。
+# 待学习改进。
 class Window(QWidget):
     """Window 承载整个界面。"""
     def __init__(self):
@@ -87,6 +94,7 @@ class Window(QWidget):
         self.nativeMusic = NativeMusic(self)
         self.downloadFrame = DownloadFrame(self)
         self.searchArea = SearchArea(self)
+        self.recommendFrame = RecommendFrame(self)
 
         self.mainContents = QTabWidget()
         self.mainContents.tabBar().setObjectName("mainTab")
@@ -124,6 +132,7 @@ class Window(QWidget):
         self.mainContents.addTab(self.detailSings, '')
         self.mainContents.addTab(self.nativeMusic, '')
         self.mainContents.addTab(self.downloadFrame, '')
+        self.mainContents.addTab(self.recommendFrame, '')
         self.mainContents.addTab(self.searchArea, '')
 
         self.mainContents.setCurrentIndex(0)
@@ -178,6 +187,7 @@ class Window(QWidget):
         self.indexXiamiSings.config = ConfigXiami(self.indexXiamiSings)
         self.indexQQSings.config = ConfigQQ(self.indexQQSings)
         self.systemTray.config = ConfigSystemTray(self.systemTray)
+        self.recommendFrame.config = ConfigRecommendFrame(self.recommendFrame)
 
         self.indexNetEaseSings.config.initThread()
         self.indexXiamiSings.config.initThread()
@@ -186,6 +196,8 @@ class Window(QWidget):
         # 当前耦合度过高。
         self.downloadFrame.config.getDownloadSignal()
         
+        self.config.pullRecommendSong()
+
         # move to center.
         screen = QApplication.desktop().availableGeometry()
         self.playWidgets.desktopLyric.resize(screen.width(), 50)
@@ -196,6 +208,9 @@ class Window(QWidget):
         self.header.config.saveCookies()
         self.playWidgets.saveCookies()
         self.downloadFrame.config.saveCookies()
+
+        # 关闭并保存数据库
+        self.db.commitAndClose()
 
         # 系统托盘需要先隐藏，否则退出后会残留在任务栏。
         self.systemTray.hide()
@@ -388,9 +403,10 @@ class Navigation(QScrollArea):
 
         self.nativeList = QListWidget()
         self.nativeList.setObjectName("nativeList")
-        self.nativeList.setMaximumHeight(80)
+        self.nativeList.setMaximumHeight(100)
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/notes.png')," 本地音乐"))
         self.nativeList.addItem(QListWidgetItem(QIcon('resource/download_icon.png'), " 我的下载"))
+        self.nativeList.addItem(QListWidgetItem(QIcon('resource/recommend_icon.png'), " 专属推荐"))
 
     def setLayouts(self):
         """定义布局。"""
@@ -521,6 +537,7 @@ def start():
         sys.exit(0)
     except:
         logger.error("got some error", exc_info=True)
+
 
 if __name__ == '__main__':
     start()    

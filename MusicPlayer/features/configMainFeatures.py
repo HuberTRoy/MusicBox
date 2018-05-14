@@ -2,9 +2,12 @@ __author__ = 'cyrbuzz'
 
 import re
 import os
+import random
 
 import asyncio
 import pickle
+
+import addition
 
 from apiRequestsBase import HttpRequest
 from asyncBase import aAsync, toTask
@@ -13,8 +16,8 @@ from singsFrameBase import PlaylistButton
 from netEaseApi import netease
 from xiamiApi import xiami
 from qqApi import qqApi
+from userInfoManager import UserDbManager
 
-import addition
 
 transTime = addition.itv2time
 
@@ -26,6 +29,8 @@ class ConfigWindow(QObject):
     def __init__(self, window):
         super(ConfigWindow, self).__init__()
         self.window = window
+        
+        self.window.db = UserDbManager()
 
         # 用于存储Tab的历史，方便前后切换。
         # 只存储5个，不考虑效率问题。
@@ -83,6 +88,39 @@ class ConfigWindow(QObject):
 
     def getDownloadFolder(self):
         return self.window.downloadFrame.config.myDownloadFolder
+
+    def pullRecommendSong(self):
+        # 1. 获取出前x个播放次数最多的歌曲。无则不变直接返回
+        # 2. 随机挑选一个。 
+        # 3. 获取包含它的歌单。 如果全部获取失败则重新进行2。
+        # 4. 从歌单中挑选曲子添加到recommendFrame的musicList里。
+
+        topSongInHistory = self.window.db.getSongByPlayTimes()
+
+        if not topSongInHistory:
+            return
+
+        randList = list(range(len(topSongInHistory)))
+
+        while 1:
+            try:
+                randSong = randList.pop(randList.index(random.choice(randList)))
+            except IndexError:
+                return
+
+            songId = topSongInHistory[randSong]
+            relativePlaylistIds = netease.getContainedPlaylists(songId)
+
+            if not relativePlaylistIds:
+                continue
+
+            for i in relativePlaylistIds:
+                songInfo = netease.getRandomSongFromPlaylist(i)
+                if not songInfo:
+                    continue
+                # add to recommend and return
+                self.window.recommendFrame.config.setSongs(songInfo)
+                return
 
 
 class ConfigHeader(QObject):
@@ -357,10 +395,12 @@ class ConfigNavigation(QObject):
             self.navigation.parent.mainContents.setCurrentIndex(0)
 
     def tabNativeFrame(self, item):
-        if item .text() == ' 本地音乐':
+        if item.text() == ' 本地音乐':
             self.mainContents.mainContents.setCurrentIndex(2)
         elif item.text() == ' 我的下载':
             self.mainContents.mainContents.setCurrentIndex(3)
+        elif item.text() == ' 专属推荐':
+            self.mainContents.mainContents.setCurrentIndex(4)
 
     def none(self):
         pass

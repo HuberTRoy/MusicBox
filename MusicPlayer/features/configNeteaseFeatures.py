@@ -97,6 +97,8 @@ class ConfigNetEase(QObject):
         self.gridColumn = 0
 
         self.offset = 0
+        # 用于不足时的补足。
+        self.offsetComplement = 30
 
         self.myHeight = 0
 
@@ -132,9 +134,15 @@ class ConfigNetEase(QObject):
     def threadSetSings(self):
         if not self.result:
             return 
-            
+        length = len(self.singPicUrls)
+
         for i in range(30):
             i += self.offset
+            # 根本原因是不足30个。
+            if i >= length:
+                self.offsetComplement = length % 30 
+                break
+
             picName = makeMd5(self.singPicUrls[i])
             frame = OneSing(self.gridRow, self.gridColumn, self.playlistIds[i], self, picName)
             frame.clicked.connect(self.startRequest)
@@ -166,7 +174,10 @@ class ConfigNetEase(QObject):
             else:
                 task = _PicThreadTask(self.queue, frame, url)
                 self.picThreadPool.start(task)
-        
+        else:
+            # 如果顺利进行会将offsetComplement变成原30。
+            self.offsetComplement = 30
+
     def _setStyleCodesByThreadPool(self):
         # data是线程池的请求完成后的对象。
         # 0下标处是widget，1是style代码。
@@ -205,7 +216,7 @@ class ConfigNetEase(QObject):
         """滑轮到底的事件。"""
         if self.netEase.isHidden() == False:
         # toDo, 多个
-            self.offset += 30
+            self.offset += self.offsetComplement
             # 判断是否在工作，免得多次start。
             if self.netThread.isRunning():
                 return

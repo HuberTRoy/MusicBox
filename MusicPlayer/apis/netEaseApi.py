@@ -1,11 +1,15 @@
 """获取网易云音乐的API。"""
 """暂时没有整改的想法: 一方面旧的API可以用，另一方面逻辑较为简单，当前优先级不高。"""
+"""2018/03/18: 相当不RESTful..."""
 
 __author__ = 'cyrbuzz'
 
+import re
 import json
 import logging
 import urllib.parse
+
+from collections import namedtuple
 
 from apiRequestsBase import HttpRequest, ignored
 from netEaseEncode import encrypted_request, hashlib
@@ -13,19 +17,21 @@ from netEaseEncode import encrypted_request, hashlib
 
 logger = logging.getLogger(__name__)
 
+SongInfo = namedtuple(
+    'SongInfo', ['music_id', 'url', 'author', 'time', 'name', 'music_img', 'lyric'])
+
 
 class NetEaseWebApi(HttpRequest):
     """
         2015年写的，函数名略混乱，不影响使用，暂时不修改。
     """
     cookies = {
-            'appver': '2.1.2.184499',
-            'os': 'pc',
-            'channel': 'netease',
-        }
-    
+        'appver': '2.1.2.184499',
+        'os': 'pc',
+        'channel': 'netease',
+    }
+
     default_timeout = 10
-    
 
     def __init__(self):
         super(NetEaseWebApi, self).__init__()
@@ -40,7 +46,7 @@ class NetEaseWebApi(HttpRequest):
 
         self.urlEamilHeaders = self.headers.copy()
         self.urlEamilHeaders['Referer'] = ''
-        self.urlEamilHeaders['Origin'] = 'orpheus://orpheus' 
+        self.urlEamilHeaders['Origin'] = 'orpheus://orpheus'
 
     def httpRequest(self, *args, **kwargs):
         data = kwargs.get('data')
@@ -52,8 +58,9 @@ class NetEaseWebApi(HttpRequest):
 
         with ignored():
             return json.loads(html.text)
-        
-        logger.info("url: {0} 请求失败. Header: {1}".format(args[0], kwargs.get('headers')))
+
+        logger.info("url: {0} 请求失败. Header: {1}".format(
+            args[0], kwargs.get('headers')))
         return False
 
     def login(self, username, password):
@@ -94,7 +101,7 @@ class NetEaseWebApi(HttpRequest):
         """
             2017/8/12更新 新API.
             个人歌单。
-            
+
         """
         # url = 'http://music.163.com/api/user/playlist/?offset=%s&limit=1000&uid=%s' % (offset, uid)
         # html = self.httpRequest(url, method='GET', cookies=self.cookies)
@@ -129,7 +136,9 @@ class NetEaseWebApi(HttpRequest):
         """
         url = 'http://music.163.com/api/playlist/detail?id={0}' .format(ids)
         html = self.httpRequest(url, method="GET", cookies=self.cookies)
-        return html['result']
+        with ignored():
+            return html['result']
+        return False
 
     def search(self, s, offset=0, limit=100, stype=1):
         """
@@ -150,9 +159,9 @@ class NetEaseWebApi(HttpRequest):
         try:
             return html['result']
         except:
-            return {'songCount': 0, 'songs':[]}
+            return {'songCount': 0, 'songs': []}
 
-    def singsUrl(self, ids:list):
+    def singsUrl(self, ids: list):
         """
         2017/7/14更新。
         返回歌曲的URL。
@@ -163,9 +172,9 @@ class NetEaseWebApi(HttpRequest):
         html = self.httpRequest(url, method='POST', data=data)
         with ignored():
             return html['data']
-        
+
         logger.info('歌曲请求失败: ids {0}'.format(ids))
-        
+
         return False
 
     def newsong(self, areaID=0, offset=0, total='true', limit=100):
@@ -199,6 +208,52 @@ class NetEaseWebApi(HttpRequest):
             return html['lrc']['lyric']
         except:
             return False
+
+    def getContainedPlaylists(self, songId) -> set:
+        """
+
+            传入某个歌曲Id, 返回包含此歌曲的3个歌单。
+            此功能需要直接解析HTMl文档.
+            1. 获取·http://music.163.com/song?id=29953681·
+            2. 提取出歌单的id。不想使用额外的包所以直接用正则了。
+        """
+        rawHtml = super().httpRequest(
+            'http://music.163.com/song?id={}'.format(songId), method='GET')
+
+        containedUl = re.findall(
+            r'<ul class="m-rctlist f-cb">[.\s\S]+?</ul>', rawHtml.text)
+        if not containedUl:
+            containedUl = ''
+        else:
+            containedUl = containedUl[0]
+
+        playlists = set(re.findall(r'data-res-id="(.+)"', containedUl))
+
+        return playlists
+
+    def getRandomSongFromPlaylist(self, playlistId) -> list:
+        """
+            只返回包含其中音乐信息的列表。
+        """
+        allSong = self.details_playlist(playlistId)
+        if allSong:
+            tracks = allSong['tracks']
+            SongInfoList = []
+            for i in tracks:
+                songInfo = SongInfo(music_id=i['id'],
+                                    music_img=i['album']['blurPicUrl'],
+                                    url="http(0)",
+                                    lyric=None,
+                                    time=i['duration'],
+                                    name=i['name'],
+                                    author='-'.join([x['name']
+                                                     for x in i['artists']])
+                                    )
+                SongInfoList.append(songInfo)
+
+            return SongInfoList
+
+        return False
 
 
 netease = NetEaseWebApi()

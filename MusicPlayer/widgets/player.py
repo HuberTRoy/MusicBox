@@ -39,8 +39,8 @@ from desktopLyricButtons import *
 def _fromUtf8(s):
     return s
 
-QString = str
 # for desktop lyric too.
+QString = str
 
 logger = logging.getLogger(__name__)
 
@@ -230,10 +230,11 @@ class PlayWidgets(QFrame):
             
         self.playList.addMusic(data)
 
+        self.player.playList.tabMusicEvent()
         # 添加显示播放列表的显示项。
         self.playList.addPlayList(data['name'], data['author'], data['time'])
-        # 更改当前音乐的信息。
-        self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
+        # # 更改当前音乐的信息。
+        # self.currentMusic.setShortInfo(data['name'], data['author'], data['music_img'])
         # 添加歌曲到播放器。
         # index = len(self.playList.musicList)
         # index = self.player.playList.mediaCount()
@@ -254,8 +255,9 @@ class PlayWidgets(QFrame):
             self.currentMusic.setShortInfo('音乐不可播放', data['author'], data['music_img'])
             self.nextSing()
             return
+        self.player.playList.tabMusicEvent()
 
-        self.currentMusic.setShortInfo(i['name'], i['author'], i['music_img'])
+        # self.currentMusic.setShortInfo(i['name'], i['author'], i['music_img'])
 
     def saveCookies(self):
         self.playList.saveCookies()
@@ -1047,7 +1049,7 @@ class Player(QMediaPlayer):
     def countTimeEvent(self, duration):
         """总时间改变的事件。相当于加载完成歌曲的事件。"""
         self.musicTime = duration / 1000
-        # print('COUNT{0}'.format(duration))
+
         self.playWidgets.countTime.setText(self.transTime(self.musicTime))
         self.playList.duration = duration
 
@@ -1401,6 +1403,36 @@ class _MediaPlaylist(QObject):
     def setPlaybackMode(self, model:int):
         self.myModel = model
 
+    def setShortInfo(self, musicInfo):
+        name = musicInfo['name']
+        author = musicInfo['author']
+        pic = musicInfo['music_img']
+        self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+
+    def setLyric(self, musicInfo):
+        name = musicInfo['name']
+        author = musicInfo['author']
+        if self.playWidgets.currentMusic.detailInfo.isVisible() or self.playWidgets.desktopLyric.isVisible():
+            self.playWidgets.desktopLyric.setText("{}-{}".format(name, author), 0)
+            self.playWidgets.currentMusic.setDetailInfo()
+
+    def setSystemTrayTip(self, tipMessage):
+        self.playWidgets.parent.systemTray.setToolTip(tipMessage)
+
+    def updatePlayTimes(self, musicInfo):
+        # 网易云歌曲初次播放地址是http(int, int)，这是个错误地址，所以会进行一次重新获取地址，
+        # 写的很麻烦，获取成功后会重新设置一次全部信息，这样的话网易云的歌曲就会插入两次，这里尝试只插入一次。
+        # 这个方法也不好。
+        # 想到的方法是 1. 如果播放地址获取失败会请求一次数据库让其删除一次。
+        # TODO:
+        # 新方法。
+        if 'http(' in musicInfo['url']:
+            return
+
+        self.playWidgets.parent.db.addPlayTimesById(musicInfo['music_id'],
+            musicInfo['name'],
+            musicInfo['author'])
+
     @checkFolder(allCookiesFolder)
     def saveCookies(self):
         with open(self.musicsCookiesFolder, 'wb') as f:
@@ -1450,17 +1482,13 @@ class _MediaPlaylist(QObject):
     def tabMusicEvent(self):
         try:
             indexUrl = self.parent.currentMedia().canonicalUrl().toString()
-            name = self.mediaList[indexUrl]['name']
-            author = self.mediaList[indexUrl]['author']
-            pic = self.mediaList[indexUrl]['music_img']
-            self.playWidgets.currentMusic.setShortInfo(name, author, pic)
+            musicInfo = self.mediaList[indexUrl]
+            self.setShortInfo(musicInfo)
 
-            if self.playWidgets.currentMusic.detailInfo.isVisible() or self.playWidgets.desktopLyric.isVisible():
-                self.playWidgets.desktopLyric.setText("{}-{}".format(name, author), 0)
-                self.playWidgets.currentMusic.setDetailInfo()
+            self.setLyric(musicInfo)
 
-            # window.
-            self.playWidgets.parent.systemTray.setToolTip('{0}-{1}'.format(name, author))
+            self.setSystemTrayTip('{0}-{1}'.format(musicInfo['name'], musicInfo['author']))
+            self.updatePlayTimes(musicInfo)
         except:
             logger.error("tabbing music error has ignored. index{0} mediaList{1}".format(indexUrl, self.mediaList), exc_info=True)
 
