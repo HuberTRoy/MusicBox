@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Music-Player',
-    version='1.0.1',
+    version='1.0.5',
     packages=['MusicPlayer'],
     install_requires=[
         'PyQt5',
@@ -19,7 +19,8 @@ setup(
         'resource/*.png',
         'resource/*.ico',
         'widgets/*.py',
-        'logger/*.py'],
+        'logger/*.py',
+        'dbManager/*.py'],
         },
     entry_points={
         'console_scripts': [
@@ -31,6 +32,6 @@ setup(
     author='cyrbuzz',
     author_email='cyrbuzz@foxmail.com',
     url='https://github.com/HuberTRoy/MusicPlayer',
-    description='A beautiful music player',
+    description='A beautiful music player for everyone. Enjoy yourself~.',
     keywords=['music', 'netease', 'xiami', 'qq', 'player'],
 )
