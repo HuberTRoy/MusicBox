@@ -20,7 +20,7 @@ class ConfigRecommendFrame(QObject):
 
     def setSongs(self, musicInfo):
         self.recommendFrame.singsTable.setRowCount(len(musicInfo))
-        print(musicInfo)
+
         for index, data in enumerate(musicInfo):
             self.musicList.append(data._asdict())
             self.recommendFrame.singsTable.setItem(index, 0, QTableWidgetItem(data.name))
