@@ -1004,7 +1004,7 @@ class Player(QMediaPlayer):
                 musicInfo = self.playList.mediaList.pop(self.currentMedia().canonicalUrl().toString())
                 self.loadRealMusicUrl(musicInfo)
             except:
-                logger.error("尝试重新获取音乐地址出错，音乐信息: {0}".format(musicInfo), exc_info=True)
+                logger.error("尝试重新获取音乐地址出错。", exc_info=True)
                 print('尝试重新获取音乐地址出错，请清空或删除无效的音乐信息后重试。')
 
     @toTask
@@ -1029,6 +1029,7 @@ class Player(QMediaPlayer):
         
         if not data:
             print("获取音乐地址失败，请检查网络后重试。")
+            self.playList.mediaList[url] = musicInfo
             return
 
         url = data[0]['url']

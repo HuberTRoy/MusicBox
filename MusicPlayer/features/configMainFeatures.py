@@ -199,7 +199,7 @@ class ConfigHeader(QObject):
 
         self.header.parent.searchArea.config.setSingsData(songs)
 
-        self.header.parent.config.setTabIndex(4)
+        self.header.parent.config.setTabIndex(5)
 
     def showLoginBox(self):
         self.header.loginBox.open()
