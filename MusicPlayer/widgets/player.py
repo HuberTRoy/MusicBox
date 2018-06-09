@@ -1011,14 +1011,19 @@ class Player(QMediaPlayer):
     def loadRealMusicUrl(self, musicInfo):
         # 如果有个Url出错，比如音乐地址403重新获取下地址。
         musicId = musicInfo.get('music_id')
-        
-        logger.info("网易云歌曲地址失效，尝试重新获取，id号: {0}".format(musicId))
+
+        logger.info("歌曲地址失效，尝试重新获取，id号: {0}".format(musicId))
 
         if not musicId:
             self.playWidgets.nextSing()
             return
 
         future = aAsync(netease.singsUrl, [musicId])
+        
+        musicUrl = musicInfo.get('url')
+        if musicUrl.find('C40000') != -1 or musicUrl.find('qqmusic') != -1:
+            future = aAsync(qqApi.getSongUrl, musicUrl)
+
         data = yield from future
 
         if not data:
