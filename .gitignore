@@ -5,4 +5,7 @@ __pycache__/
 cookies/
 
 # picture cache
-cache/
+cache/# woclass'
+MusicPlayer/logger/running_log.log
+venv/
+.idea/
