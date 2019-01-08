@@ -11,8 +11,8 @@ import urllib.parse
 
 from collections import namedtuple
 
-from apiRequestsBase import HttpRequest, ignored
-from netEaseEncode import encrypted_request, hashlib
+from apis.apiRequestsBase import HttpRequest, ignored
+from apis.netEaseEncode import encrypted_request, hashlib
 
 
 logger = logging.getLogger(__name__)

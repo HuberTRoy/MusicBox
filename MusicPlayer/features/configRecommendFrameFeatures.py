@@ -1,8 +1,8 @@
 __author__ = 'cyrbuzz'
 
-import addition
+from widgets import addition
 
-from base import QObject, QTableWidgetItem
+from widgets.base import QObject, QTableWidgetItem
 
 transTime = addition.itv2time
 

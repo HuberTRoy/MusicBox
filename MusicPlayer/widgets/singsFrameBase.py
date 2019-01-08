@@ -1,9 +1,9 @@
 __author__ = 'cyrbuzz'
 # 方便扩展，抽象成基类。
-from base import (QCursor, QFrame, Qt, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout, 
+from widgets.base import (QCursor, QFrame, Qt, QTabWidget, QTextEdit,  QLabel, QIcon, QPushButton, QHBoxLayout, QVBoxLayout,
                                      QGridLayout, QTableWidgetItem, PicLabel, ScrollArea, TableWidget, VBoxLayout, HBoxLayout, pyqtSignal)
 
-import addition
+from widgets import addition
 
 
 class SingsFrameBase(ScrollArea):

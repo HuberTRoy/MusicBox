@@ -7,7 +7,7 @@ import json
 import logging
 import urllib.parse
 
-from apiRequestsBase import HttpRequest, ignored
+from apis.apiRequestsBase import HttpRequest, ignored
 
 
 logger = logging.getLogger(__name__)

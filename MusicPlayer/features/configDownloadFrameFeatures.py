@@ -11,10 +11,10 @@ try:
 except ImportError:
     print('eyed3没有成功加载或安装，当再次打开时下载的音乐会加载不到！')
 
-from apiRequestsBase import HttpRequest
-from asyncBase import aAsync, toTask
-from base import QFileDialog, QObject, QTableWidgetItem, checkFolder
-from addition import itv2time
+from apis.apiRequestsBase import HttpRequest
+from features.asyncBase import aAsync, toTask
+from widgets.base import QFileDialog, QObject, QTableWidgetItem, checkFolder
+from widgets.addition import itv2time
 
 import logger
 

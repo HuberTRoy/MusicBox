@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
-from network import Requests
+from networks.network import Requests
 
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 __author__ = 'cyrbuzz'
 
-from base import QAction, QIcon, QMenu, QSystemTrayIcon
+from widgets.base import QAction, QIcon, QMenu, QSystemTrayIcon
 
 
 class SystemTray(QSystemTrayIcon):

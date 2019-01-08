@@ -13,16 +13,16 @@ import os
 import sys
 import os.path
 
-myFolder = os.path.split(os.path.realpath(__file__))[0]
-sys.path = [os.path.join(myFolder, 'widgets'),
-os.path.join(myFolder, 'networks'),
-os.path.join(myFolder, 'features'),
-os.path.join(myFolder, 'apis'),
-os.path.join(myFolder, 'logger'),
-os.path.join(myFolder, 'dbManager')
-] + sys.path
-
-os.chdir(myFolder)
+# myFolder = os.path.split(os.path.realpath(__file__))[0]
+# sys.path = [os.path.join(myFolder, 'widgets'),
+# os.path.join(myFolder, 'networks'),
+# os.path.join(myFolder, 'features'),
+# os.path.join(myFolder, 'apis'),
+# os.path.join(myFolder, 'logger'),
+# os.path.join(myFolder, 'dbManager')
+# ] + sys.path
+#
+# os.chdir(myFolder)
 
 import asyncio
 import logging
@@ -33,33 +33,33 @@ import logging
 from quamash import QEventLoop
 
 # widgets
-from base import (QApplication, cacheFolder, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
+from widgets.base import (QApplication, cacheFolder, QDialog, QFrame, QHBoxLayout, HBoxLayout, QIcon, QLabel, QListWidget, QListWidgetItem,
                   QPushButton, PicLabel, QScrollArea, ScrollArea, Qt, QTabWidget, TableWidget, QVBoxLayout, VBoxLayout,
                   QWidget)
-from player import PlayWidgets
-from native import NativeMusic
-from downloadFrame import DownloadFrame
-from addition import SearchLineEdit
-from systemTray import SystemTray
-from loginFrames import LoginBox
-from singsFrameBase import DetailSings
-from netEaseSingsFrames import  NetEaseSingsArea, NetEaseSearchResultFrame
-from xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
-from qqSingsFrames import QQSingsArea, QQSearchResultFrame
-from recommendFrames import RecommendFrame
+from widgets.player import PlayWidgets
+from widgets.native import NativeMusic
+from widgets.downloadFrame import DownloadFrame
+from widgets.addition import SearchLineEdit
+from widgets.systemTray import SystemTray
+from widgets.loginFrames import LoginBox
+from widgets.singsFrameBase import DetailSings
+from widgets.netEaseSingsFrames import NetEaseSingsArea, NetEaseSearchResultFrame
+from widgets.xiamiSingsFrames import XiamiSingsArea, XiamiSearchResultFrame
+from widgets.qqSingsFrames import QQSingsArea, QQSearchResultFrame
+from widgets.recommendFrames import RecommendFrame
 
 # features
-from configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
+from features.configMainFeatures import (ConfigWindow, ConfigHeader, ConfigNavigation, ConfigMainContent, ConfigSearchArea,
                                 ConfigSystemTray, ConfigDetailSings)
-from configNativeFeatures import ConfigNative
-from configDownloadFrameFeatures import ConfigDownloadFrame
-from configNeteaseFeatures import ConfigNetEase
-from configXiamiFeatures import ConfigXiami
-from configQQFeatures import ConfigQQ
-from configRecommendFrameFeatures import ConfigRecommendFrame
+from features.configNativeFeatures import ConfigNative
+from features.configDownloadFrameFeatures import ConfigDownloadFrame
+from features.configNeteaseFeatures import ConfigNetEase
+from features.configXiamiFeatures import ConfigXiami
+from features.configQQFeatures import ConfigQQ
+from features.configRecommendFrameFeatures import ConfigRecommendFrame
 
 # logger
-import logger
+from logger import logger
 
 
 logger.loggerConfig('logger/running_log.log')

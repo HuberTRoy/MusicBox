@@ -9,8 +9,8 @@ try:
 except ImportError:
     print('eyed3没有成功加载或安装，请不要使用本地音乐功能！')
 
-from base import QFileDialog, QObject, QTableWidgetItem
-from addition import itv2time
+from widgets.base import QFileDialog, QObject, QTableWidgetItem
+from widgets.addition import itv2time
 
 
 def getAllFolder(topFolder):

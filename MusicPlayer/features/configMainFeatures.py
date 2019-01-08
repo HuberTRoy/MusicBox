@@ -7,16 +7,16 @@ import random
 import asyncio
 import pickle
 
-import addition
+from widgets import addition
 
-from apiRequestsBase import HttpRequest
-from asyncBase import aAsync, toTask
-from base import QAction, QMenu, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem, QCursor, pyqtSignal
-from singsFrameBase import PlaylistButton
-from netEaseApi import netease
-from xiamiApi import xiami
-from qqApi import qqApi
-from userInfoManager import UserDbManager
+from apis.apiRequestsBase import HttpRequest
+from features.asyncBase import aAsync, toTask
+from widgets.base import QAction, QMenu, checkFolder, QIcon, QLabel, QObject, RequestThread, QTableWidgetItem, QCursor, pyqtSignal
+from widgets.singsFrameBase import PlaylistButton
+from apis.netEaseApi import netease
+from apis.xiamiApi import xiami
+from apis.qqApi import qqApi
+from dbManager.userInfoManager import UserDbManager
 
 
 transTime = addition.itv2time

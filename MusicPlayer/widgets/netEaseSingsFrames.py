@@ -1,6 +1,6 @@
 __author__ = 'cyrbuzz'
 """不要单独运行。"""
-from singsFrameBase import SingsFrameBase, SingsSearchResultFrameBase
+from widgets.singsFrameBase import SingsFrameBase, SingsSearchResultFrameBase
 
 
 # 一个Tab，网易云的全部歌单。

@@ -1,7 +1,7 @@
 import os
 import os.path
 
-from dbManager import DbManager
+from dbManager.dbManager import DbManager
 
 home = os.path.expanduser('~')
 

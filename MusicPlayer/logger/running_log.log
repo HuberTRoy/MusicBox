@@ -1,0 +1,12 @@
+INFO music  70 当前图片缓存目录: C:\Users\woclass\Desktop\GitHub\MusicBox\MusicPlayer\cache
+INFO configDownloadFrameFeatures  82 下载目标变更C:\Users\woclass\Desktop\GitHub\MusicBox\MusicPlayer\downloads
+INFO configDownloadFrameFeatures  82 下载目标变更C:\Users\woclass\Desktop\GitHub\MusicBox\MusicPlayer\downloads
+INFO netEaseApi  56 进行网易云Url请求, args: ('http://music.163.com/api/playlist/list?cat=%E5%85%A8%E9%83%A8%E6%AD%8C%E5%8D%95&type=all&order=all&offset=0&total=true&limit=30&index=1',), kwargs: {'method': 'GET', 'cookies': {'appver': '2.1.2.184499', 'os': 'pc', 'channel': 'netease'}}
+ERROR __init__  589 Task exception was never retrieved
+future: <Task finished coro=<setUserData() done, defined at C:\Users\woclass\Desktop\GitHub\MusicBox\MusicPlayer\features\configMainFeatures.py:239> exception=KeyError('profile',)>
+Traceback (most recent call last):
+  File "C:\Users\woclass\Desktop\GitHub\MusicBox\MusicPlayer\features\configMainFeatures.py", line 241, in setUserData
+    profile = self.loginInfor['profile']
+KeyError: 'profile'
+INFO xiamiApi  55 进行xiami Url请求, args: ('http://api.xiami.com/web?v=2.0&app_key=1&_ksTS=1459927525542_91&page=1&limit=30&callback=jsonp92&r=collect/recommend',), kwargs: {'method': 'GET'}
+INFO qqApi  43 进行QQ Url请求, args: ('https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg?rnd=0.5136307078685405&g_tk=5381&jsonpCallback=getPlaylist&loginUin=0&hostUin=0&format=jsonp&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0&categoryId=10000000&sortId=5&sin=30&ein=29',), kwargs: {'method': 'GET', 'headers': {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'Connection': 'keep-alive', 'Pragma': 'no-cache', 'Cache-Control': 'no-cache', 'Accept-Encoding': 'gzip,deflate,sdch', 'Accept-Language': 'zh-CN,zh;q=0.8', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36', 'Host': 'c.y.qq.com', 'Referer': 'https://y.qq.com/portal/playlist.html'}}

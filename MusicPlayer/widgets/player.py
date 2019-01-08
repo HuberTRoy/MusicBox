@@ -23,18 +23,19 @@ from PyQt5.QtGui import QBrush, QColor, QCursor, QPixmap, QFont, QPainter, QPen,
 from PyQt5.QtCore import QUrl, Qt, QObject, QPropertyAnimation, QPoint, QRect, QEasingCurve, QAbstractAnimation, QTime, QTimer, QRegExp, QRectF
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaMetaData, QMediaPlaylist
 
-import addition
-from base import (blur, checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox, 
+from widgets import addition
+from widgets.base import (blur, checkFolder, cacheFolder, checkOneFolder, centerHTML, HBoxLayout, HStretchBox,
                                      pickle, PicLabel, pyqtSignal,  QTextEdit,  ScrollArea, VBoxLayout)
-# ../features
-from asyncBase import aAsync, toTask
-# ../apis
-from netEaseApi import netease
-from xiamiApi import xiami
-from qqApi import qqApi
-
 # support desktop lyric.
-from desktopLyricButtons import *
+from widgets.desktopLyricButtons import *
+
+# ../features
+from features.asyncBase import aAsync, toTask
+# ../apis
+from apis.netEaseApi import netease
+from apis.xiamiApi import xiami
+from apis.qqApi import qqApi
+
 
 def _fromUtf8(s):
     return s

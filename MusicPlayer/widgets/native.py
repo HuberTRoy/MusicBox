@@ -1,7 +1,7 @@
 """本地音乐的界面，逻辑。"""
 __author__ = 'cyrbuzz'
 
-from base import (ScrollArea, QLabel, QFrame, QVBoxLayout, QPushButton, QHBoxLayout, QTableWidget,
+from widgets.base import (ScrollArea, QLabel, QFrame, QVBoxLayout, QPushButton, QHBoxLayout, QTableWidget,
                   QAbstractItemView)
 
 

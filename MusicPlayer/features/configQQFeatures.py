@@ -1,6 +1,6 @@
-from qqApi import qqApi
+from apis.qqApi import qqApi
 
-from configNeteaseFeatures import ConfigNetEase
+from features.configNeteaseFeatures import ConfigNetEase
 
 
 class ConfigQQ(ConfigNetEase):

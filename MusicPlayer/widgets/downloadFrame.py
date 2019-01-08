@@ -1,6 +1,6 @@
 __author__ = 'cyrbuzz'
 
-from base import (ScrollArea, QLabel, QFrame, QVBoxLayout, QPushButton, QHBoxLayout, QTableWidget,
+from widgets.base import (ScrollArea, QLabel, QFrame, QVBoxLayout, QPushButton, QHBoxLayout, QTableWidget,
                   QAbstractItemView)
 
 

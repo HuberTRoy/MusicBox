@@ -1,7 +1,7 @@
 __author__ = 'cyrbuzz'
 """制作登陆区盒子。"""
 
-from base import QDialog, QFrame, HBoxLayout, HStretchBox, QLabel, QLineEdit, QPushButton, Qt, VBoxLayout, RequestThread
+from widgets.base import QDialog, QFrame, HBoxLayout, HStretchBox, QLabel, QLineEdit, QPushButton, Qt, VBoxLayout, RequestThread
 
 
 class InputLine(QLineEdit):

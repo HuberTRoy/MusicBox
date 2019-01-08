@@ -5,20 +5,19 @@ __author__ = 'cyrbuzz'
 import os
 import re
 
-import network
-import addition
+from networks import network
+from widgets import addition
 
-from base import (QAction, QCursor, QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread, 
+from widgets.base import (QAction, QCursor, QFrame, QLabel, QObject, QPixmap, QRunnable, RequestThread,
                                      QMenu, QTableWidgetItem, QThreadPool, QueueObject, makeMd5, pyqtSignal)
-from netEaseApi import netease
-from singsFrameBase import OneSing, PlaylistButton
+from widgets.singsFrameBase import OneSing, PlaylistButton
 
 # ../features
-from asyncBase import aAsync, toTask
+from features.asyncBase import aAsync, toTask
 
 # ../apis
-from netEaseApi import netease
-from apiRequestsBase import HttpRequest
+from apis.netEaseApi import netease
+from apis.apiRequestsBase import HttpRequest
 
 myRequests = HttpRequest()
 

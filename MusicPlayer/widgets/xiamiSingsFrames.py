@@ -1,6 +1,6 @@
 __author__ = 'cyrbuzz'
 
-from singsFrameBase import SingsFrameBase, SingsSearchResultFrameBase
+from widgets.singsFrameBase import SingsFrameBase, SingsSearchResultFrameBase
 
 
 class XiamiSingsArea(SingsFrameBase):
