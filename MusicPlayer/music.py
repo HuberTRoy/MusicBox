@@ -208,7 +208,8 @@ class Window(QWidget):
         self.header.config.saveCookies()
         self.playWidgets.saveCookies()
         self.downloadFrame.config.saveCookies()
-
+        self.nativeMusic.config.saveCookies()
+        
         # 关闭并保存数据库
         self.db.commitAndClose()
 

@@ -2,6 +2,7 @@ __author__ = 'cyrbuzz'
 
 import os
 import glob
+import pickle
 import os.path
 
 try:
@@ -9,7 +10,7 @@ try:
 except ImportError:
     print('eyed3没有成功加载或安装，请不要使用本地音乐功能！')
 
-from base import QFileDialog, QObject, QTableWidgetItem
+from base import QFileDialog, QObject, QTableWidgetItem, checkFolder
 from addition import itv2time
 
 
@@ -31,6 +32,8 @@ def getAllFolder(topFolder):
 
 
 class ConfigNative(QObject):
+    loadLocalFolder = 'cookies/native/local.cks'
+    allCookiesFolder = [loadLocalFolder]
 
     def __init__(self, native):
         super(ConfigNative, self).__init__()
@@ -40,6 +43,7 @@ class ConfigNative(QObject):
         self.folder = []
 
         self.bindConnect()
+        self.loadCookies()
 
     def bindConnect(self):
         self.native.selectButton.clicked.connect(self.selectFolder)
@@ -53,8 +57,13 @@ class ConfigNative(QObject):
         else:
             self.folder.append(selectFolder)
 
-            mediaFiles = glob.glob(selectFolder+'/*.mp3')
-            allFolder = getAllFolder(selectFolder)
+        self.loadMusic()
+
+    def loadMusic(self):
+
+        for folder in self.folder:
+            mediaFiles = glob.glob(folder+'/*.mp3')
+            allFolder = getAllFolder(folder)
             for i in allFolder:
                 mediaFiles.extend(glob.glob(i+'/*.mp3'))
 
@@ -74,7 +83,7 @@ class ConfigNative(QObject):
                     author = music.tag.artist
 
                     if not name:
-                        filePath = i[1].replace(selectFolder, '')
+                        filePath = i[1].replace(folder, '')
                         name = filePath[1:][:-4]
                     if not author:
                         author = ''  
@@ -82,7 +91,7 @@ class ConfigNative(QObject):
                     try:
                         # TODO
                         # if more folders exist.
-                        filePath = i[1].replace(selectFolder, '')
+                        filePath = i[1].replace(folder, '')
                         name = filePath[1:][:-4]
                     except Exception as e:
                         name = i[1]
@@ -103,3 +112,15 @@ class ConfigNative(QObject):
         data = self.musicList[currentRow]
 
         self.native.parent.playWidgets.setPlayerAndPlayList(data)
+
+    @checkFolder(allCookiesFolder)
+    def saveCookies(self):
+        with open(self.loadLocalFolder, 'wb') as f:
+            pickle.dump(self.folder, f)
+
+    @checkFolder(allCookiesFolder)
+    def loadCookies(self):
+        with open(self.loadLocalFolder, 'rb') as f:
+            self.folder = pickle.load(f)
+
+        self.loadMusic()
