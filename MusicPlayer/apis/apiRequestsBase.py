@@ -58,10 +58,10 @@ def requestsExceptionFilter(func):
             try:
                 return func(*args, **kwargs)
             except:
-                logger.error("retry function {0} args {1}, kwargs {2} times:{3}".format(func, args, kwargs, i))
+                logger.error("retry function {0} \n args {1},\n kwargs {2} \n times:{3}".format(func, args, kwargs, i), exc_info=True)
                 continue
         else:
-            logger.error("function {0} is wrong. args {1}, kwargs {2}".format(func, args, kwargs))
+            logger.error("function {0} is wrong. args {1},\n kwargs {2}".format(func, args, kwargs), exc_info=True)
             return False
     
     return _filter
@@ -75,7 +75,7 @@ class HttpRequest(object):
     # cookies也可以方便管理。
     
     # TCP重传需要3秒。
-    default_timeout = 3.05
+    default_timeout = 10
     
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -94,7 +94,7 @@ class HttpRequest(object):
         self.headers = self.headers.copy()
 
     @requestsExceptionFilter
-    def httpRequest(self, action, method="GET", add=None, data=None, headers=None, cookies='',\
+    def httpRequest(self, action, method="GET", params=None, data=None, headers=None, cookies='',\
                     timeout=default_timeout, urlencode='utf-8', is_json=True):
         """
             默认以get方式请求，
@@ -106,8 +106,8 @@ class HttpRequest(object):
             headers = self.headers
 
         if method.upper() == 'GET':
-            if add:
-                html = self.sessions.get(action, params=add, headers=headers, cookies=cookies, timeout=timeout)
+            if params:
+                html = self.sessions.get(action, params=params, headers=headers, cookies=cookies, timeout=timeout)
             else:
                 html = self.sessions.get(action, headers=headers, cookies=cookies, timeout=timeout)
             html.encoding = urlencode
