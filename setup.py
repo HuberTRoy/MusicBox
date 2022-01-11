@@ -7,7 +7,7 @@ setup(
     install_requires=[
         'PyQt5',
         'pycryptodome',
-        'eyed3==0.8.0',
+        'eyed3==0.9.6',
         'quamash',
         'requests'
     ],
